@@ -67,6 +67,9 @@ function ScrollManager() {
 function AppLayout() {
   const location = useLocation();
   const isAuthPage = location.pathname === '/auth';
+  const isChatPage = location.pathname === '/chat';
+  const hideFooter = isAuthPage || isChatPage;
+
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isCommandMenuOpen, setIsCommandMenuOpen] = useState(false);
   const [quoteModal, setQuoteModal] = useState<{ isOpen: boolean; quote: string; source: string }>({
@@ -74,6 +77,33 @@ function AppLayout() {
     quote: '',
     source: ''
   });
+
+  // Manage Lenis smooth scrolling (destroy on /chat to prevent lagging)
+  useEffect(() => {
+    if (isChatPage) return;
+
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 1,
+      touchMultiplier: 2,
+    });
+
+    let rafId: number;
+    function raf(time: number) {
+      lenis.raf(time);
+      rafId = requestAnimationFrame(raf);
+    }
+    rafId = requestAnimationFrame(raf);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      lenis.destroy();
+    };
+  }, [isChatPage]);
 
   useEffect(() => {
     const handleOpenCommand = () => setIsCommandMenuOpen(true);
@@ -94,19 +124,18 @@ function AppLayout() {
 
   return (
     <div className="bg-dharma-ink min-h-screen text-dharma-ivory font-sans relative">
-      {!isAuthPage && <Navbar onOpenProfile={() => setIsProfileOpen(true)} />}
+      {!hideFooter && <Navbar onOpenProfile={() => setIsProfileOpen(true)} />}
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/chat" element={<ChatWorkspacePage />} />
           <Route path="/daily-card" element={<DailyCardPage />} />
-          <Route path="/reading-room" element={<ReadingRoom />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/auth" element={<AuthPage />} />
         </Routes>
       </main>
-      {!isAuthPage && <Footer />}
-      {!isAuthPage && <AmbientSoundscape />}
+      {!hideFooter && <Footer />}
+      {!hideFooter && <AmbientSoundscape />}
       <ProfileDrawer isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
       <CommandMenu isOpen={isCommandMenuOpen} onClose={() => setIsCommandMenuOpen(false)} />
       <QuoteCardModal
@@ -120,27 +149,6 @@ function AppLayout() {
 }
 
 export default function App() {
-  useEffect(() => {
-    // Don't run Lenis on /chat - it's a fullscreen app workspace with its own scroll containers
-    if (window.location.pathname === '/chat') return;
-
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: 'vertical',
-      gestureOrientation: 'vertical',
-      smoothWheel: true,
-      wheelMultiplier: 1,
-      touchMultiplier: 2,
-    });
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-    requestAnimationFrame(raf);
-    return () => lenis.destroy();
-  }, []);
-
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID'}>
       <BrowserRouter>

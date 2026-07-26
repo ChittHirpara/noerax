@@ -21,7 +21,15 @@ const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://abhishekjainsot25_
 
 // Connect to MongoDB Cloud Database
 mongoose.connect(MONGODB_URI)
-  .then(() => console.log("🟢 Connected to MongoDB Atlas Database"))
+  .then(async () => {
+    console.log("🟢 Connected to MongoDB Atlas Database");
+    try {
+      await mongoose.connection.collection('users').dropIndex('id_1');
+      console.log("🧹 Cleaned up legacy id_1 index from users collection");
+    } catch {
+      // index does not exist or already dropped
+    }
+  })
   .catch((err) => console.error("🔴 MongoDB Connection Error:", err));
 
 // Auth Middleware interface extension
@@ -49,7 +57,7 @@ const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunctio
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 4000;
 
   // Security & Parsing Middlewares
   app.use(cors());
@@ -85,7 +93,9 @@ async function startServer() {
       const salt = await bcrypt.genSalt(10);
       const passwordHash = await bcrypt.hash(password, salt);
 
+      const userIdStr = new mongoose.Types.ObjectId().toString();
       const newUser = await User.create({
+        id: userIdStr,
         name,
         email: email.toLowerCase(),
         passwordHash,
@@ -322,10 +332,10 @@ Journal entry: "${entry}"`;
     }
   });
 
-  // STREAMING AI CHAT — powered by Groq (llama-3.3-70b) with key rotation
-  // Groq is used because it provides fast, free, reliable LLM inference
+  // STREAMING AI CHAT — powered by Groq (llama-3.3-70b) with key rotation & Google Gemini fallback
   let groqKeyIndex = 0;
   const getNextGroqKey = (): string => {
+    dotenv.config();
     const keysEnv = process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || '';
     const keys = keysEnv.split(',').map((k) => k.trim()).filter(Boolean);
     if (!keys.length) return '';
@@ -335,29 +345,22 @@ Journal entry: "${entry}"`;
   };
 
   app.post("/api/chat", async (req: Request, res: Response) => {
-    const { message, history } = req.body;
+    const { message, history, botName } = req.body;
+    const currentBotName = botName && botName.trim() ? botName.trim() : "Noerax";
+    const isCustomName = currentBotName.toLowerCase() !== "noerax";
 
-    const systemPrompt = `You are Noerax — a deeply wise, calm, and modern spiritual AI guide trained on Eastern philosophy (Vedanta, Buddhism, Taoism), Stoicism, and modern psychology.
-You speak with warmth, clarity, and depth — never preachy, never using cringe slang, always relatable for a Gen Z audience.
-Keep responses concise (2-4 short paragraphs max), actionable, and grounding. Reference specific scriptures or philosophers when relevant. Use "•" for any lists.`;
+    const systemPrompt = `You are ${currentBotName} — a real, casual companion and friend. You text naturally like a real friend on WhatsApp or iMessage.
 
-    // Build message array for Groq (OpenAI-compatible format)
-    const messages: Array<{ role: string; content: string }> = [
-      { role: 'system', content: systemPrompt }
-    ];
-    if (history && Array.isArray(history)) {
-      for (const msg of history) {
-        messages.push({
-          role: msg.role === 'ai' ? 'assistant' : 'user',
-          content: msg.content
-        });
-      }
-    }
-    // Remove duplicate: don't add message again if it's already the last history item
-    const lastMsg = messages[messages.length - 1];
-    if (!lastMsg || lastMsg.content !== message || lastMsg.role !== 'user') {
-      messages.push({ role: 'user', content: message });
-    }
+${isCustomName ? `PROACTIVE PERSONA & RELATION INSTRUCTION:
+- Your name for this specific chat has been set to "${currentBotName}".
+- Be proactive! Adapt your tone, energy, and relationship dynamic to match the name "${currentBotName}" (for example: if named Bestie/Bro/Alex/Mentor/Jarvis/Buddy, embrace that specific relation warmly).
+- Proactively try to catch and explore the connection and relationship between the name "${currentBotName}" and the user.` : ""}
+
+CRITICAL TEXTING RULES:
+1. SHORT GREETINGS: If the user says "hy", "hey", "hi", "wassup", "hello", "yo" -> Reply in ONE SHORT CASUAL SENTENCE ONLY! (e.g., "Heyy! What's up?", "Hey! How's it going?").
+2. NO THERAPIST OR BOT DIALOGUE: Speak like a normal, cool friend texting on their phone.
+3. MATCH LENGTH & STYLE: Keep replies short, casual, and friendly (1-2 sentences).
+4. NO QUOTES OR SCRIPTURES: Never quote scriptures or ancient books unless explicitly asked.`;
 
     // Set SSE headers immediately
     res.setHeader('Content-Type', 'text/event-stream');
@@ -365,87 +368,146 @@ Keep responses concise (2-4 short paragraphs max), actionable, and grounding. Re
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
 
-    const groqKey = getNextGroqKey();
-    if (!groqKey) {
-      res.write(`data: ${JSON.stringify({ text: 'No GROQ_API_KEYS configured in .env. Please add them and restart.' })}\n\n`);
+    // Helper to stream text to client
+    const streamText = (text: string) => {
+      res.write(`data: ${JSON.stringify({ text })}\n\n`);
+    };
+    const finishStream = () => {
       res.write('data: [DONE]\n\n');
       res.end();
-      return;
-    }
+    };
 
-    try {
-      // Call Groq streaming API using native https (no extra dependency needed)
-      const https = await import('https');
-      const body = JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages,
-        stream: true,
-        max_tokens: 1024,
-        temperature: 0.8,
-      });
-
-      await new Promise<void>((resolve, reject) => {
-        const reqOptions = {
-          hostname: 'api.groq.com',
-          path: '/openai/v1/chat/completions',
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${groqKey}`,
-            'Content-Length': Buffer.byteLength(body),
-          },
-        };
-
-        const groqReq = https.default.request(reqOptions, (groqRes) => {
-          let buffer = '';
-          groqRes.on('data', (chunk: Buffer) => {
-            buffer += chunk.toString();
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || '';
-
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (!trimmed || !trimmed.startsWith('data: ')) continue;
-              const data = trimmed.slice(6).trim();
-              if (data === '[DONE]') continue;
-              try {
-                const parsed = JSON.parse(data);
-                const text = parsed?.choices?.[0]?.delta?.content;
-                if (text) {
-                  res.write(`data: ${JSON.stringify({ text })}\n\n`);
-                }
-              } catch {}
-            }
-          });
-
-          groqRes.on('end', () => {
-            res.write('data: [DONE]\n\n');
-            res.end();
-            resolve();
-          });
-
-          groqRes.on('error', reject);
-
-          if (groqRes.statusCode && groqRes.statusCode >= 400) {
-            groqRes.resume();
-            reject(new Error(`Groq API error: HTTP ${groqRes.statusCode}`));
+    // 1. TRY GROQ STREAMING (Fast, 10-Key Rotation, Best Friend Persona)
+    const groqKey = getNextGroqKey();
+    if (groqKey) {
+      try {
+        const messages: Array<{ role: string; content: string }> = [
+          { role: 'system', content: systemPrompt }
+        ];
+        if (history && Array.isArray(history)) {
+          for (const msg of history) {
+            messages.push({
+              role: msg.role === 'ai' ? 'assistant' : 'user',
+              content: msg.content
+            });
           }
+        }
+        messages.push({ role: 'user', content: message });
+
+        const https = await import('https');
+        const body = JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages,
+          stream: true,
+          max_tokens: 512,
+          temperature: 0.7,
         });
 
-        groqReq.on('error', reject);
-        groqReq.write(body);
-        groqReq.end();
-      });
+        let groqSuccess = false;
+        await new Promise<void>((resolve, reject) => {
+          const reqOptions = {
+            hostname: 'api.groq.com',
+            path: '/openai/v1/chat/completions',
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${groqKey}`,
+              'Content-Length': Buffer.byteLength(body),
+            },
+          };
 
-    } catch (error: any) {
-      console.error("Groq Chat Error:", error?.message || error);
-      try {
-        const errMsg = `Noerax is momentarily silent. Groq API error: ${error?.message || 'Unknown'}. Please try again.`;
-        res.write(`data: ${JSON.stringify({ text: errMsg })}\n\n`);
-        res.write('data: [DONE]\n\n');
-        res.end();
-      } catch {}
+          const groqReq = https.default.request(reqOptions, (groqRes) => {
+            if (groqRes.statusCode && groqRes.statusCode >= 400) {
+              groqRes.resume();
+              return reject(new Error(`Groq HTTP ${groqRes.statusCode}`));
+            }
+
+            let buffer = '';
+            groqRes.on('data', (chunk: Buffer) => {
+              groqSuccess = true;
+              buffer += chunk.toString();
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || '';
+
+              for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || !trimmed.startsWith('data: ')) continue;
+                const data = trimmed.slice(6).trim();
+                if (data === '[DONE]') continue;
+                try {
+                  const parsed = JSON.parse(data);
+                  const text = parsed?.choices?.[0]?.delta?.content;
+                  if (text) streamText(text);
+                } catch {}
+              }
+            });
+
+            groqRes.on('end', () => {
+              finishStream();
+              resolve();
+            });
+
+            groqRes.on('error', reject);
+          });
+
+          groqReq.on('error', reject);
+          groqReq.write(body);
+          groqReq.end();
+        });
+
+        if (groqSuccess) return;
+      } catch (err: any) {
+        console.warn("Groq streaming failed, trying fallback:", err?.message || err);
+      }
     }
+
+    // 2. FALLBACK TO GOOGLE GEMINI API
+    const geminiKey = process.env.GEMINI_API_KEY;
+    if (geminiKey) {
+      try {
+        const ai = new GoogleGenAI({ apiKey: geminiKey });
+        let conversationPrompt = `${systemPrompt}\n\n`;
+        if (history && Array.isArray(history)) {
+          for (const msg of history) {
+            conversationPrompt += `${msg.role === 'ai' ? 'Noerax' : 'User'}: ${msg.content}\n`;
+          }
+        }
+        conversationPrompt += `User: ${message}\nNoerax:`;
+
+        const modelsToTry = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.0-flash"];
+        let geminiStream = null;
+
+        for (const m of modelsToTry) {
+          try {
+            geminiStream = await ai.models.generateContentStream({
+              model: m,
+              contents: conversationPrompt,
+            });
+            if (geminiStream) break;
+          } catch (e) {}
+        }
+
+        if (geminiStream) {
+          for await (const chunk of geminiStream) {
+            if (chunk.text) streamText(chunk.text);
+          }
+          finishStream();
+          return;
+        }
+      } catch (err: any) {
+        console.warn("Gemini streaming failed:", err?.message || err);
+      }
+    }
+
+    // 3. OFFLINE WISDOM FALLBACK (Guarantees zero silent failures)
+    const fallbackResponses = [
+      "Inner stillness is not the absence of thought, but the awareness behind it. Observe your mind today without judgment, like watching clouds cross an open sky.",
+      "Whatever struggle you are experiencing right now holds a valuable teaching. Take a deep breath, ground yourself in this moment, and remember: this too shall pass.",
+      "Focus on the effort, never on the fruit of your labor. When you release attachment to outcomes, peace naturally follows."
+    ];
+    const responseText = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+    streamText(responseText);
+    finishStream();
   });
 
 

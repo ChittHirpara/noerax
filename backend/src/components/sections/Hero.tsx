@@ -128,7 +128,7 @@ export function Hero() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/chat')}
               className="relative inline-flex items-center gap-3 px-8 py-4 bg-dharma-flame text-white rounded-full text-lg font-semibold shadow-lg shadow-dharma-flame/30 transition-shadow hover:shadow-dharma-flame/50 hover:shadow-xl z-10 cursor-pointer"
             >
               Begin Journey <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

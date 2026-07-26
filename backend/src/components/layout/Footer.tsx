@@ -154,7 +154,7 @@ export function Footer() {
             },
             {
               title: "Resources",
-              links: ["The Shop", "Journal", "Ancient Texts", "Meditation Guide"]
+              links: ["Journal", "Meditation Guide"]
             },
             {
               title: "Company",

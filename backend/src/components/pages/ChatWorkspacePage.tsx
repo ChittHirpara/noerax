@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Plus, MessageSquare, Trash2, ArrowLeft, Send, Sparkles, 
   Mic, MicOff, Volume2, VolumeX, Copy, Check, Maximize2, Minimize2, 
-  Search, PanelLeftClose, PanelLeft, Bot, User, RotateCcw
+  Search, PanelLeftClose, PanelLeft, Bot, User, RotateCcw, Edit2
 } from 'lucide-react';
 import noeraxLogo from '../../assets/noerax-logo.png';
 
@@ -18,6 +18,7 @@ interface Message {
 interface ChatSession {
   id: string;
   title: string;
+  botName?: string;
   createdAt: string;
   messages: Message[];
 }
@@ -25,7 +26,7 @@ interface ChatSession {
 const DEFAULT_WELCOME: Message = {
   id: 'msg-welcome',
   role: 'ai',
-  content: 'Namaste. I am Noerax — your guide through ancient wisdom and modern clarity.\n\nWhat is weighing on your mind today? Speak freely.',
+  content: 'Hey there! I am Noerax — your AI best friend and companion. 💫\n\nI am here to listen, support you, and bring positivity to your day. What is on your mind right now? Speak freely!',
   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 };
 
@@ -52,6 +53,8 @@ export function ChatWorkspacePage() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isEditingBotName, setIsEditingBotName] = useState(false);
+  const [botNameInput, setBotNameInput] = useState('');
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const recognitionRef = useRef<any>(null);
@@ -244,7 +247,7 @@ export function ChatWorkspacePage() {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: promptText, history: historyPayload })
+        body: JSON.stringify({ message: promptText, history: historyPayload, botName: activeSession?.botName || 'Noerax' })
       });
 
       if (!response.ok || !response.body) throw new Error(`AI stream failed: ${response.status}`);
@@ -338,14 +341,105 @@ export function ChatWorkspacePage() {
     }
   };
 
+  // Handle renaming bot for current chat and trigger proactive response
+  const handleSaveBotName = async (newNameToSave?: string) => {
+    setIsEditingBotName(false);
+    const targetName = (newNameToSave !== undefined ? newNameToSave : botNameInput).trim();
+    if (!targetName || !activeSession) return;
+    const currentName = activeSession.botName || 'Noerax';
+    if (targetName === currentName) return;
+
+    // 1. Save new bot name to active session state
+    const updatedSessions = sessions.map((s) =>
+      s.id === activeSession.id ? { ...s, botName: targetName } : s
+    );
+    saveSessionsToStorage(updatedSessions);
+
+    // 2. Trigger a proactive response from the renamed bot!
+    setIsLoading(true);
+    try {
+      const promptText = `[PROACTIVE NOTICE: The user just renamed you from "${currentName}" to "${targetName}". Introduce yourself as "${targetName}", express excitement about your new name, and proactively ask what inspired this name or what role/relationship you play for them!]`;
+      const historyPayload = activeSession.messages.map((m) => ({ role: m.role, content: m.content }));
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: promptText,
+          history: historyPayload,
+          botName: targetName
+        })
+      });
+
+      if (!response.ok || !response.body) throw new Error('Failed to fetch proactive response');
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let aiText = '';
+      const botMsgId = `msg-ai-${Date.now()}`;
+      const placeholderMsg: Message = {
+        id: botMsgId,
+        role: 'ai',
+        content: '',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === activeSession.id
+            ? { ...s, botName: targetName, messages: [...s.messages, placeholderMsg] }
+            : s
+        )
+      );
+      setIsLoading(false);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6).trim();
+            if (data === '[DONE]') break;
+
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.text) {
+                aiText += parsed.text;
+                setSessions((prev) => {
+                  const updated = prev.map((s) =>
+                    s.id === activeSession.id
+                      ? {
+                          ...s,
+                          botName: targetName,
+                          messages: s.messages.map((m) => (m.id === botMsgId ? { ...m, content: aiText } : m))
+                        }
+                      : s
+                  );
+                  try { localStorage.setItem('noerax_chat_sessions', JSON.stringify(updated)); } catch {}
+                  return updated;
+                });
+              }
+            } catch (e) {}
+          }
+        }
+      }
+      setTimeout(() => scrollToBottom(), 50);
+    } catch (err) {
+      console.error(err);
+      setIsLoading(false);
+    }
+  };
+
   const filteredSessions = sessions.filter((s) =>
     s.title.toLowerCase().includes(sessionSearch.toLowerCase())
   );
 
   return (
-    <div className={`min-h-screen bg-dharma-ink font-sans text-dharma-ivory flex overflow-hidden ${
-      isFullscreen ? 'fixed inset-0 z-50 pt-0' : 'pt-20'
-    }`}>
+    <div className="h-screen w-screen bg-dharma-ink font-sans text-dharma-ivory flex overflow-hidden fixed inset-0 z-40">
 
       {/* ── LEFT SIDEBAR (Past Chats History & New Chat) ── */}
       <AnimatePresence mode="wait">
@@ -422,12 +516,17 @@ export function ChatWorkspacePage() {
                           : 'hover:bg-dharma-ink-3/60 text-dharma-ivory-dim border border-transparent'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5 overflow-hidden">
+                      <div className="flex items-center gap-2.5 overflow-hidden flex-1 mr-2">
                         <MessageSquare className={`w-4 h-4 shrink-0 ${isActive ? 'text-dharma-flame' : 'text-dharma-ivory-dim'}`} />
-                        <div className="truncate">
-                          <h4 className="text-xs font-semibold truncate">{session.title}</h4>
-                          <span className="text-[10px] text-dharma-ivory-dim/60 block">
-                            {new Date(session.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                        <div className="truncate flex-1">
+                          <div className="flex items-center justify-between gap-1">
+                            <h4 className="text-xs font-semibold truncate">{session.title}</h4>
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-dharma-flame/20 text-dharma-flame border border-dharma-flame/40 font-semibold shrink-0">
+                              {session.botName || 'Noerax'}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-dharma-ivory-dim/70 block mt-0.5">
+                            {new Date(session.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })} • {session.botName || 'Noerax'}
                           </span>
                         </div>
                       </div>
@@ -472,11 +571,44 @@ export function ChatWorkspacePage() {
             )}
 
             <div>
-              <h2 className="font-serif font-semibold text-lg text-dharma-ivory flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-dharma-flame" />
-                {activeSession?.title || 'Noerax AI Sanctuary Workspace'}
-              </h2>
-              <p className="text-[11px] text-dharma-ivory-dim">Ancient wisdom & modern guidance streaming live</p>
+              <div className="flex items-center gap-2">
+                <h2 className="font-serif font-semibold text-lg text-dharma-ivory flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-dharma-flame" />
+                  {activeSession?.title || 'Chat Workspace'}
+                </h2>
+
+                {/* Dynamic Bot Name Editor Badge */}
+                <div className="flex items-center gap-1.5 ml-2 bg-dharma-ink-3/90 border border-dharma-line-dark px-2.5 py-1 rounded-full text-xs shadow-sm">
+                  <Bot className="w-3.5 h-3.5 text-dharma-flame" />
+                  {isEditingBotName ? (
+                    <input
+                      type="text"
+                      value={botNameInput}
+                      onChange={(e) => setBotNameInput(e.target.value)}
+                      onBlur={() => handleSaveBotName()}
+                      onKeyDown={(e) => { if (e.key === 'Enter') handleSaveBotName(); }}
+                      autoFocus
+                      placeholder="Name bot..."
+                      className="bg-dharma-ink border-b border-dharma-flame text-xs text-dharma-ivory px-1.5 py-0.5 focus:outline-none w-28"
+                    />
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setBotNameInput(activeSession?.botName || 'Noerax');
+                        setIsEditingBotName(true);
+                      }}
+                      className="text-dharma-ivory font-medium cursor-pointer hover:text-dharma-flame transition-colors flex items-center gap-1"
+                      title="Click to rewrite bot name for this chat"
+                    >
+                      <span>{activeSession?.botName || 'Noerax'}</span>
+                      <Edit2 className="w-3 h-3 text-dharma-ivory-dim" />
+                    </button>
+                  )}
+                </div>
+              </div>
+              <p className="text-[11px] text-dharma-ivory-dim">
+                Companion: <span className="text-dharma-flame font-medium">{activeSession?.botName || 'Noerax'}</span> — Real-time proactive assistant
+              </p>
             </div>
           </div>
 
