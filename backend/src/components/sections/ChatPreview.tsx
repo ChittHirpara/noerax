@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "motion/react";
-import { Send, User, Sparkles, Loader2, RotateCcw } from "lucide-react";
+import { Send, User, Sparkles, Loader2, RotateCcw, Maximize2 } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 interface Message {
   role: 'user' | 'ai';
@@ -185,16 +186,30 @@ export function ChatPreview() {
                     </p>
                   </div>
                 </div>
-                <motion.button
-                  whileHover={{ scale: 1.1, rotate: -180 }}
-                  whileTap={{ scale: 0.9 }}
-                  transition={{ duration: 0.3 }}
-                  onClick={reset}
-                  className="p-2 rounded-full text-dharma-ivory-dim hover:text-dharma-ivory hover:bg-dharma-ivory/5 transition-colors"
-                  title="New conversation"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </motion.button>
+                <div className="flex items-center gap-2">
+                  <Link to="/chat">
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="p-2 rounded-full border border-dharma-line-dark bg-dharma-ink-3 text-dharma-flame hover:bg-dharma-flame/10 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
+                      title="Open Fullscreen AI Chat Workspace"
+                    >
+                      <Maximize2 className="w-4 h-4" />
+                      <span className="hidden sm:inline">Fullscreen Mode</span>
+                    </motion.button>
+                  </Link>
+
+                  <motion.button
+                    whileHover={{ scale: 1.1, rotate: -180 }}
+                    whileTap={{ scale: 0.9 }}
+                    transition={{ duration: 0.3 }}
+                    onClick={reset}
+                    className="p-2 rounded-full text-dharma-ivory-dim hover:text-dharma-ivory hover:bg-dharma-ivory/5 transition-colors"
+                    title="New conversation"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                  </motion.button>
+                </div>
               </div>
 
               {/* Messages */}

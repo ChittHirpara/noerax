@@ -14,11 +14,9 @@ import { SettingsPage } from './components/pages/SettingsPage';
 import { Mixtape } from './components/sections/Mixtape';
 import { Features } from './components/sections/Features';
 import { DailyMantra } from './components/sections/DailyMantra';
-import { Shop } from './components/sections/Shop';
 import { Testimonials } from './components/sections/Testimonials';
 import { Footer } from './components/layout/Footer';
 import { CartProvider } from './lib/CartContext';
-import { CartPage } from './components/sections/CartPage';
 import { StreakProvider } from './lib/StreakContext';
 import { AuthProvider } from './lib/AuthContext';
 import { AuthPage } from './components/layout/AuthPage';
@@ -27,6 +25,8 @@ import { ProfileDrawer } from './components/layout/ProfileDrawer';
 import { CommandMenu } from './components/layout/CommandMenu';
 import { QuoteCardModal } from './components/ui/QuoteCardModal';
 import { WisdomCardDraw } from './components/sections/WisdomCardDraw';
+
+import { ChatWorkspacePage } from './components/pages/ChatWorkspacePage';
 
 function Home() {
   return (
@@ -39,7 +39,6 @@ function Home() {
       <Library />
       <Features />
       <DailyMantra />
-      <Shop />
       <WisdomCardDraw />
       <Testimonials />
     </>
@@ -49,6 +48,9 @@ function Home() {
 function ScrollManager() {
   const location = useLocation();
   useEffect(() => {
+    // Don't interfere with the /chat page - it manages its own scroll
+    if (location.pathname === '/chat') return;
+
     if (location.hash) {
       const id = location.hash.replace('#', '');
       const element = document.getElementById(id);
@@ -96,10 +98,10 @@ function AppLayout() {
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/chat" element={<ChatWorkspacePage />} />
           <Route path="/daily-card" element={<DailyCardPage />} />
           <Route path="/reading-room" element={<ReadingRoom />} />
           <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/cart" element={<CartPage />} />
           <Route path="/auth" element={<AuthPage />} />
         </Routes>
       </main>
@@ -119,6 +121,9 @@ function AppLayout() {
 
 export default function App() {
   useEffect(() => {
+    // Don't run Lenis on /chat - it's a fullscreen app workspace with its own scroll containers
+    if (window.location.pathname === '/chat') return;
+
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),

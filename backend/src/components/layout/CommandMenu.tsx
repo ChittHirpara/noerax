@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, BookOpen, Headphones, ShoppingBag, PenLine, Sparkles, ArrowRight, X, Layers } from 'lucide-react';
+import { Search, BookOpen, Headphones, PenLine, Sparkles, ArrowRight, X, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface CommandMenuProps {
@@ -9,14 +9,13 @@ interface CommandMenuProps {
 }
 
 const SEARCH_ITEMS = [
+  { id: '0', title: 'AI Chatbot Sanctuary Workspace', type: 'AI Guide', section: 'Fullscreen Chat', path: '/chat', icon: <Sparkles className="w-4 h-4 text-dharma-flame" /> },
   { id: '1', title: 'Bhagavad Gita — Non-Attachment', type: 'Scripture', section: 'Reading Room', path: '/reading-room', icon: <BookOpen className="w-4 h-4 text-cyan-400" /> },
   { id: '2', title: 'Yoga Sutras — Stillness of Mind', type: 'Scripture', section: 'Reading Room', path: '/reading-room', icon: <BookOpen className="w-4 h-4 text-cyan-400" /> },
   { id: '3', title: 'Tao Te Ching — Natural Flow', type: 'Scripture', section: 'Reading Room', path: '/reading-room', icon: <BookOpen className="w-4 h-4 text-cyan-400" /> },
   { id: '4', title: '432Hz Solfeggio Audio Player', type: 'Soundscape', section: 'Audio', path: '/#mixtape', icon: <Headphones className="w-4 h-4 text-dharma-flame" /> },
   { id: '5', title: 'AI Voice Journal Dictation', type: 'Feature', section: 'Journal', path: '/#journal', icon: <PenLine className="w-4 h-4 text-emerald-400" /> },
   { id: '6', title: 'Daily Card of Clarity (3D Shuffle)', type: 'Ritual', section: 'Daily Card', path: '/daily-card', icon: <Layers className="w-4 h-4 text-indigo-400" /> },
-  { id: '7', title: 'Handcrafted Sandalwood Mala Beats', type: 'Shop', section: 'Store', path: '/cart', icon: <ShoppingBag className="w-4 h-4 text-amber-400" /> },
-  { id: '8', title: 'Copper Sacred Water Vessel', type: 'Shop', section: 'Store', path: '/cart', icon: <ShoppingBag className="w-4 h-4 text-amber-400" /> },
 ];
 
 export function CommandMenu({ isOpen, onClose }: CommandMenuProps) {

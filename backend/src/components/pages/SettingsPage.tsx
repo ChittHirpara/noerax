@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
-import { User, Bell, Shield, Sliders, Upload, Trash2, Check, ArrowLeft, Clock, Sparkles, Flame, Award, BookOpen, ShoppingBag, ShieldCheck, LogOut } from 'lucide-react';
+import { User, Bell, Shield, Sliders, Upload, Trash2, Check, ArrowLeft, Clock, Sparkles, Flame, Award, BookOpen, ShieldCheck, LogOut } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
 import { useStreak } from '../../lib/StreakContext';
-import { useCart } from '../../lib/CartContext';
 
 interface SavedJournal {
   _id: string;
@@ -20,7 +19,6 @@ export function SettingsPage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { streak, history } = useStreak();
-  const { items } = useCart();
 
   const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'sanctuary' | 'notifications' | 'security'>('profile');
 

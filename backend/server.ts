@@ -322,55 +322,132 @@ Journal entry: "${entry}"`;
     }
   });
 
-  // STREAMING AI CHAT
-  app.post("/api/chat", async (req: Request, res: Response) => {
-    try {
-      const { message, history } = req.body;
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) return res.status(500).json({ error: "GEMINI_API_KEY is not configured." });
+  // STREAMING AI CHAT — powered by Groq (llama-3.3-70b) with key rotation
+  // Groq is used because it provides fast, free, reliable LLM inference
+  let groqKeyIndex = 0;
+  const getNextGroqKey = (): string => {
+    const keysEnv = process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || '';
+    const keys = keysEnv.split(',').map((k) => k.trim()).filter(Boolean);
+    if (!keys.length) return '';
+    const key = keys[groqKeyIndex % keys.length];
+    groqKeyIndex++;
+    return key;
+  };
 
-      const ai = new GoogleGenAI({ apiKey });
-      const systemInstruction = `You are Noerax — a deeply wise, calm, and modern spiritual AI guide trained on Eastern philosophy (Vedanta, Buddhism, Taoism), Stoicism, and modern psychology. 
+  app.post("/api/chat", async (req: Request, res: Response) => {
+    const { message, history } = req.body;
+
+    const systemPrompt = `You are Noerax — a deeply wise, calm, and modern spiritual AI guide trained on Eastern philosophy (Vedanta, Buddhism, Taoism), Stoicism, and modern psychology.
 You speak with warmth, clarity, and depth — never preachy, never using cringe slang, always relatable for a Gen Z audience.
 Keep responses concise (2-4 short paragraphs max), actionable, and grounding. Reference specific scriptures or philosophers when relevant. Use "•" for any lists.`;
 
-      const contents = (history || []).map((msg: { role: string; content: string }) => ({
-        role: msg.role === 'ai' ? 'model' : 'user',
-        parts: [{ text: msg.content }],
-      }));
-      contents.push({ role: 'user', parts: [{ text: message }] });
-
-      res.setHeader('Content-Type', 'text/event-stream');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Connection', 'keep-alive');
-
-      let stream;
-      try {
-        stream = await ai.models.generateContentStream({
-          model: "gemini-2.0-flash",
-          contents,
-          config: { systemInstruction },
-        });
-      } catch (e) {
-        stream = await ai.models.generateContentStream({
-          model: "gemini-1.5-flash",
-          contents,
-          config: { systemInstruction },
+    // Build message array for Groq (OpenAI-compatible format)
+    const messages: Array<{ role: string; content: string }> = [
+      { role: 'system', content: systemPrompt }
+    ];
+    if (history && Array.isArray(history)) {
+      for (const msg of history) {
+        messages.push({
+          role: msg.role === 'ai' ? 'assistant' : 'user',
+          content: msg.content
         });
       }
+    }
+    // Remove duplicate: don't add message again if it's already the last history item
+    const lastMsg = messages[messages.length - 1];
+    if (!lastMsg || lastMsg.content !== message || lastMsg.role !== 'user') {
+      messages.push({ role: 'user', content: message });
+    }
 
-      for await (const chunk of stream) {
-        if (chunk.text) {
-          res.write(`data: ${JSON.stringify({ text: chunk.text })}\n\n`);
-        }
-      }
+    // Set SSE headers immediately
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    const groqKey = getNextGroqKey();
+    if (!groqKey) {
+      res.write(`data: ${JSON.stringify({ text: 'No GROQ_API_KEYS configured in .env. Please add them and restart.' })}\n\n`);
       res.write('data: [DONE]\n\n');
       res.end();
-    } catch (error) {
-      console.error("AI Chat Error:", error);
-      res.status(500).json({ error: "Failed to get AI response." });
+      return;
+    }
+
+    try {
+      // Call Groq streaming API using native https (no extra dependency needed)
+      const https = await import('https');
+      const body = JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages,
+        stream: true,
+        max_tokens: 1024,
+        temperature: 0.8,
+      });
+
+      await new Promise<void>((resolve, reject) => {
+        const reqOptions = {
+          hostname: 'api.groq.com',
+          path: '/openai/v1/chat/completions',
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${groqKey}`,
+            'Content-Length': Buffer.byteLength(body),
+          },
+        };
+
+        const groqReq = https.default.request(reqOptions, (groqRes) => {
+          let buffer = '';
+          groqRes.on('data', (chunk: Buffer) => {
+            buffer += chunk.toString();
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed || !trimmed.startsWith('data: ')) continue;
+              const data = trimmed.slice(6).trim();
+              if (data === '[DONE]') continue;
+              try {
+                const parsed = JSON.parse(data);
+                const text = parsed?.choices?.[0]?.delta?.content;
+                if (text) {
+                  res.write(`data: ${JSON.stringify({ text })}\n\n`);
+                }
+              } catch {}
+            }
+          });
+
+          groqRes.on('end', () => {
+            res.write('data: [DONE]\n\n');
+            res.end();
+            resolve();
+          });
+
+          groqRes.on('error', reject);
+
+          if (groqRes.statusCode && groqRes.statusCode >= 400) {
+            groqRes.resume();
+            reject(new Error(`Groq API error: HTTP ${groqRes.statusCode}`));
+          }
+        });
+
+        groqReq.on('error', reject);
+        groqReq.write(body);
+        groqReq.end();
+      });
+
+    } catch (error: any) {
+      console.error("Groq Chat Error:", error?.message || error);
+      try {
+        const errMsg = `Noerax is momentarily silent. Groq API error: ${error?.message || 'Unknown'}. Please try again.`;
+        res.write(`data: ${JSON.stringify({ text: errMsg })}\n\n`);
+        res.write('data: [DONE]\n\n');
+        res.end();
+      } catch {}
     }
   });
+
 
   // -------------------------------------------------------------
   // STREAK & JOURNAL DATA APIS (MONGODB)
