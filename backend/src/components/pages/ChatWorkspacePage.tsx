@@ -548,13 +548,6 @@ export function ChatWorkspacePage() {
                 })
               )}
             </div>
-
-            {/* Sidebar Footer Status */}
-            <div className="p-3 border-t border-dharma-line-dark bg-dharma-ink/50 flex items-center justify-between text-[11px] text-dharma-ivory-dim">
-              <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Gemini 2.5 Active
-              </span>
-            </div>
           </motion.aside>
         )}
       </AnimatePresence>
