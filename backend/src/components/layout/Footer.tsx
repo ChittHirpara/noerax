@@ -78,55 +78,6 @@ export function Footer() {
               Ancient wisdom translated for the modern mind. Find clarity in the chaos of the digital age.
             </p>
 
-            {/* Newsletter Subscription Box */}
-            <div className="mb-8 max-w-md bg-dharma-ink-2 p-4 rounded-2xl border border-dharma-line-dark">
-              <span className="text-xs font-semibold text-dharma-flame uppercase tracking-wider block mb-1">
-                Receive Daily Wisdom Notes
-              </span>
-              <p className="text-xs text-dharma-ivory-dim mb-3">
-                Join 12,000+ seekers. Get 1 timeless scripture quote & 2-min actionable practice every morning.
-              </p>
-              <form
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  const form = e.currentTarget;
-                  const emailInput = form.querySelector('input') as HTMLInputElement;
-                  if (!emailInput || !emailInput.value) return;
-                  try {
-                    const res = await fetch('/api/subscribe', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ email: emailInput.value })
-                    });
-                    const data = await res.json();
-                    if (res.ok) {
-                      alert(data.message || 'Subscribed successfully!');
-                      emailInput.value = '';
-                    } else {
-                      alert(data.error || 'Subscription failed');
-                    }
-                  } catch (err) {
-                    alert('Subscribed successfully!');
-                    emailInput.value = '';
-                  }
-                }}
-                className="flex gap-2"
-              >
-                <input
-                  type="email"
-                  placeholder="Enter your email..."
-                  required
-                  className="flex-1 bg-dharma-ink border border-dharma-line-dark rounded-full px-4 py-2 text-xs text-dharma-ivory placeholder-dharma-ivory-dim/40 focus:outline-none focus:border-dharma-flame transition-colors"
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-dharma-flame text-white text-xs font-semibold rounded-full hover:bg-dharma-saffron transition-all cursor-pointer shrink-0"
-                >
-                  Subscribe
-                </button>
-              </form>
-            </div>
-
             <div className="flex gap-4">
               {[
                 { Icon: Twitter, href: "https://twitter.com" },
