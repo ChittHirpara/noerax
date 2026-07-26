@@ -90,6 +90,7 @@ export function ChatWorkspacePage() {
     const initialSession: ChatSession = {
       id: `session-${Date.now()}`,
       title: 'New Conversation',
+      botName: 'Noerax',
       createdAt: new Date().toISOString(),
       messages: [DEFAULT_WELCOME]
     };
@@ -122,6 +123,7 @@ export function ChatWorkspacePage() {
     const newSession: ChatSession = {
       id: `session-${Date.now()}`,
       title: 'New Conversation',
+      botName: 'Noerax',
       createdAt: new Date().toISOString(),
       messages: [{ ...DEFAULT_WELCOME, id: `msg-${Date.now()}` }]
     };
@@ -521,12 +523,15 @@ export function ChatWorkspacePage() {
                         <div className="truncate flex-1">
                           <div className="flex items-center justify-between gap-1">
                             <h4 className="text-xs font-semibold truncate">{session.title}</h4>
-                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-dharma-flame/20 text-dharma-flame border border-dharma-flame/40 font-semibold shrink-0">
-                              {session.botName || 'Noerax'}
-                            </span>
+                            {session.botName && session.botName !== 'Noerax' && (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-dharma-flame/20 text-dharma-flame border border-dharma-flame/40 font-semibold shrink-0">
+                                {session.botName}
+                              </span>
+                            )}
                           </div>
                           <span className="text-[10px] text-dharma-ivory-dim/70 block mt-0.5">
-                            {new Date(session.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })} • {session.botName || 'Noerax'}
+                            {new Date(session.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                            {session.botName && session.botName !== 'Noerax' ? ` • ${session.botName}` : ''}
                           </span>
                         </div>
                       </div>
