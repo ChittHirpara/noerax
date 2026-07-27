@@ -177,7 +177,10 @@ async function startServer() {
         return res.status(400).json({ error: "Credential is required." });
       }
 
-      const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || "1034053996102-3b0p9e7h2i1vrnoqklbb2s2jld3c0m2o.apps.googleusercontent.com";
+      const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID;
+      if (!GOOGLE_CLIENT_ID) {
+        return res.status(500).json({ error: "Google OAuth is not configured on this server." });
+      }
       const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
       let payload: any;
