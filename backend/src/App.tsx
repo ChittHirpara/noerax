@@ -27,6 +27,7 @@ import { QuoteCardModal } from './components/ui/QuoteCardModal';
 import { WisdomCardDraw } from './components/sections/WisdomCardDraw';
 
 import { ChatWorkspacePage } from './components/pages/ChatWorkspacePage';
+import { ProtectedRoute } from './components/layout/ProtectedRoute';
 
 function Home() {
   return (
@@ -128,9 +129,9 @@ function AppLayout() {
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/chat" element={<ChatWorkspacePage />} />
+          <Route path="/chat" element={<ProtectedRoute><ChatWorkspacePage /></ProtectedRoute>} />
           <Route path="/daily-card" element={<DailyCardPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
           <Route path="/auth" element={<AuthPage />} />
         </Routes>
       </main>

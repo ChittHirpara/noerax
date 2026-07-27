@@ -129,7 +129,7 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
             <motion.button
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
-              onClick={() => navigate('/chat')}
+              onClick={() => navigate(user ? '/chat' : '/auth')}
               className="px-6 py-2.5 text-sm font-semibold text-white bg-dharma-flame rounded-full hover:bg-dharma-saffron transition-colors duration-300 shadow-md shadow-dharma-flame/30"
             >
               Begin Journey

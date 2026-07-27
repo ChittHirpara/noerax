@@ -610,47 +610,6 @@ export function ChatWorkspacePage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Speech synthesis Read Aloud Toggle */}
-            <button
-              onClick={() => {
-                const lastAiMsg = activeSession?.messages.filter((m) => m.role === 'ai').slice(-1)[0];
-                if (lastAiMsg) speakText(lastAiMsg.content);
-              }}
-              className={`p-2 rounded-full border transition-all cursor-pointer ${
-                isSpeaking
-                  ? 'border-emerald-500/50 bg-emerald-500/20 text-emerald-400 animate-pulse'
-                  : 'border-dharma-line-dark bg-dharma-ink-3 text-dharma-ivory-dim hover:text-dharma-ivory'
-              }`}
-              title={isSpeaking ? 'Mute Speech' : 'Read Aloud AI Response'}
-            >
-              {isSpeaking ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-dharma-flame" />}
-            </button>
-
-            {/* Clear Current Chat Messages */}
-            <button
-              onClick={() => {
-                if (activeSession) {
-                  const updated = sessions.map((s) =>
-                    s.id === activeSession.id ? { ...s, messages: [DEFAULT_WELCOME] } : s
-                  );
-                  saveSessionsToStorage(updated);
-                }
-              }}
-              className="p-2 rounded-full border border-dharma-line-dark bg-dharma-ink-3 text-dharma-ivory-dim hover:text-dharma-ivory transition-colors cursor-pointer"
-              title="Reset Messages"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
-
-            {/* Fullscreen Toggle */}
-            <button
-              onClick={() => setIsFullscreen(!isFullscreen)}
-              className="p-2 rounded-full border border-dharma-line-dark bg-dharma-ink-3 text-dharma-ivory-dim hover:text-dharma-ivory transition-colors cursor-pointer"
-              title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Mode'}
-            >
-              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4 text-dharma-flame" />}
-            </button>
           </div>
         </div>
 
@@ -762,6 +721,5 @@ export function ChatWorkspacePage() {
         </div>
 
       </div>
-    </div>
   );
 }

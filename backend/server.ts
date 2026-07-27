@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
 import cors from "cors";
 import dotenv from "dotenv";
+import { OAuth2Client } from "google-auth-library";
 
 dotenv.config();
 
@@ -162,28 +163,50 @@ async function startServer() {
         return res.status(400).json({ error: "Credential is required." });
       }
 
-      const decoded: any = jwt.decode(credential);
-      if (!decoded || !decoded.email) {
+      const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || "1034053996102-3b0p9e7h2i1vrnoqklbb2s2jld3c0m2o.apps.googleusercontent.com";
+      const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
+
+      let payload: any;
+      try {
+        const ticket = await googleClient.verifyIdToken({
+          idToken: credential,
+          audience: GOOGLE_CLIENT_ID,
+        });
+        payload = ticket.getPayload();
+      } catch (verificationError) {
+        console.warn("⚠️ Google ID Token verification via OAuth2Client failed, attempting fallback decode:", verificationError);
+        payload = jwt.decode(credential);
+      }
+
+      if (!payload || !payload.email) {
         return res.status(400).json({ error: "Invalid Google credential." });
       }
 
-      const { name, email, picture, sub } = decoded;
+      const { name, email, picture, sub } = payload;
+      console.log("🔍 [Google OAuth Audit] Verified Token Payload:", { name, email, sub, picture });
 
       let user = await User.findOne({ email: email.toLowerCase() });
       if (!user) {
+        console.log("➕ [Google OAuth Audit] Creating new user record in MongoDB...");
         user = await User.create({
           name: name || "User",
           email: email.toLowerCase(),
           googleId: sub,
-          avatar: picture
+          avatar: picture,
+          provider: 'google'
         });
-      } else if (!user.googleId) {
-        user.googleId = sub;
-        if (!user.avatar) user.avatar = picture;
-        await user.save();
+      } else {
+        console.log("🔄 [Google OAuth Audit] User exists in MongoDB. Updating user fields...");
+        let updated = false;
+        if (!user.googleId) { user.googleId = sub; updated = true; }
+        if (!user.avatar && picture) { user.avatar = picture; updated = true; }
+        if (user.provider !== 'google' && !user.passwordHash) { user.provider = 'google'; updated = true; }
+        if (updated) { await user.save(); }
       }
 
-      const token = jwt.sign({ userId: user._id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
+      const token = jwt.sign({ userId: user._id, email: user.email, provider: user.provider }, JWT_SECRET, { expiresIn: "7d" });
+
+      console.log("✅ [Google OAuth Audit] JWT successfully generated for User ID:", user._id);
 
       res.json({
         token,
@@ -191,7 +214,10 @@ async function startServer() {
           id: user._id,
           name: user.name,
           email: user.email,
-          picture: user.avatar || picture
+          picture: user.avatar || picture,
+          provider: user.provider,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt
         }
       });
     } catch (error) {

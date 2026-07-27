@@ -5,6 +5,9 @@ export interface UserProfile {
   name: string;
   email: string;
   picture: string;
+  provider?: 'local' | 'google';
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface AuthContextType {

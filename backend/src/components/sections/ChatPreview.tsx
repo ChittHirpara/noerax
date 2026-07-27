@@ -1,7 +1,8 @@
 import { motion, AnimatePresence } from "motion/react";
 import { Send, User, Sparkles, Loader2, RotateCcw, Maximize2 } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../lib/AuthContext";
 
 interface Message {
   role: 'user' | 'ai';
@@ -31,6 +32,8 @@ function TypingDots() {
 }
 
 export function ChatPreview() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     { role: 'ai', content: 'Namaste. I am Noerax — your guide through ancient wisdom and modern clarity.\n\nWhat is weighing on your mind today? Speak freely.' }
   ]);
@@ -187,17 +190,16 @@ export function ChatPreview() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Link to="/chat">
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      className="p-2 rounded-full border border-dharma-line-dark bg-dharma-ink-3 text-dharma-flame hover:bg-dharma-flame/10 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
-                      title="Open Fullscreen AI Chat Workspace"
-                    >
-                      <Maximize2 className="w-4 h-4" />
-                      <span className="hidden sm:inline">Fullscreen Mode</span>
-                    </motion.button>
-                  </Link>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => navigate(user ? '/chat' : '/auth')}
+                    className="p-2 rounded-full border border-dharma-line-dark bg-dharma-ink-3 text-dharma-flame hover:bg-dharma-flame/10 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
+                    title="Open Fullscreen AI Chat Workspace"
+                  >
+                    <Maximize2 className="w-4 h-4" />
+                    <span className="hidden sm:inline">Fullscreen Mode</span>
+                  </motion.button>
 
                   <motion.button
                     whileHover={{ scale: 1.1, rotate: -180 }}

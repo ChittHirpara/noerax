@@ -112,8 +112,13 @@ export function Footer() {
               Ancient Indian wisdom translated for the modern mind. Find clarity in the chaos of the digital age.
             </p>
             <div className="flex gap-4">
-              {[TwitterIcon, InstagramIcon, GithubIcon, Mail].map((Icon, i) => (
-                <a key={i} href="#" className="w-10 h-10 rounded-full border border-dharma-line-dark flex items-center justify-center text-dharma-ivory-dim hover:text-dharma-ivory hover:border-dharma-ivory/30 hover:bg-dharma-ivory/5 transition-all duration-300">
+              {[
+                { Icon: TwitterIcon, href: "#" },
+                { Icon: InstagramIcon, href: "https://www.instagram.com/noerax.ai" },
+                { Icon: GithubIcon, href: "#" },
+                { Icon: Mail, href: "#" }
+              ].map(({ Icon, href }, i) => (
+                <a key={i} href={href} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full border border-dharma-line-dark flex items-center justify-center text-dharma-ivory-dim hover:text-dharma-ivory hover:border-dharma-ivory/30 hover:bg-dharma-ivory/5 transition-all duration-300">
                   <Icon className="w-4 h-4" />
                 </a>
               ))}

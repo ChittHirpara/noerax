@@ -35,6 +35,10 @@ export function Hero() {
   const navigate = useNavigate();
 
   const handleStart = () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
     const element = document.getElementById('guides');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
@@ -143,15 +147,6 @@ export function Hero() {
               Begin Journey <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
           </div>
-
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => navigate('/reading-room')}
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-full border border-dharma-line-dark text-dharma-ivory-dim hover:text-dharma-ivory hover:border-dharma-ivory/20 text-lg font-medium transition-colors cursor-pointer"
-          >
-            Explore Library
-          </motion.button>
         </motion.div>
 
         {/* Social proof */}
