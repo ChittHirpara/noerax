@@ -609,8 +609,6 @@ export function ChatWorkspacePage() {
               </p>
             </div>
           </div>
-
-          </div>
         </div>
 
         {/* Messages Stream Container — ref used for direct scrollTop (bypasses Lenis) */}
@@ -662,18 +660,22 @@ export function ChatWorkspacePage() {
           )}
         </div>
 
-        {/* Suggested Prompts Pills */}
-        {activeSession?.messages.length <= 2 && (
-          <div className="px-6 py-2 flex flex-wrap justify-center gap-2">
-            {SUGGESTED_PROMPTS.map((prompt, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleSendMessage(prompt)}
-                className="px-3 py-1.5 rounded-full border border-dharma-line-dark bg-dharma-ink-2 text-xs font-semibold text-dharma-ivory-dim hover:text-dharma-ivory hover:border-dharma-flame/40 hover:bg-dharma-flame/10 transition-all cursor-pointer shadow-sm"
-              >
-                {prompt}
-              </button>
-            ))}
+        {/* Suggested Prompts Grid */}
+        {activeSession?.messages.length <= 1 && (
+          <div className="px-6 py-4 max-w-3xl mx-auto w-full">
+            <p className="text-xs text-dharma-ivory-dim mb-3 text-center font-medium">Suggested topics to explore:</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {SUGGESTED_PROMPTS.map((prompt, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSendMessage(prompt)}
+                  className="p-4 rounded-2xl border border-dharma-line-dark bg-dharma-ink-2/80 hover:bg-dharma-ink-3 text-sm text-dharma-ivory text-left transition-all hover:border-dharma-flame/40 cursor-pointer shadow-sm flex items-center justify-between group"
+                >
+                  <span className="leading-snug">{prompt}</span>
+                  <Sparkles className="w-4 h-4 text-dharma-flame/40 group-hover:text-dharma-flame shrink-0 ml-2 transition-colors" />
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -721,5 +723,6 @@ export function ChatWorkspacePage() {
         </div>
 
       </div>
+    </div>
   );
 }
