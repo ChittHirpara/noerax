@@ -17,8 +17,20 @@ import { Journal } from "./src/models/Journal";
 import { Streak } from "./src/models/Streak";
 import { Subscriber } from "./src/models/Subscriber";
 
-const JWT_SECRET = process.env.JWT_SECRET || "noerax_jwt_super_secret_key_2026";
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://abhishekjainsot25_db_user:mfRFcqYFWQKTaU3r@cluster0.u3ilxei.mongodb.net/sattva?appName=Cluster0";
+// ---------------------------------------------------------------
+// ENV VALIDATION — fail fast if critical config is missing
+// ---------------------------------------------------------------
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error("❌ FATAL: JWT_SECRET is not set in .env. Server cannot start securely.");
+  process.exit(1);
+}
+
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) {
+  console.error("❌ FATAL: MONGODB_URI is not set in .env. Server cannot start.");
+  process.exit(1);
+}
 
 // Connect to MongoDB Cloud Database
 mongoose.connect(MONGODB_URI)
@@ -58,7 +70,7 @@ const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunctio
 
 async function startServer() {
   const app = express();
-  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 4000;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5555;
 
   // Security & Parsing Middlewares
   app.use(cors());
@@ -94,14 +106,16 @@ async function startServer() {
       const salt = await bcrypt.genSalt(10);
       const passwordHash = await bcrypt.hash(password, salt);
 
-      const userIdStr = new mongoose.Types.ObjectId().toString();
       const newUser = await User.create({
-        id: userIdStr,
         name,
         email: email.toLowerCase(),
         passwordHash,
         avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email)}`
       });
+
+      if (!newUser) {
+        return res.status(500).json({ error: "Failed to create account." });
+      }
 
       const token = jwt.sign({ userId: newUser._id, email: newUser.email }, JWT_SECRET, { expiresIn: "7d" });
 

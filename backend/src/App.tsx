@@ -16,7 +16,6 @@ import { Features } from './components/sections/Features';
 import { DailyMantra } from './components/sections/DailyMantra';
 import { Testimonials } from './components/sections/Testimonials';
 import { Footer } from './components/layout/Footer';
-import { CartProvider } from './lib/CartContext';
 import { StreakProvider } from './lib/StreakContext';
 import { AuthProvider } from './lib/AuthContext';
 import { AuthPage } from './components/layout/AuthPage';
@@ -156,9 +155,7 @@ export default function App() {
         <ScrollManager />
         <AuthProvider>
           <StreakProvider>
-            <CartProvider>
-              <AppLayout />
-            </CartProvider>
+            <AppLayout />
           </StreakProvider>
         </AuthProvider>
       </BrowserRouter>
