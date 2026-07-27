@@ -236,24 +236,9 @@ export function Library() {
                     : "bg-zinc-950 border-zinc-800 hover:bg-zinc-900"
                 }`}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">{s.theme}</span>
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={(e) => toggleSave(e, s.id)}
-                      className={`p-1.5 rounded-full transition-colors ${
-                        savedScriptureIds.includes(s.id) 
-                          ? "bg-zinc-800 text-white" 
-                          : "text-zinc-500 hover:bg-zinc-800 hover:text-white"
-                      }`}
-                      title={savedScriptureIds.includes(s.id) ? "Unsave" : "Save"}
-                    >
-                      <Heart className={`w-4 h-4 ${savedScriptureIds.includes(s.id) ? "fill-current" : ""}`} />
-                    </button>
-                  </div>
+                <div className="mb-2">
+                  <h3 className="text-xl font-serif text-white mb-1">{s.theme}</h3>
                 </div>
-                <h3 className="text-xl font-serif text-white mb-1">{s.title}</h3>
-                <p className="text-sm text-zinc-400">{s.chapter}</p>
               </motion.div>
             ))
             ) : (
@@ -279,8 +264,7 @@ export function Library() {
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 blur-[100px] rounded-full pointer-events-none" />
 
                 <div className="relative z-10">
-                  <h3 className="text-2xl font-serif text-white mb-2">{selectedScripture.title}</h3>
-                  <p className="text-zinc-400 font-medium mb-8">{selectedScripture.chapter}</p>
+                  <h3 className="text-2xl font-serif text-white mb-8">{selectedScripture.theme}</h3>
                   
                   <blockquote className="text-2xl md:text-3xl text-zinc-300 font-light leading-relaxed mb-12 italic border-l-4 border-zinc-700 pl-6">
                     "{selectedScripture.text}"
@@ -308,15 +292,6 @@ export function Library() {
                     >
                       <Headphones className={`w-5 h-5 ${isSpeaking ? 'text-black' : 'text-zinc-400'}`} />
                       {isSpeaking ? 'Stop Audio' : 'Listen to Audio'}
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="inline-flex items-center gap-3 px-6 py-3 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 rounded-full text-white font-medium transition-colors"
-                      onClick={() => setIsPdfOpen(true)}
-                    >
-                      <BookOpen className="w-5 h-5 text-zinc-500" />
-                      Read Source Text
                     </motion.button>
                   </div>
 

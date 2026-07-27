@@ -146,7 +146,7 @@ export function WisdomCardDraw() {
               <div>
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-[11px] font-semibold text-dharma-flame uppercase tracking-wider">
-                    {currentCard?.source}
+                    Wisdom Card
                   </span>
                   <Sparkles className="w-4 h-4 text-dharma-flame" />
                 </div>

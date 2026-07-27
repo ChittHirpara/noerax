@@ -56,8 +56,8 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
 
         {/* Nav Links */}
         <div className="hidden md:flex items-center gap-8 text-base font-medium text-dharma-ivory-dim">
-          {['Home', 'Guides', 'Books', 'Journal', 'Mixtape', 'Daily Card'].map((label, i) => {
-            const path = ['/', '/#guides', '/reading-room', '/#journal', '/#mixtape', '/daily-card'][i];
+          {['Home', 'Guides', 'Journal', 'Mixtape', 'Daily Card'].map((label, i) => {
+            const path = ['/', '/#guides', '/#journal', '/#mixtape', '/daily-card'][i];
             return (
               <Link
                 key={label}
@@ -129,7 +129,7 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
             <motion.button
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate(user ? '/chat' : '/auth')}
               className="px-6 py-2.5 text-sm font-semibold text-white bg-dharma-flame rounded-full hover:bg-dharma-saffron transition-colors duration-300 shadow-md shadow-dharma-flame/30"
             >
               Begin Journey

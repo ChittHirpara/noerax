@@ -168,7 +168,7 @@ export function QuoteCardModal({ isOpen, onClose, quote, source }: QuoteCardModa
                 <span className={`text-xs font-mono font-bold uppercase tracking-widest ${
                   theme === 'cyan' ? 'text-cyan-400' : theme === 'gold' ? 'text-amber-400' : 'text-indigo-400'
                 }`}>
-                  {source}
+                  DAILY REFLECTION
                 </span>
 
                 <p className="font-serif italic text-xl md:text-2xl text-dharma-ivory leading-relaxed px-4 my-auto">

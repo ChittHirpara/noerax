@@ -173,20 +173,11 @@ export function DailyMantra() {
           </AnimatePresence>
         </div>
 
-        {/* Source */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`source-${current}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex items-center justify-center gap-4 mb-12"
-          >
-            <div className="w-12 h-px bg-dharma-gold/40" />
-            <p className="text-dharma-flame font-medium tracking-wide">{mantra.source}</p>
-            <div className="w-12 h-px bg-dharma-gold/40" />
-          </motion.div>
-        </AnimatePresence>
+        {/* Decorative divider */}
+        <div className="flex items-center justify-center gap-4 mb-12">
+          <div className="w-12 h-px bg-dharma-gold/40" />
+          <div className="w-12 h-px bg-dharma-gold/40" />
+        </div>
 
         {/* Controls */}
         <div className="flex items-center justify-center gap-4">

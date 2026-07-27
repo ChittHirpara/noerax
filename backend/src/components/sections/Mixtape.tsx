@@ -210,7 +210,6 @@ export function Mixtape() {
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="font-medium text-dharma-ivory">{verse.title}</h4>
-                        <p className="text-xs text-dharma-ivory-dim uppercase tracking-wider">{verse.source}</p>
                       </div>
                       <button
                         onClick={() => isAdded ? removeFromMixtape(verse.id) : addToMixtape(verse)}
@@ -323,7 +322,6 @@ export function Mixtape() {
                         </div>
                         <div className="flex-1">
                           <h4 className="font-medium text-dharma-ivory leading-snug">{verse.title}</h4>
-                          <p className="text-xs text-dharma-ivory-dim">{verse.source}</p>
                         </div>
                         {isTrackActive && (
                           <div className="flex gap-1 items-center px-2">
