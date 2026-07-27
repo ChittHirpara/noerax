@@ -48,6 +48,10 @@ function Home() {
 function ScrollManager() {
   const location = useLocation();
   useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+
     // Don't interfere with the /chat page - it manages its own scroll
     if (location.pathname === '/chat') return;
 
@@ -58,7 +62,7 @@ function ScrollManager() {
         setTimeout(() => element.scrollIntoView({ behavior: 'smooth' }), 100);
       }
     } else {
-      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      window.scrollTo(0, 0);
     }
   }, [location]);
   return null;

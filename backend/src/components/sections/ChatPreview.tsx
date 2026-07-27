@@ -39,12 +39,14 @@ export function ChatPreview() {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading]);
+    if (messages.length > 1 && chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' });
+    }
+  }, [messages.length, isLoading]);
 
   const sendMessage = async (text?: string) => {
     const messageText = text || input.trim();
@@ -215,7 +217,7 @@ export function ChatPreview() {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-5 space-y-5">
+              <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-5 space-y-5">
                 <AnimatePresence initial={false}>
                   {messages.map((msg, i) => (
                     <motion.div
@@ -265,7 +267,6 @@ export function ChatPreview() {
                     </motion.div>
                   )}
                 </AnimatePresence>
-                <div ref={bottomRef} />
               </div>
 
               {/* Suggested prompts (shown when minimal messages) */}
