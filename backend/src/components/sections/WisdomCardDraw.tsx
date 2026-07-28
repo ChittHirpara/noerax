@@ -84,7 +84,7 @@ export function WisdomCardDraw() {
           viewport={{ once: true }}
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-dharma-flame/30 bg-dharma-flame/10 text-dharma-flame text-xs font-semibold uppercase tracking-widest mb-6"
         >
-          <Sparkles className="w-3.5 h-3.5" /> Daily Ritual
+          <Sparkles className="w-3.5 h-3.5" /> Daily Practice
         </motion.div>
 
         <motion.h2
@@ -93,7 +93,7 @@ export function WisdomCardDraw() {
           viewport={{ once: true }}
           className="font-serif text-4xl md:text-5xl text-dharma-ivory mb-4"
         >
-          Draw Your Daily Card of Clarity
+          Draw Today's Decision Framework
         </motion.h2>
 
         <motion.p
@@ -102,7 +102,7 @@ export function WisdomCardDraw() {
           viewport={{ once: true }}
           className="text-dharma-ivory-dim text-lg max-w-xl mx-auto mb-12"
         >
-          Shuffle the ancient wisdom deck and draw a card for actionable mindfulness today.
+          Draw a card from the life curriculum deck for a practical mental model to apply to your decisions today.
         </motion.p>
 
         {/* 3D Card Area */}
