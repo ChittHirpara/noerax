@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowUpRight, Instagram, Twitter, Github, Mail, X, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, Instagram, Linkedin, Twitter, Github, Mail, X, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import noeraxLogo from "../../assets/noerax-logo.png";
 
@@ -80,7 +80,8 @@ export function Footer() {
 
             <div className="flex gap-4">
               {[
-                { Icon: Instagram, href: "https://www.instagram.com/noerax.ai" }
+                { Icon: Instagram, href: "https://www.instagram.com/noerax.ai" },
+                { Icon: Linkedin, href: "https://www.linkedin.com/company/dharmax-ai/" }
               ].map(({ Icon, href }, i) => (
                 <a 
                   key={i} 
