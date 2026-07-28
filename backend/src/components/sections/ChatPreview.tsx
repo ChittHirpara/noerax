@@ -150,11 +150,11 @@ export function ChatPreview() {
             </span>
 
             {/* Giant Highlighted Headline */}
-            <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl text-dharma-ivory mb-6 leading-[1.1]">
+            <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl lg:text-7xl text-dharma-ivory mb-6 leading-[1.1]">
               Think through hard decisions with <span className="gradient-text">AI frameworks.</span>
             </h2>
 
-            <p className="text-dharma-ivory-dim text-xl leading-relaxed mb-8 font-light">
+            <p className="text-dharma-ivory-dim text-lg sm:text-xl leading-relaxed mb-8 font-light">
               Don't figure it out alone. Noerax helps you break down complex choices, career crossroads, and personal conflicts into <span className="text-dharma-ivory font-medium border-b border-dharma-flame/50 pb-0.5">structured, actionable mental models</span>.
             </p>
 
@@ -165,11 +165,11 @@ export function ChatPreview() {
                 { title: 'Practical Life Frameworks', desc: 'Built for career choices, difficult conversations, and overthinking.' },
                 { title: '100% Private & Confidential', desc: 'Your reflections and choices stay completely private.' }
               ].map((item, i) => (
-                <div key={i} className="flex items-start gap-3 bg-dharma-ink-2/60 border border-dharma-line-dark/60 p-4 rounded-2xl">
+                <div key={i} className="flex items-start gap-3 bg-dharma-ink-2/60 border border-dharma-line-dark/60 p-3.5 sm:p-4 rounded-2xl">
                   <CheckCircle2 className="w-5 h-5 text-dharma-flame shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="text-sm font-semibold text-dharma-ivory">{item.title}</h4>
-                    <p className="text-xs text-dharma-ivory-dim/80 mt-0.5">{item.desc}</p>
+                    <h4 className="text-xs sm:text-sm font-semibold text-dharma-ivory">{item.title}</h4>
+                    <p className="text-[11px] sm:text-xs text-dharma-ivory-dim/80 mt-0.5">{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -178,7 +178,7 @@ export function ChatPreview() {
             {/* Curriculum Tags */}
             <div className="flex flex-wrap gap-2">
               {['Decision-Making', 'Conflict Resolution', 'Career Direction', 'Mental Models', 'Focus'].map(tag => (
-                <span key={tag} className="px-3.5 py-1.5 rounded-full bg-dharma-ink-2 border border-dharma-line-dark text-dharma-ivory-dim text-xs font-semibold">
+                <span key={tag} className="px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-dharma-ink-2 border border-dharma-line-dark text-dharma-ivory-dim text-[11px] sm:text-xs font-semibold">
                   {tag}
                 </span>
               ))}
@@ -193,7 +193,7 @@ export function ChatPreview() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="lg:col-span-7 relative"
           >
-            <div className="bg-dharma-ink-2/95 backdrop-blur-2xl rounded-3xl border border-dharma-flame/30 shadow-[0_0_60px_rgba(249,115,22,0.15)] overflow-hidden flex flex-col h-[640px]">
+            <div className="bg-dharma-ink-2/95 backdrop-blur-2xl rounded-3xl border border-dharma-flame/30 shadow-[0_0_60px_rgba(249,115,22,0.15)] overflow-hidden flex flex-col h-[520px] sm:h-[600px] lg:h-[640px]">
 
               {/* Chat Header */}
               <div className="flex items-center justify-between px-6 py-4.5 border-b border-dharma-line-dark bg-dharma-ink-3/80">

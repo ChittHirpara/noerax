@@ -446,137 +446,147 @@ export function ChatWorkspacePage() {
       {/* ── LEFT SIDEBAR (Past Chats History & New Chat) ── */}
       <AnimatePresence mode="wait">
         {isSidebarOpen && (
-          <motion.aside
-            initial={{ x: -280, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: -280, opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="w-72 bg-dharma-ink-2/95 border-r border-dharma-line-dark flex flex-col flex-shrink-0 z-20"
-          >
-            {/* Sidebar Top Controls */}
-            <div className="p-4 border-b border-dharma-line-dark flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={() => navigate('/')}
-                  className="flex items-center gap-2 text-xs font-semibold text-dharma-ivory-dim hover:text-dharma-ivory transition-colors cursor-pointer"
-                >
-                  <ArrowLeft className="w-4 h-4" /> Home
-                </button>
+          <>
+            {/* Mobile Backdrop Overlay */}
+            <div 
+              onClick={() => setIsSidebarOpen(false)} 
+              className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30"
+            />
+            <motion.aside
+              initial={{ x: -280, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -280, opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="fixed md:relative inset-y-0 left-0 w-72 sm:w-80 bg-dharma-ink-2/95 border-r border-dharma-line-dark flex flex-col flex-shrink-0 z-40 shadow-2xl md:shadow-none"
+            >
+              {/* Sidebar Top Controls */}
+              <div className="p-4 border-b border-dharma-line-dark flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => navigate('/')}
+                    className="flex items-center gap-2 text-xs font-semibold text-dharma-ivory-dim hover:text-dharma-ivory transition-colors cursor-pointer"
+                  >
+                    <ArrowLeft className="w-4 h-4" /> Home
+                  </button>
 
-                <img src={noeraxLogo} alt="Noerax Logo" className="h-6 w-auto" style={{ filter: 'brightness(1.15)' }} />
+                  <img src={noeraxLogo} alt="Noerax Logo" className="h-6 w-auto" style={{ filter: 'brightness(1.15)' }} />
 
-                <button
-                  onClick={() => setIsSidebarOpen(false)}
-                  className="p-1.5 text-dharma-ivory-dim hover:text-dharma-ivory hover:bg-dharma-ink-3 rounded-lg transition-colors cursor-pointer"
-                  title="Collapse Sidebar"
-                >
-                  <PanelLeftClose className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* + New Chat Button */}
-              <button
-                onClick={createNewChat}
-                className="w-full py-2.5 px-4 bg-dharma-flame text-white font-semibold text-xs rounded-2xl hover:bg-dharma-saffron transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Plus className="w-4 h-4" /> Start New Conversation
-              </button>
-
-              {/* Search Past Chats */}
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 text-dharma-ivory-dim absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Search past chats..."
-                  value={sessionSearch}
-                  onChange={(e) => setSessionSearch(e.target.value)}
-                  className="w-full bg-dharma-ink border border-dharma-line-dark rounded-xl pl-9 pr-3 py-1.5 text-xs text-dharma-ivory placeholder-dharma-ivory-dim/40 focus:outline-none focus:border-dharma-flame transition-colors"
-                />
-              </div>
-            </div>
-
-            {/* Past Chats List */}
-            <div data-lenis-prevent className="flex-1 overflow-y-auto p-3 space-y-1 overscroll-contain">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-dharma-ivory-dim/70 px-2 block mb-1">
-                Recent Conversations ({filteredSessions.length})
-              </span>
-
-              {filteredSessions.length === 0 ? (
-                <div className="py-8 text-center text-xs text-dharma-ivory-dim/50">
-                  No matching chats found
+                  <button
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="p-1.5 text-dharma-ivory-dim hover:text-dharma-ivory hover:bg-dharma-ink-3 rounded-lg transition-colors cursor-pointer"
+                    title="Collapse Sidebar"
+                  >
+                    <PanelLeftClose className="w-4 h-4" />
+                  </button>
                 </div>
-              ) : (
-                filteredSessions.map((session) => {
-                  const isActive = session.id === activeSessionId;
-                  return (
-                    <div
-                      key={session.id}
-                      onClick={() => setActiveSessionId(session.id)}
-                      className={`p-3 rounded-2xl flex items-center justify-between cursor-pointer transition-all group ${
-                        isActive
-                          ? 'bg-dharma-flame/15 border border-dharma-flame/40 text-dharma-ivory shadow-sm'
-                          : 'hover:bg-dharma-ink-3/60 text-dharma-ivory-dim border border-transparent'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 overflow-hidden flex-1 mr-2">
-                        <MessageSquare className={`w-4 h-4 shrink-0 ${isActive ? 'text-dharma-flame' : 'text-dharma-ivory-dim'}`} />
-                        <div className="truncate flex-1">
-                          <div className="flex items-center justify-between gap-1">
-                            <h4 className="text-xs font-semibold truncate">{session.title}</h4>
-                            {session.botName && session.botName !== 'Noerax' && (
-                              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-dharma-flame/20 text-dharma-flame border border-dharma-flame/40 font-semibold shrink-0">
-                                {session.botName}
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-[10px] text-dharma-ivory-dim/70 block mt-0.5">
-                            {new Date(session.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                            {session.botName && session.botName !== 'Noerax' ? ` • ${session.botName}` : ''}
-                          </span>
-                        </div>
-                      </div>
 
-                      <button
-                        onClick={(e) => deleteSession(session.id, e)}
-                        className="p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-red-500/20 text-dharma-ivory-dim hover:text-red-400 transition-all cursor-pointer shrink-0"
-                        title="Delete Conversation"
+                {/* + New Chat Button */}
+                <button
+                  onClick={createNewChat}
+                  className="w-full py-2.5 px-4 bg-dharma-flame text-white font-semibold text-xs rounded-2xl hover:bg-dharma-saffron transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" /> Start New Conversation
+                </button>
+
+                {/* Search Past Chats */}
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-dharma-ivory-dim absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search past chats..."
+                    value={sessionSearch}
+                    onChange={(e) => setSessionSearch(e.target.value)}
+                    className="w-full bg-dharma-ink border border-dharma-line-dark rounded-xl pl-9 pr-3 py-1.5 text-xs text-dharma-ivory placeholder-dharma-ivory-dim/40 focus:outline-none focus:border-dharma-flame transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Past Chats List */}
+              <div data-lenis-prevent className="flex-1 overflow-y-auto p-3 space-y-1 overscroll-contain">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-dharma-ivory-dim/70 px-2 block mb-1">
+                  Recent Conversations ({filteredSessions.length})
+                </span>
+
+                {filteredSessions.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-dharma-ivory-dim/50">
+                    No matching chats found
+                  </div>
+                ) : (
+                  filteredSessions.map((session) => {
+                    const isActive = session.id === activeSessionId;
+                    return (
+                      <div
+                        key={session.id}
+                        onClick={() => {
+                          setActiveSessionId(session.id);
+                          if (window.innerWidth < 768) setIsSidebarOpen(false);
+                        }}
+                        className={`p-3 rounded-2xl flex items-center justify-between cursor-pointer transition-all group ${
+                          isActive
+                            ? 'bg-dharma-flame/15 border border-dharma-flame/40 text-dharma-ivory shadow-sm'
+                            : 'hover:bg-dharma-ink-3/60 text-dharma-ivory-dim border border-transparent'
+                        }`}
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </motion.aside>
+                        <div className="flex items-center gap-2.5 overflow-hidden flex-1 mr-2">
+                          <MessageSquare className={`w-4 h-4 shrink-0 ${isActive ? 'text-dharma-flame' : 'text-dharma-ivory-dim'}`} />
+                          <div className="truncate flex-1">
+                            <div className="flex items-center justify-between gap-1">
+                              <h4 className="text-xs font-semibold truncate">{session.title}</h4>
+                              {session.botName && session.botName !== 'Noerax' && (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-dharma-flame/20 text-dharma-flame border border-dharma-flame/40 font-semibold shrink-0">
+                                  {session.botName}
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[10px] text-dharma-ivory-dim/70 block mt-0.5">
+                              {new Date(session.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                              {session.botName && session.botName !== 'Noerax' ? ` • ${session.botName}` : ''}
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={(e) => deleteSession(session.id, e)}
+                          className="p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-red-500/20 text-dharma-ivory-dim hover:text-red-400 transition-all cursor-pointer shrink-0"
+                          title="Delete Conversation"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </motion.aside>
+          </>
         )}
       </AnimatePresence>
 
       {/* ── MAIN CHAT WORKSPACE AREA ── */}
-      <div className="flex-1 flex flex-col min-w-0 bg-dharma-ink relative">
+      <div className="flex-1 flex flex-col min-w-0 bg-dharma-ink relative h-full">
         
         {/* Workspace Top Navigation Header */}
-        <div className="h-16 px-6 border-b border-dharma-line-dark bg-dharma-ink-2/80 backdrop-blur-xl flex items-center justify-between z-10">
-          <div className="flex items-center gap-3">
+        <div className="h-14 sm:h-16 px-3 sm:px-6 border-b border-dharma-line-dark bg-dharma-ink-2/80 backdrop-blur-xl flex items-center justify-between z-10 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 overflow-hidden min-w-0">
             {!isSidebarOpen && (
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="p-2 rounded-xl border border-dharma-line-dark text-dharma-ivory-dim hover:text-dharma-ivory hover:bg-dharma-ink-3 transition-colors cursor-pointer"
+                className="p-1.5 sm:p-2 rounded-xl border border-dharma-line-dark text-dharma-ivory-dim hover:text-dharma-ivory hover:bg-dharma-ink-3 transition-colors cursor-pointer shrink-0"
                 title="Open Sidebar"
               >
                 <PanelLeft className="w-4 h-4" />
               </button>
             )}
 
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="font-serif font-semibold text-lg text-dharma-ivory flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-dharma-flame" />
-                  {activeSession?.title || 'Chat Workspace'}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 sm:gap-2 truncate">
+                <h2 className="font-serif font-semibold text-sm sm:text-lg text-dharma-ivory flex items-center gap-1.5 truncate">
+                  <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-dharma-flame shrink-0" />
+                  <span className="truncate">{activeSession?.title || 'Chat Workspace'}</span>
                 </h2>
 
                 {/* Dynamic Bot Name Editor Badge */}
-                <div className="flex items-center gap-1.5 ml-2 bg-dharma-ink-3/90 border border-dharma-line-dark px-2.5 py-1 rounded-full text-xs shadow-sm">
+                <div className="hidden sm:flex items-center gap-1.5 ml-2 bg-dharma-ink-3/90 border border-dharma-line-dark px-2.5 py-1 rounded-full text-xs shadow-sm shrink-0">
                   <Bot className="w-3.5 h-3.5 text-dharma-flame" />
                   {isEditingBotName ? (
                     <input
@@ -587,7 +597,7 @@ export function ChatWorkspacePage() {
                       onKeyDown={(e) => { if (e.key === 'Enter') handleSaveBotName(); }}
                       autoFocus
                       placeholder="Name bot..."
-                      className="bg-dharma-ink border-b border-dharma-flame text-xs text-dharma-ivory px-1.5 py-0.5 focus:outline-none w-28"
+                      className="bg-dharma-ink border-b border-dharma-flame text-xs text-dharma-ivory px-1.5 py-0.5 focus:outline-none w-24"
                     />
                   ) : (
                     <button
@@ -604,41 +614,41 @@ export function ChatWorkspacePage() {
                   )}
                 </div>
               </div>
-              <p className="text-[11px] text-dharma-ivory-dim">
-                Companion: <span className="text-dharma-flame font-medium">{activeSession?.botName || 'Noerax'}</span> — Real-time proactive assistant
+              <p className="text-[10px] sm:text-[11px] text-dharma-ivory-dim truncate">
+                Mentor: <span className="text-dharma-flame font-medium">{activeSession?.botName || 'Noerax'}</span> — Practical decision guide
               </p>
             </div>
           </div>
         </div>
 
         {/* Messages Stream Container — ref used for direct scrollTop (bypasses Lenis) */}
-        <div ref={containerRef} data-lenis-prevent className="flex-1 overflow-y-auto p-6 md:p-10 space-y-6 overscroll-contain">
+        <div ref={containerRef} data-lenis-prevent className="flex-1 overflow-y-auto p-3 sm:p-6 md:p-10 space-y-4 sm:space-y-6 overscroll-contain">
           {activeSession?.messages.map((msg) => (
             <motion.div
               key={msg.id}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className={`flex items-start gap-4 max-w-3xl ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
+              className={`flex items-start gap-2.5 sm:gap-4 max-w-[92%] sm:max-w-3xl ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
             >
               {/* Avatar Icon */}
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center border shrink-0 ${
+              <div className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center border shrink-0 ${
                 msg.role === 'user'
                   ? 'bg-dharma-flame/20 border-dharma-flame/40 text-dharma-flame'
                   : 'bg-cyan-500/20 border-cyan-500/40 text-cyan-300'
               }`}>
-                {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                {msg.role === 'user' ? <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
               </div>
 
               {/* Message Bubble Content */}
-              <div className={`group relative p-5 rounded-3xl text-sm leading-relaxed border ${
+              <div className={`group relative p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl text-xs sm:text-sm leading-relaxed border ${
                 msg.role === 'user'
                   ? 'bg-dharma-flame text-white border-dharma-flame/50 rounded-tr-none shadow-lg'
                   : 'bg-dharma-ink-2 border-dharma-line-dark text-dharma-ivory rounded-tl-none shadow-md'
               }`}>
-                <p className="whitespace-pre-wrap font-serif text-base">{msg.content || '...'}</p>
+                <p className="whitespace-pre-wrap font-serif text-sm sm:text-base leading-relaxed">{msg.content || '...'}</p>
 
-                <div className="flex justify-between items-center mt-3 pt-2 border-t border-dharma-line-dark/40 text-[10px] text-dharma-ivory-dim">
+                <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-dharma-line-dark/40 text-[10px] text-dharma-ivory-dim">
                   <span>{msg.timestamp}</span>
 
                   <button
@@ -654,7 +664,7 @@ export function ChatWorkspacePage() {
           ))}
 
           {isLoading && (
-            <div className="flex items-center gap-3 text-dharma-flame text-xs font-semibold py-4">
+            <div className="flex items-center gap-3 text-dharma-flame text-xs font-semibold py-3 px-2">
               <Sparkles className="w-4 h-4 animate-spin" /> Noerax is reflecting on ancient wisdom...
             </div>
           )}
@@ -662,17 +672,17 @@ export function ChatWorkspacePage() {
 
         {/* Suggested Prompts Grid */}
         {activeSession?.messages.length <= 1 && (
-          <div className="px-6 py-4 max-w-3xl mx-auto w-full">
-            <p className="text-xs text-dharma-ivory-dim mb-3 text-center font-medium">Suggested topics to explore:</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="px-3 sm:px-6 py-3 max-w-3xl mx-auto w-full shrink-0">
+            <p className="text-[11px] sm:text-xs text-dharma-ivory-dim mb-2 text-center font-medium">Suggested decision topics:</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
               {SUGGESTED_PROMPTS.map((prompt, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleSendMessage(prompt)}
-                  className="p-4 rounded-2xl border border-dharma-line-dark bg-dharma-ink-2/80 hover:bg-dharma-ink-3 text-sm text-dharma-ivory text-left transition-all hover:border-dharma-flame/40 cursor-pointer shadow-sm flex items-center justify-between group"
+                  className="p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-dharma-line-dark bg-dharma-ink-2/80 hover:bg-dharma-ink-3 text-xs sm:text-sm text-dharma-ivory text-left transition-all hover:border-dharma-flame/40 cursor-pointer shadow-sm flex items-center justify-between group"
                 >
                   <span className="leading-snug">{prompt}</span>
-                  <Sparkles className="w-4 h-4 text-dharma-flame/40 group-hover:text-dharma-flame shrink-0 ml-2 transition-colors" />
+                  <Sparkles className="w-3.5 h-3.5 text-dharma-flame/40 group-hover:text-dharma-flame shrink-0 ml-2 transition-colors" />
                 </button>
               ))}
             </div>
@@ -680,21 +690,21 @@ export function ChatWorkspacePage() {
         )}
 
         {/* Input Bar Footer */}
-        <div className="p-4 md:p-6 border-t border-dharma-line-dark bg-dharma-ink-2/90 backdrop-blur-xl">
-          <div className="max-w-3xl mx-auto flex items-center gap-3 bg-dharma-ink border border-dharma-line-dark rounded-full px-5 py-3 shadow-xl focus-within:border-dharma-flame transition-colors">
+        <div className="p-2.5 sm:p-4 md:p-6 border-t border-dharma-line-dark bg-dharma-ink-2/90 backdrop-blur-xl shrink-0">
+          <div className="max-w-3xl mx-auto flex items-center gap-2 sm:gap-3 bg-dharma-ink border border-dharma-line-dark rounded-2xl sm:rounded-full px-3 py-2 sm:px-5 sm:py-3 shadow-xl focus-within:border-dharma-flame transition-colors">
             
             {/* Dictation Mic Button */}
             <button
               type="button"
               onClick={toggleListening}
-              className={`p-2 rounded-full border transition-all cursor-pointer ${
+              className={`p-1.5 sm:p-2 rounded-full border transition-all cursor-pointer shrink-0 ${
                 isListening
                   ? 'bg-red-500/20 border-red-500/50 text-red-400 animate-pulse'
                   : 'bg-dharma-ink-3 border-dharma-line-dark text-dharma-ivory-dim hover:text-dharma-ivory'
               }`}
               title={isListening ? 'Stop Listening' : 'Voice Dictate Prompt'}
             >
-              {isListening ? <MicOff className="w-4 h-4 text-red-400" /> : <Mic className="w-4 h-4 text-dharma-flame" />}
+              {isListening ? <MicOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400" /> : <Mic className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-dharma-flame" />}
             </button>
 
             <textarea
@@ -706,18 +716,18 @@ export function ChatWorkspacePage() {
                   handleSendMessage();
                 }
               }}
-              placeholder="Ask anything or express what's on your mind... (Press Enter to send)"
+              placeholder="Ask about a decision, situation, or skill..."
               rows={1}
-              className="flex-1 bg-transparent border-none focus:outline-none text-dharma-ivory placeholder-dharma-ivory-dim/40 text-sm font-serif resize-none py-1"
+              className="flex-1 bg-transparent border-none focus:outline-none text-dharma-ivory placeholder-dharma-ivory-dim/40 text-xs sm:text-sm font-serif resize-none py-1 min-w-0"
             />
 
             <button
               onClick={() => handleSendMessage()}
               disabled={!input.trim() || isLoading}
-              className="p-3 bg-dharma-flame text-white rounded-full hover:bg-dharma-saffron transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-lg shadow-dharma-flame/30 shrink-0"
+              className="p-2.5 sm:p-3 bg-dharma-flame text-white rounded-full hover:bg-dharma-saffron transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-lg shadow-dharma-flame/30 shrink-0"
               title="Send Message"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>
