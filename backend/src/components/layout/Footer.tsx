@@ -98,11 +98,11 @@ export function Footer() {
           {[
             {
               title: "Platform",
-              links: ["Philosophy", "Library", "Daily Mantra", "Features"]
+              links: ["Philosophy", "Library", "Notes", "Features"]
             },
             {
               title: "Resources",
-              links: ["Journal", "Meditation Guide"]
+              links: ["Frameworks", "Decision Guide"]
             },
             {
               title: "Company",

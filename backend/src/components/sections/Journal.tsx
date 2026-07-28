@@ -246,7 +246,7 @@ Downloaded from Noerax Sanctuary — www.noerax.com
             viewport={{ once: true }}
             className="font-serif text-4xl md:text-5xl text-dharma-ivory mb-4"
           >
-            AI Reflection Journal
+            Notes & Application Vault
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -255,7 +255,7 @@ Downloaded from Noerax Sanctuary — www.noerax.com
             transition={{ delay: 0.2 }}
             className="text-dharma-ivory-dim text-lg max-w-xl mx-auto mb-8"
           >
-            Title your reflection, speak or type your thoughts, and save your journey permanently in your vault.
+            Document what you learned, decisions you made, and how you applied them to real life.
           </motion.p>
 
           {/* View Mode Switcher */}

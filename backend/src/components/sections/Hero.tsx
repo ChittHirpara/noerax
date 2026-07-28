@@ -88,20 +88,18 @@ export function Hero() {
         </motion.div>
 
         {/* Headline */}
-        <h1 className="font-serif text-6xl md:text-8xl lg:text-[9rem] leading-none tracking-tight mb-4">
+        <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl leading-tight tracking-tight mb-6 max-w-4xl">
           <AnimatedHeadline
-            text="Ancient Wisdom."
+            text="Learn how life actually works."
             className="block text-dharma-ivory"
             delay={0.1}
           />
-        </h1>
-        <h2 className="font-serif text-6xl md:text-8xl lg:text-[9rem] leading-none tracking-tight italic mb-14">
           <AnimatedHeadline
-            text="Future Clarity."
-            className="block gradient-text"
+            text="The syllabus no one handed Gen Z."
+            className="block gradient-text italic text-4xl md:text-6xl lg:text-7xl mt-2"
             delay={0.5}
           />
-        </h2>
+        </h1>
 
         {/* Subtext */}
         <motion.p
@@ -110,11 +108,9 @@ export function Hero() {
           transition={{ duration: 0.8, delay: 1.1 }}
           className="text-xl md:text-2xl text-dharma-ivory-dim max-w-2xl font-light tracking-wide leading-relaxed mb-12"
         >
-          Bridging the timeless teachings of ancient scriptures<br />
-          with the clarity of modern intelligence.
+          Real frameworks for real decisions.<br />
+          <span className="text-dharma-flame font-medium">Not therapy. Not religion.</span>
         </motion.p>
-
-
 
         {/* CTA */}
         <motion.div
@@ -133,7 +129,7 @@ export function Hero() {
               onClick={() => navigate(user ? '/chat' : '/auth')}
               className="relative inline-flex items-center gap-3 px-8 py-4 bg-dharma-flame text-white rounded-full text-lg font-semibold shadow-lg shadow-dharma-flame/30 transition-shadow hover:shadow-dharma-flame/50 hover:shadow-xl z-10 cursor-pointer"
             >
-              Begin Journey <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              Start Learning <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
           </div>
 

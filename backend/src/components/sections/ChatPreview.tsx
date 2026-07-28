@@ -10,10 +10,10 @@ interface Message {
 }
 
 const SUGGESTED = [
-  "I feel anxious about my future",
-  "How do I find my purpose?",
-  "I'm exhausted and burnt out",
-  "Help me let go of control",
+  "Help me think through a hard decision",
+  "I don't know what direction to choose",
+  "Framework for handling a difficult conflict",
+  "How to stop overthinking and take action",
 ];
 
 function TypingDots() {
@@ -23,8 +23,8 @@ function TypingDots() {
         <motion.div
           key={i}
           animate={{ y: [0, -6, 0] }}
-          transition={{ repeat: Infinity, duration: 0.8, delay }}
-          className="w-2 h-2 rounded-full bg-dharma-ivory-dim"
+          transition={{ duration: 0.6, repeat: Infinity, delay }}
+          className="w-2 h-2 rounded-full bg-dharma-flame/60"
         />
       ))}
     </div>
@@ -35,7 +35,7 @@ export function ChatPreview() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'ai', content: 'Namaste. I am Noerax — your guide through ancient wisdom and modern clarity.\n\nWhat is weighing on your mind today? Speak freely.' }
+    { role: 'ai', content: 'What are you trying to figure out today?\n\nTell me the decision, situation, or challenge on your mind.' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -293,7 +293,7 @@ export function ChatPreview() {
                     value={input}
                     onChange={e => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Ask for guidance..."
+                    placeholder="What decision or situation are you trying to figure out today?"
                     className="flex-1 bg-dharma-ink-3 border border-dharma-line-dark rounded-full px-5 py-3 text-sm text-dharma-ivory placeholder:text-dharma-ivory-dim/50 focus:outline-none focus:border-dharma-flame/40 transition-colors"
                     disabled={isLoading}
                   />

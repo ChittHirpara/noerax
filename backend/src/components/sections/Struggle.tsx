@@ -177,15 +177,13 @@ export function Struggle() {
           className="text-center mb-20"
         >
           <span className="inline-block text-dharma-flame text-xs font-semibold tracking-[0.3em] uppercase mb-4 opacity-80">
-            The Problem
+            The Skill Gap
           </span>
           <h2 className="font-serif text-4xl md:text-6xl text-dharma-ivory mb-6">
-            The Modern Mind is{" "}
-            <span className="gradient-text">Overloaded</span>
+            The Missing Syllabus for <span className="gradient-text">Life</span>
           </h2>
           <p className="text-dharma-ivory-dim text-lg md:text-xl max-w-2xl mx-auto">
-            We are hyper-connected yet deeply isolated. Constant notifications, comparison
-            culture, and the pressure of purpose are creating unprecedented anxiety for our generation.
+            Nobody teaches you how to make a hard decision, handle conflict, or know what you want. School gives you degrees, but no one handed you a syllabus for life.
           </p>
         </motion.div>
 

@@ -26,15 +26,15 @@ interface ChatSession {
 const DEFAULT_WELCOME: Message = {
   id: 'msg-welcome',
   role: 'ai',
-  content: 'Hey there! I am Noerax — your AI best friend and companion. 💫\n\nI am here to listen, support you, and bring positivity to your day. What is on your mind right now? Speak freely!',
+  content: 'What are you trying to figure out today? 💡\n\nTell me the decision, conflict, or situation on your mind. I am here to help you break it down using practical mental frameworks — not therapy, not religion.',
   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 };
 
 const SUGGESTED_PROMPTS = [
-  "I feel anxious about my future and direction",
-  "How do I find purpose and clarity in work?",
-  "Help me let go of attachment and overthinking",
-  "I am exhausted and burnt out",
+  "Help me think through a hard decision",
+  "I don't know what direction to choose",
+  "Framework for handling a difficult conflict",
+  "How to stop overthinking and take action",
 ];
 
 export function ChatWorkspacePage() {

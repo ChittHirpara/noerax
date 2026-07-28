@@ -11,7 +11,6 @@ import { ReadingRoom } from './components/sections/ReadingRoom';
 import { Journal } from './components/sections/Journal';
 import { DailyCardPage } from './components/pages/DailyCardPage';
 import { SettingsPage } from './components/pages/SettingsPage';
-import { Mixtape } from './components/sections/Mixtape';
 import { Features } from './components/sections/Features';
 import { DailyMantra } from './components/sections/DailyMantra';
 import { Testimonials } from './components/sections/Testimonials';
@@ -35,7 +34,6 @@ function Home() {
       <Struggle />
       <ChatPreview />
       <Journal />
-      <Mixtape />
       <Library />
       <Features />
       <DailyMantra />

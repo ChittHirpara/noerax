@@ -56,8 +56,8 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
 
         {/* Nav Links */}
         <div className="hidden md:flex items-center gap-8 text-base font-medium text-dharma-ivory-dim">
-          {['Home', 'Guides', 'Journal', 'Mixtape', 'Daily Card'].map((label, i) => {
-            const path = ['/', '/#guides', '/#journal', '/#mixtape', '/daily-card'][i];
+          {['Home', 'Frameworks', 'Notes', 'Library', 'Daily Card'].map((label, i) => {
+            const path = ['/', '/#guides', '/#journal', '/#library', '/daily-card'][i];
             return (
               <Link
                 key={label}

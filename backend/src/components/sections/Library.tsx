@@ -131,7 +131,7 @@ export function Library() {
             viewport={{ once: true }}
             className="font-serif text-4xl md:text-5xl text-white mb-6"
           >
-            Ancient Texts. Modern Clarity.
+            The Life Library
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -140,7 +140,7 @@ export function Library() {
             transition={{ delay: 0.2 }}
             className="text-zinc-400 text-lg max-w-2xl mx-auto"
           >
-            Explore the wisdom of the ages. Ask the AI Guide to translate timeless scriptures into actionable advice for your daily life.
+            Curriculum & frameworks drawn from timeless philosophy. Academic clarity for real-world decisions.
           </motion.p>
         </div>
 
