@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "motion/react";
-import { Send, User, Sparkles, Loader2, RotateCcw, Maximize2 } from "lucide-react";
+import { Send, User, Sparkles, Loader2, RotateCcw, Maximize2, CheckCircle2, Zap, ShieldCheck } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/AuthContext";
@@ -66,19 +66,15 @@ export function ChatPreview() {
         body: JSON.stringify({ message: messageText, history }),
       });
 
-      if (!response.ok || !response.body) {
-        throw new Error('Failed to connect');
-      }
+      if (!response.ok) throw new Error('Failed');
 
-      const reader = response.body.getReader();
+      const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let aiContent = '';
 
-      // Add a placeholder AI message to stream into
       setMessages(prev => [...prev, { role: 'ai', content: '' }]);
-      setIsLoading(false);
 
-      while (true) {
+      while (reader) {
         const { done, value } = await reader.read();
         if (done) break;
 
@@ -87,23 +83,29 @@ export function ChatPreview() {
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
-            const data = line.slice(6);
-            if (data === '[DONE]') break;
+            const dataStr = line.slice(6);
+            if (dataStr === '[DONE]') break;
             try {
-              const { text } = JSON.parse(data);
-              aiContent += text;
-              setMessages(prev => {
-                const updated = [...prev];
-                updated[updated.length - 1] = { role: 'ai', content: aiContent };
-                return updated;
-              });
-            } catch {}
+              const data = JSON.parse(dataStr);
+              if (data.text) {
+                aiContent += data.text;
+                setMessages(prev => {
+                  const updated = [...prev];
+                  updated[updated.length - 1] = { role: 'ai', content: aiContent };
+                  return updated;
+                });
+              }
+            } catch (e) {}
           }
         }
       }
-    } catch {
+    } catch (err) {
+      setMessages(prev => [
+        ...prev,
+        { role: 'ai', content: "Here is a quick framework: 1. Define the decision clearly. 2. List the worst-case scenario. 3. Ask what you'd advise a friend to do." }
+      ]);
+    } finally {
       setIsLoading(false);
-      setMessages(prev => [...prev, { role: 'ai', content: 'The connection to ancient wisdom was interrupted. Please ensure your GEMINI_API_KEY is configured and try again.' }]);
     }
   };
 
@@ -115,7 +117,7 @@ export function ChatPreview() {
   };
 
   const reset = () => {
-    setMessages([{ role: 'ai', content: 'Namaste. I am Noerax — your guide through ancient wisdom and modern clarity.\n\nWhat is weighing on your mind today? Speak freely.' }]);
+    setMessages([{ role: 'ai', content: 'What are you trying to figure out today?\n\nTell me the decision, situation, or challenge on your mind.' }]);
     setInput('');
   };
 
@@ -126,81 +128,103 @@ export function ChatPreview() {
       viewport={{ once: true, margin: "-100px" }}
       transition={{ duration: 0.8, ease: "easeOut" }}
       id="guides"
-      className="py-24 bg-dharma-ink relative overflow-hidden"
+      className="py-32 bg-dharma-ink relative overflow-hidden"
     >
-      {/* Ambient glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-[400px] bg-dharma-flame/5 blur-[120px] rounded-full pointer-events-none" />
+      {/* Intense Glowing Background Backlight */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl h-[550px] bg-dharma-flame/15 blur-[160px] rounded-full pointer-events-none" />
 
-      <div className="container mx-auto px-6 max-w-6xl">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+      <div className="container mx-auto px-6 max-w-7xl relative z-10">
+        <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
 
-          {/* Left: Copy */}
+          {/* Left: Highlighted Copy */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
+            className="lg:col-span-5"
           >
-            <span className="inline-block text-dharma-flame text-xs font-semibold tracking-[0.3em] uppercase mb-4">
-              AI Guide
+            {/* Highlight Badge */}
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-dharma-flame/15 border border-dharma-flame/40 text-dharma-flame text-xs font-bold tracking-widest uppercase mb-6 shadow-xl shadow-dharma-flame/10">
+              <Sparkles className="w-4 h-4" /> FLAGSHIP AI MENTOR
             </span>
-            <h2 className="font-serif text-4xl md:text-5xl text-dharma-ivory mb-6">
-              Find clarity in <span className="gradient-text">conversation.</span>
+
+            {/* Giant Highlighted Headline */}
+            <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl text-dharma-ivory mb-6 leading-[1.1]">
+              Think through hard decisions with <span className="gradient-text">AI frameworks.</span>
             </h2>
-            <p className="text-dharma-ivory-dim text-lg mb-8 leading-relaxed">
-              Noerax isn't just another chatbot. It's an intelligent companion trained on millennia of Eastern philosophy, stoicism, and modern psychology.
-            </p>
-            <p className="text-dharma-ivory-dim text-lg leading-relaxed mb-8">
-              Whenever you feel lost, overwhelmed, or anxious, Noerax is there to help you re-center and find your own answers.
+
+            <p className="text-dharma-ivory-dim text-xl leading-relaxed mb-8 font-light">
+              Don't figure it out alone. Noerax helps you break down complex choices, career crossroads, and personal conflicts into <span className="text-dharma-ivory font-medium border-b border-dharma-flame/50 pb-0.5">structured, actionable mental models</span>.
             </p>
 
-            {/* Feature tags */}
+            {/* Feature Highlights Checklist */}
+            <div className="space-y-4 mb-10">
+              {[
+                { title: 'Real-Time Decision Engine', desc: 'Powered by Groq Llama-3.3 for instant, stream-of-thought clarity.' },
+                { title: 'Practical Life Frameworks', desc: 'Built for career choices, difficult conversations, and overthinking.' },
+                { title: '100% Private & Confidential', desc: 'Your reflections and choices stay completely private.' }
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-3 bg-dharma-ink-2/60 border border-dharma-line-dark/60 p-4 rounded-2xl">
+                  <CheckCircle2 className="w-5 h-5 text-dharma-flame shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-semibold text-dharma-ivory">{item.title}</h4>
+                    <p className="text-xs text-dharma-ivory-dim/80 mt-0.5">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Curriculum Tags */}
             <div className="flex flex-wrap gap-2">
-              {['Vedanta', 'Buddhism', 'Stoicism', 'Taoism', 'Psychology'].map(tag => (
-                <span key={tag} className="px-3 py-1 rounded-full bg-dharma-ink-2 border border-dharma-line-dark text-dharma-ivory-dim text-xs font-medium">
+              {['Decision-Making', 'Conflict Resolution', 'Career Direction', 'Mental Models', 'Focus'].map(tag => (
+                <span key={tag} className="px-3.5 py-1.5 rounded-full bg-dharma-ink-2 border border-dharma-line-dark text-dharma-ivory-dim text-xs font-semibold">
                   {tag}
                 </span>
               ))}
             </div>
           </motion.div>
 
-          {/* Right: Live Chat Interface */}
+          {/* Right: Live Chat Interface Box (Enlarged with Glow) */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative"
+            className="lg:col-span-7 relative"
           >
-            <div className="bg-dharma-ink-2/90 backdrop-blur-xl rounded-3xl border border-dharma-line-dark shadow-2xl overflow-hidden flex flex-col h-[600px]">
+            <div className="bg-dharma-ink-2/95 backdrop-blur-2xl rounded-3xl border border-dharma-flame/30 shadow-[0_0_60px_rgba(249,115,22,0.15)] overflow-hidden flex flex-col h-[640px]">
 
               {/* Chat Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-dharma-line-dark bg-dharma-ink-3/50">
+              <div className="flex items-center justify-between px-6 py-4.5 border-b border-dharma-line-dark bg-dharma-ink-3/80">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <div className="w-10 h-10 rounded-full bg-dharma-flame/10 border border-dharma-flame/20 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-dharma-flame/20 border border-dharma-flame/40 flex items-center justify-center shadow-md">
                       <Sparkles className="w-5 h-5 text-dharma-flame" />
                     </div>
                     <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-dharma-ink-2" />
                   </div>
                   <div>
-                    <h4 className="text-dharma-ivory font-semibold text-sm">Noerax Guide</h4>
-                    <p className="text-emerald-400 text-xs font-medium flex items-center gap-1">
+                    <h4 className="text-dharma-ivory font-serif font-semibold text-base flex items-center gap-2">
+                      Noerax AI Mentor
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-dharma-flame/20 text-dharma-flame border border-dharma-flame/30 uppercase font-sans font-bold">Interactive</span>
+                    </h4>
+                    <p className="text-emerald-400 text-xs font-medium flex items-center gap-1 mt-0.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
-                      Online · Powered by Gemini
+                      Live Assistant · Groq Streaming Engine
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => navigate(user ? '/chat' : '/auth')}
-                    className="p-2 rounded-full border border-dharma-line-dark bg-dharma-ink-3 text-dharma-flame hover:bg-dharma-flame/10 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
-                    title="Open Fullscreen AI Chat Workspace"
+                    className="px-4 py-2 rounded-full border border-dharma-flame/40 bg-dharma-flame/15 text-dharma-flame hover:bg-dharma-flame hover:text-white transition-all flex items-center gap-1.5 text-xs font-semibold cursor-pointer shadow-md"
+                    title="Open Fullscreen AI Workspace"
                   >
-                    <Maximize2 className="w-4 h-4" />
-                    <span className="hidden sm:inline">Fullscreen Mode</span>
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    <span>Fullscreen Chat</span>
                   </motion.button>
 
                   <motion.button
@@ -209,7 +233,7 @@ export function ChatPreview() {
                     transition={{ duration: 0.3 }}
                     onClick={reset}
                     className="p-2 rounded-full text-dharma-ivory-dim hover:text-dharma-ivory hover:bg-dharma-ivory/5 transition-colors"
-                    title="New conversation"
+                    title="Reset Preview"
                   >
                     <RotateCcw className="w-4 h-4" />
                   </motion.button>
