@@ -107,8 +107,8 @@ function TiltCard({ title, desc, stat, statLabel, delay, icon, statNum, statSuff
 
 const cards = [
   {
-    title: "Overthinking",
-    desc: "Paralyzed by endless choices and 'what-ifs', losing touch with the present moment.",
+    title: "You Carry It Alone",
+    desc: "You smile in the group chat and go quiet the second you're by yourself. Nobody taught you that this isn't just you — it's something you were never shown how to handle.",
     stat: "73%",
     statLabel: "of Gen Z feel overwhelmed daily",
     icon: (
@@ -121,10 +121,10 @@ const cards = [
     statSuffix: "%",
   },
   {
-    title: "Burnout",
-    desc: "Running a race with no finish line, confusing productivity with inherent self-worth.",
-    stat: "4/5",
-    statLabel: "young adults report chronic burnout",
+    title: "You Second-Guess Everything",
+    desc: "Every choice feels like it could be the wrong one. That's not indecision — it's a skill nobody sat you down and actually taught you.",
+    stat: "82%",
+    statLabel: "report chronic indecision & burnout",
     icon: (
       <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
         <Flame className="w-6 h-6" />
@@ -135,10 +135,10 @@ const cards = [
     statSuffix: "%",
   },
   {
-    title: "Disconnection",
-    desc: "Scrolling through thousands of lives while feeling detached from our own inner voice.",
+    title: "Decision-Making Gap",
+    desc: "No one ever taught you how to choose between two things you're scared to get wrong.",
     stat: "6hr",
-    statLabel: "average daily screen time in Gen Z",
+    statLabel: "daily screen time searching for answers",
     icon: (
       <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
         <Smartphone className="w-6 h-6" />
