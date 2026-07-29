@@ -230,21 +230,21 @@ Downloaded from Noerax Sanctuary — www.noerax.com
       id="journal" 
       className="py-32 bg-dharma-ink relative"
     >
-      <div className="container mx-auto px-6 max-w-5xl">
+      <div className="container mx-auto px-4 sm:px-6 max-w-5xl">
         <div className="text-center mb-12">
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
             whileInView={{ scale: 1, opacity: 1 }}
             viewport={{ once: true }}
-            className="w-16 h-16 bg-dharma-ivory/5 rounded-full flex items-center justify-center mx-auto mb-6"
+            className="w-12 h-12 sm:w-16 sm:h-16 bg-dharma-ivory/5 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6"
           >
-            <PenLine className="w-8 h-8 text-dharma-ivory" />
+            <PenLine className="w-6 h-6 sm:w-8 sm:h-8 text-dharma-ivory" />
           </motion.div>
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="font-serif text-4xl md:text-5xl text-dharma-ivory mb-4"
+            className="font-serif text-2xl sm:text-4xl md:text-5xl text-dharma-ivory mb-4"
           >
             Notes & Application Vault
           </motion.h2>
@@ -253,16 +253,16 @@ Downloaded from Noerax Sanctuary — www.noerax.com
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="text-dharma-ivory-dim text-lg max-w-xl mx-auto mb-8"
+            className="text-dharma-ivory-dim text-sm sm:text-lg max-w-xl mx-auto mb-8"
           >
             Document what you learned, decisions you made, and how you applied them to real life.
           </motion.p>
 
           {/* View Mode Switcher */}
-          <div className="inline-flex bg-dharma-ink-2 p-1.5 rounded-full border border-dharma-line-dark shadow-lg">
+          <div className="inline-flex flex-col sm:flex-row bg-dharma-ink-2 p-1.5 rounded-2xl sm:rounded-full border border-dharma-line-dark shadow-lg gap-1 sm:gap-0 w-full sm:w-auto">
             <button
               onClick={() => setViewMode('write')}
-              className={`px-6 py-2.5 rounded-full text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
+              className={`px-5 sm:px-6 py-2.5 rounded-xl sm:rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 viewMode === 'write'
                   ? 'bg-dharma-flame text-white shadow-md'
                   : 'text-dharma-ivory-dim hover:text-dharma-ivory'
@@ -272,7 +272,7 @@ Downloaded from Noerax Sanctuary — www.noerax.com
             </button>
             <button
               onClick={() => setViewMode('vault')}
-              className={`px-6 py-2.5 rounded-full text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
+              className={`px-5 sm:px-6 py-2.5 rounded-xl sm:rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 viewMode === 'vault'
                   ? 'bg-dharma-flame text-white shadow-md'
                   : 'text-dharma-ivory-dim hover:text-dharma-ivory'

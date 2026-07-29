@@ -52,8 +52,8 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
           <img 
             src={noeraxLogo} 
             alt="Noerax Logo" 
-            className="h-7 sm:h-9 w-auto transition-transform duration-300 group-hover:scale-105" 
-            style={{ filter: 'brightness(1.15)' }}
+            className="h-12 sm:h-16 md:h-20 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
+            style={{ filter: 'brightness(1.15) contrast(1.05)' }}
           />
         </Link>
 
@@ -111,9 +111,14 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
             <div className="flex items-center gap-2 sm:gap-3 ml-1 sm:ml-2 pl-2 sm:pl-3 border-l border-dharma-line-dark">
               <Link to="/settings">
                 <img 
-                  src={user.picture || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.email}`} 
-                  alt={user.name} 
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-dharma-flame/40 shadow-sm cursor-pointer hover:scale-105 transition-transform"
+                  src={user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=f97316&color=fff`} 
+                  alt={user.name || 'User Profile'} 
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).onerror = null;
+                    (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=f97316&color=fff`;
+                  }}
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-dharma-flame/40 shadow-sm cursor-pointer hover:scale-105 transition-transform object-cover"
                   title="View Profile & Settings"
                 />
               </Link>

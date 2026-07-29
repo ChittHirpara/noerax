@@ -1,33 +1,33 @@
 import { motion } from "motion/react";
-import { Sparkles, Moon, Sun, Leaf } from "lucide-react";
+import { Sparkles, Moon, Sun, MessageSquare } from "lucide-react";
 import React, { useRef } from "react";
 
 const features = [
   {
     icon: <Moon className="w-7 h-7 text-dharma-flame" />,
-    title: "Nightly Reflection",
-    desc: "Guided journal prompts based on your day's energy to help you let go of lingering stress before sleep.",
+    title: "Nightly Debrief",
+    desc: "Lying awake replaying the day? Break down what actually happened — and what you'd do differently — before it turns into 2am spiraling.",
     gradient: "from-orange-500/10 to-transparent",
     glow: "rgba(56,189,248,0.15)",
   },
   {
     icon: <Sun className="w-7 h-7 text-dharma-gold" />,
-    title: "Morning Intention",
-    desc: "Start your day with purpose. Micro-meditations and stoic wisdom to anchor your morning.",
+    title: "Morning Framework",
+    desc: "Waking up already anxious about the day? One framework to know what actually matters today, before your phone decides for you.",
     gradient: "from-yellow-500/10 to-transparent",
     glow: "rgba(251,191,36,0.15)",
   },
   {
-    icon: <Leaf className="w-7 h-7 text-emerald-400" />,
-    title: "Mindful Breathing",
-    desc: "Sync your breath with our dynamic visuals designed to lower cortisol and activate your parasympathetic nervous system.",
-    gradient: "from-emerald-500/10 to-transparent",
-    glow: "rgba(52,211,153,0.15)",
+    icon: <MessageSquare className="w-7 h-7 text-cyan-400" />,
+    title: "Conflict Script",
+    desc: "Dreading a hard conversation? A script to say what you actually mean — without blowing up or shutting down.",
+    gradient: "from-cyan-500/10 to-transparent",
+    glow: "rgba(34,211,238,0.15)",
   },
   {
     icon: <Sparkles className="w-7 h-7 text-dharma-ivory" />,
     title: "Personalized Noerax",
-    desc: "AI that learns your philosophical leanings and tailors its guidance, from Zen Buddhism to modern psychology.",
+    desc: "Overthinking the same decision on loop? AI that learns how you think and hands you the exact framework for your situation — not generic advice.",
     gradient: "from-white/5 to-transparent",
     glow: "rgba(255,255,255,0.1)",
   },
@@ -71,7 +71,7 @@ export function Features() {
             viewport={{ once: true }}
             className="inline-block text-dharma-flame text-xs font-semibold tracking-[0.3em] uppercase mb-4"
           >
-            What We Offer
+            Practical Decision Tools
           </motion.span>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -79,7 +79,7 @@ export function Features() {
             viewport={{ once: true }}
             className="font-serif text-4xl md:text-5xl text-dharma-ivory mb-6"
           >
-            Tools for the <span className="gradient-text">Modern Soul</span>
+            Frameworks for <span className="gradient-text">Real Life Decisions</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -88,9 +88,10 @@ export function Features() {
             transition={{ delay: 0.2 }}
             className="text-dharma-ivory-dim text-lg max-w-2xl mx-auto"
           >
-            A seamless blend of ancient techniques and modern design, crafted to bring you back to your center.
+            Practical toolkits built for Gen Z overthinking, tough conversations, and daily decisions.
           </motion.p>
         </div>
+
 
         <SpotlightSection>
           <div className="grid md:grid-cols-2 gap-5">

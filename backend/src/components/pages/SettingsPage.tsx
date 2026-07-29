@@ -175,8 +175,13 @@ export function SettingsPage() {
                 <div className="flex items-center gap-4 p-5 rounded-2xl bg-dharma-ink/60 border border-dharma-line-dark justify-between flex-wrap">
                   <div className="flex items-center gap-4">
                     <img
-                      src={avatarUrl}
+                      src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent((user?.name) || 'User')}&background=f97316&color=fff`}
                       alt="Avatar"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).onerror = null;
+                        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent((user?.name) || 'User')}&background=f97316&color=fff`;
+                      }}
                       className="w-16 h-16 rounded-full border-2 border-dharma-flame/50 object-cover shadow-lg"
                     />
                     <div>

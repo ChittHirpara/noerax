@@ -67,37 +67,40 @@ function TiltCard({ title, desc, stat, statLabel, delay, icon, statNum, statSuff
       style={{ rotateX, rotateY, transformStyle: 'preserve-3d', perspective: 1000 }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="group relative p-8 rounded-2xl bg-dharma-ink-2 border border-dharma-line-dark hover:border-dharma-flame/40 transition-colors duration-500 cursor-default overflow-hidden"
+      className="group relative p-8 rounded-2xl bg-dharma-ink-2 border border-dharma-line-dark hover:border-dharma-flame/40 transition-colors duration-500 cursor-default overflow-hidden h-full flex flex-col justify-between"
     >
       {/* Inner glow on hover */}
       <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
         style={{ background: 'radial-gradient(circle at 50% 0%, rgba(56,189,248,0.1), transparent 70%)' }}
       />
 
-      {/* Icon */}
-      <div className="mb-6" style={{ transform: 'translateZ(20px)' }}>
-        {icon}
+      <div>
+        {/* Icon */}
+        <div className="mb-6" style={{ transform: 'translateZ(20px)' }}>
+          {icon}
+        </div>
+
+        {/* Fixed min-height title to align descriptions across all cards */}
+        <div className="min-h-[64px] flex items-start mb-3" style={{ transform: 'translateZ(20px)' }}>
+          <h3
+            className="glitch-text font-serif text-2xl text-dharma-ivory leading-tight"
+            data-text={title}
+          >
+            {title}
+          </h3>
+        </div>
+
+        <p className="text-dharma-ivory-dim leading-relaxed text-sm sm:text-base mb-8" style={{ transform: 'translateZ(10px)' }}>
+          {desc}
+        </p>
       </div>
 
-      {/* Glitch title */}
-      <h3
-        className="glitch-text font-serif text-2xl text-dharma-ivory mb-3"
-        data-text={title}
-        style={{ transform: 'translateZ(20px)' }}
-      >
-        {title}
-      </h3>
-
-      <p className="text-dharma-ivory-dim leading-relaxed mb-8" style={{ transform: 'translateZ(10px)' }}>
-        {desc}
-      </p>
-
-      {/* Stat */}
-      <div className="border-t border-dharma-line-dark pt-6" style={{ transform: 'translateZ(15px)' }}>
+      {/* Stat - locked to bottom */}
+      <div className="border-t border-dharma-line-dark pt-6 mt-auto" style={{ transform: 'translateZ(15px)' }}>
         <span className="block text-3xl font-bold gradient-text mb-1">
           <AnimatedCounter target={statNum} suffix={statSuffix} />
         </span>
-        <span className="text-xs text-dharma-ivory-dim/60 font-medium uppercase tracking-widest">
+        <span className="text-xs text-dharma-ivory-dim/60 font-medium uppercase tracking-widest block min-h-[32px]">
           {statLabel}
         </span>
       </div>
@@ -107,7 +110,7 @@ function TiltCard({ title, desc, stat, statLabel, delay, icon, statNum, statSuff
 
 const cards = [
   {
-    title: "You Carry It Alone",
+    title: "You Carry It All Alone",
     desc: "You smile in the group chat and go quiet the second you're by yourself. Nobody taught you that this isn't just you — it's something you were never shown how to handle.",
     stat: "73%",
     statLabel: "of Gen Z feel overwhelmed daily",
@@ -136,7 +139,7 @@ const cards = [
   },
   {
     title: "You Fear Choosing Wrong",
-    desc: "No one ever sat you down and taught you how to choose between two paths when you're terrified of making a mistake. So you scroll for hours searching for clarity outside yourself.",
+    desc: "No one ever sat you down and taught you how to choose between two paths when you're terrified of making a mistake. So you scroll for hours searching for clarity.",
     stat: "6hr",
     statLabel: "daily screen time searching for answers",
     icon: (

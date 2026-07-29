@@ -72,23 +72,23 @@ export function Hero() {
       </div>
 
       {/* Main content */}
-      <div className="container mx-auto px-8 md:px-16 relative z-10 flex flex-col items-start text-left h-full justify-center flex-1 pb-20">
+      <div className="container mx-auto px-4 sm:px-8 md:px-16 relative z-10 flex flex-col items-start text-left h-full justify-center flex-1 pb-20">
 
         {/* Badge */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="flex items-center gap-3 mb-12"
+          className="flex items-center gap-3 mb-8 sm:mb-12"
         >
-          <span className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-dharma-flame/30 bg-dharma-flame/10 text-dharma-flame text-xs font-semibold tracking-[0.2em] uppercase">
+          <span className="flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full border border-dharma-flame/30 bg-dharma-flame/10 text-dharma-flame text-[10px] sm:text-xs font-semibold tracking-[0.15em] sm:tracking-[0.2em] uppercase">
             <span className="w-1.5 h-1.5 rounded-full bg-dharma-flame animate-pulse" />
             The Digital Sanctuary
           </span>
         </motion.div>
 
         {/* Headline */}
-        <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl leading-tight tracking-tight mb-6 max-w-4xl">
+        <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl lg:text-8xl leading-tight tracking-tight mb-6 max-w-4xl">
           <AnimatedHeadline
             text="Learn how life actually works."
             className="block text-dharma-ivory"
@@ -96,7 +96,7 @@ export function Hero() {
           />
           <AnimatedHeadline
             text="The syllabus no one handed Gen Z."
-            className="block gradient-text italic text-4xl md:text-6xl lg:text-7xl mt-2"
+            className="block gradient-text italic text-2xl sm:text-4xl md:text-6xl lg:text-7xl mt-2"
             delay={0.5}
           />
         </h1>
@@ -106,20 +106,20 @@ export function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1.1 }}
-          className="text-xl md:text-2xl text-dharma-ivory-dim max-w-2xl font-light tracking-wide leading-relaxed mb-12"
+          className="text-base sm:text-xl md:text-2xl text-dharma-ivory-dim max-w-2xl font-light tracking-wide leading-relaxed mb-8 sm:mb-12"
         >
           Real frameworks for real decisions.<br />
           <span className="text-dharma-flame font-medium">Not therapy. Not religion.</span>
         </motion.p>
 
-        {/* CTA */}
+        {/* CTA Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1.4 }}
-          className="flex flex-wrap items-center gap-4 mb-20"
+          className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-16 sm:mb-20 w-full sm:w-auto"
         >
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             {/* Pulsing rings */}
             <span className="absolute inset-0 rounded-full bg-dharma-flame/30 animate-pulse-ring" />
             <span className="absolute inset-0 rounded-full bg-dharma-flame/20 animate-pulse-ring" style={{ animationDelay: '0.5s' }} />
@@ -127,7 +127,7 @@ export function Hero() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate(user ? '/chat' : '/auth')}
-              className="relative inline-flex items-center gap-3 px-8 py-4 bg-dharma-flame text-white rounded-full text-lg font-semibold shadow-lg shadow-dharma-flame/30 transition-shadow hover:shadow-dharma-flame/50 hover:shadow-xl z-10 cursor-pointer"
+              className="relative w-full sm:w-auto inline-flex items-center justify-center gap-3 px-6 sm:px-8 py-3.5 sm:py-4 bg-dharma-flame text-white rounded-full text-base sm:text-lg font-semibold shadow-lg shadow-dharma-flame/30 transition-shadow hover:shadow-dharma-flame/50 hover:shadow-xl z-10 cursor-pointer"
             >
               Start Learning <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
@@ -144,7 +144,7 @@ export function Hero() {
                 navigate('/reading-room');
               }
             }}
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-full border border-dharma-line-dark text-dharma-ivory-dim hover:text-dharma-ivory hover:border-dharma-ivory/20 text-lg font-medium transition-colors cursor-pointer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full border border-dharma-line-dark text-dharma-ivory-dim hover:text-dharma-ivory hover:border-dharma-ivory/20 text-base sm:text-lg font-medium transition-colors cursor-pointer"
           >
             Explore Library
           </motion.button>
@@ -155,11 +155,11 @@ export function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 1.8 }}
-          className="flex items-center gap-6 text-xs text-dharma-ivory-dim/60 font-medium tracking-[0.25em] uppercase"
+          className="flex flex-wrap items-center gap-3 sm:gap-6 text-[10px] sm:text-xs text-dharma-ivory-dim/60 font-medium tracking-[0.15em] sm:tracking-[0.25em] uppercase"
         >
           <div className="flex -space-x-2">
             {['S', 'A', 'R', 'J', 'M'].map((l, i) => (
-              <div key={i} className="w-7 h-7 rounded-full bg-dharma-ink-3 border border-dharma-line-dark flex items-center justify-center text-[10px] text-dharma-ivory-dim font-medium">
+              <div key={i} className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-dharma-ink-3 border border-dharma-line-dark flex items-center justify-center text-[9px] sm:text-[10px] text-dharma-ivory-dim font-medium">
                 {l}
               </div>
             ))}
