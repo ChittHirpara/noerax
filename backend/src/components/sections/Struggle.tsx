@@ -135,8 +135,8 @@ const cards = [
     statSuffix: "%",
   },
   {
-    title: "Decision-Making Gap",
-    desc: "No one ever taught you how to choose between two things you're scared to get wrong.",
+    title: "You Fear Choosing Wrong",
+    desc: "No one ever sat you down and taught you how to choose between two paths when you're terrified of making a mistake. So you scroll for hours searching for clarity outside yourself.",
     stat: "6hr",
     statLabel: "daily screen time searching for answers",
     icon: (
