@@ -632,6 +632,11 @@ CORE MENTOR PERSONA & RULES:
     }
   });
 
+  // Health Check Endpoint (for Render & Uptime Monitors)
+  app.get("/api/health", (req: Request, res: Response) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString(), app: "Noerax Sanctuary" });
+  });
+
   // -------------------------------------------------------------
   // SERVE FRONTEND (Vite / Production Static)
   // -------------------------------------------------------------
@@ -651,6 +656,17 @@ CORE MENTOR PERSONA & RULES:
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log("\n  NOERAX PRODUCTION SERVER\n  ⚡ Running at http://localhost:" + PORT + "\n");
+    
+    // Auto Keep-Alive Self-Ping (Pings every 10 minutes so Render free tier never goes to sleep)
+    setInterval(() => {
+      const pingUrl = process.env.RENDER_EXTERNAL_URL ? `${process.env.RENDER_EXTERNAL_URL}/api/health` : `http://localhost:${PORT}/api/health`;
+      const protocol = pingUrl.startsWith('https') ? require('https') : require('http');
+      protocol.get(pingUrl, (res: any) => {
+        console.log(`💓 [Keep-Alive Ping] Server health status: ${res.statusCode}`);
+      }).on('error', (e: any) => {
+        console.warn('⚠️ [Keep-Alive Ping] Warning:', e.message);
+      });
+    }, 10 * 60 * 1000);
   });
 }
 
