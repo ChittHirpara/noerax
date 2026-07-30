@@ -47,25 +47,25 @@ const testimonials = [
 
 function TestimonialCard({ item }: { item: typeof testimonials[0] }) {
   return (
-    <div className="flex-shrink-0 w-[340px] md:w-[400px] p-7 rounded-2xl bg-dharma-ink-2 border border-dharma-line-dark hover:border-dharma-flame/20 transition-colors duration-300 mx-3 group">
+    <div className="flex-shrink-0 w-[280px] sm:w-[340px] md:w-[400px] p-5 sm:p-7 rounded-2xl bg-dharma-ink-2 border border-dharma-line-dark hover:border-dharma-flame/20 transition-colors duration-300 mx-2 sm:mx-3 group">
       {/* Stars */}
-      <div className="flex gap-1 mb-5">
+      <div className="flex gap-1 mb-4 sm:mb-5">
         {Array(5).fill(0).map((_, i) => (
-          <span key={i} className="text-dharma-gold text-sm">★</span>
+          <span key={i} className="text-dharma-gold text-xs sm:text-sm">★</span>
         ))}
       </div>
 
-      <p className="text-dharma-ivory/80 text-base leading-relaxed italic mb-7 font-serif">
+      <p className="text-dharma-ivory/80 text-sm sm:text-base leading-relaxed italic mb-5 sm:mb-7 font-serif">
         "{item.quote}"
       </p>
 
       <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${item.color} flex items-center justify-center flex-shrink-0 ring-2 ring-dharma-line-dark group-hover:ring-dharma-flame/20 transition-all`}>
-          <span className="text-white font-bold text-sm">{item.avatar}</span>
+        <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br ${item.color} flex items-center justify-center flex-shrink-0 ring-2 ring-dharma-line-dark group-hover:ring-dharma-flame/20 transition-all`}>
+          <span className="text-white font-bold text-xs sm:text-sm">{item.avatar}</span>
         </div>
         <div>
-          <h4 className="text-dharma-ivory font-semibold text-sm">{item.name}</h4>
-          <p className="text-dharma-ivory-dim text-xs">{item.role}</p>
+          <h4 className="text-dharma-ivory font-semibold text-xs sm:text-sm">{item.name}</h4>
+          <p className="text-dharma-ivory-dim text-[11px] sm:text-xs">{item.role}</p>
         </div>
       </div>
     </div>
@@ -85,10 +85,10 @@ export function Testimonials() {
       className="py-32 bg-dharma-ink relative overflow-hidden"
     >
       {/* Gradient fade masks */}
-      <div className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: 'linear-gradient(to right, #09090b, transparent)' }} />
-      <div className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: 'linear-gradient(to left, #09090b, transparent)' }} />
+      <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 z-10 pointer-events-none" style={{ background: 'linear-gradient(to right, #09090b, transparent)' }} />
+      <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 z-10 pointer-events-none" style={{ background: 'linear-gradient(to left, #09090b, transparent)' }} />
 
-      <div className="container mx-auto px-6 max-w-5xl mb-16">
+      <div className="container mx-auto px-4 sm:px-6 max-w-5xl mb-12 sm:mb-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -98,8 +98,8 @@ export function Testimonials() {
           <span className="inline-block text-dharma-flame text-xs font-semibold tracking-[0.3em] uppercase mb-4">
             Community Voices
           </span>
-          <h2 className="font-serif text-4xl md:text-5xl text-dharma-ivory mb-4">
-            Spoken by the <span className="gradient-text">Community</span>
+          <h2 className="font-serif text-2xl sm:text-4xl md:text-5xl text-dharma-ivory mb-6">
+            Loved by seekers <span className="gradient-text">everywhere.</span>
           </h2>
           <p className="text-dharma-ivory-dim text-lg max-w-xl mx-auto">
             Thousands of seekers finding clarity, purpose, and peace through Noerax.
