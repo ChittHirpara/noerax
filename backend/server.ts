@@ -1,5 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
 import path from "path";
+import http from "http";
+import https from "https";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import mongoose from "mongoose";
@@ -660,7 +662,7 @@ CORE MENTOR PERSONA & RULES:
     // Auto Keep-Alive Self-Ping (Pings every 10 minutes so Render free tier never goes to sleep)
     setInterval(() => {
       const pingUrl = process.env.RENDER_EXTERNAL_URL ? `${process.env.RENDER_EXTERNAL_URL}/api/health` : `http://localhost:${PORT}/api/health`;
-      const protocol = pingUrl.startsWith('https') ? require('https') : require('http');
+      const protocol = pingUrl.startsWith('https') ? https : http;
       protocol.get(pingUrl, (res: any) => {
         console.log(`💓 [Keep-Alive Ping] Server health status: ${res.statusCode}`);
       }).on('error', (e: any) => {
