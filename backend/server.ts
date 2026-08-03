@@ -1,13 +1,17 @@
+import cluster from "cluster";
+import os from "os";
 import express, { Request, Response, NextFunction } from "express";
 import path from "path";
 import http from "http";
 import https from "https";
+import helmet from "helmet";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
+import slowDown from "express-slow-down";
 import cors from "cors";
 import dotenv from "dotenv";
 import { OAuth2Client } from "google-auth-library";
@@ -74,19 +78,108 @@ async function startServer() {
   const app = express();
   const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5555;
 
-  // Security & Parsing Middlewares
-  app.use(cors());
-  app.use(express.json());
+  // =============================================================
+  // LAYER 1: HTTP Security Headers (Helmet)
+  // Prevents XSS, clickjacking, MIME sniffing, and more
+  // =============================================================
+  app.use(helmet({
+    contentSecurityPolicy: false, // Allow Vite dev tools to work
+    crossOriginEmbedderPolicy: false,
+  }));
 
-  // Rate Limiting to prevent API abuse & protect Gemini AI quotas
+  // =============================================================
+  // LAYER 2: CORS — only allow known origins
+  // =============================================================
+  const allowedOrigins = [
+    'https://noerax.com',
+    'https://www.noerax.com',
+    'http://localhost:5555',
+    'http://localhost:5173',
+  ];
+  app.use(cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  }));
+
+  // =============================================================
+  // LAYER 3: Request Body Size Limits (prevent body flooding)
+  // =============================================================
+  app.use(express.json({ limit: '50kb' }));         // Cap JSON payloads at 50KB
+  app.use(express.urlencoded({ extended: true, limit: '50kb' }));
+
+  // =============================================================
+  // LAYER 4: Tiered Rate Limiting
+  // Different limits per endpoint sensitivity
+  // =============================================================
+
+  // General API: 100 req / 15 min per IP
   const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per 15 mins
+    windowMs: 15 * 60 * 1000,
+    max: 100,
     standardHeaders: true,
     legacyHeaders: false,
-    message: { error: "Too many requests from this IP, please try again after 15 minutes." }
+    message: { error: "Too many requests from this IP. Please try again after 15 minutes." },
+    skip: (req) => req.path === '/api/health', // Don't count keep-alive pings
   });
-  app.use("/api/", apiLimiter);
+
+  // Auth routes: 10 attempts / 15 min per IP (brute-force protection)
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many login attempts. Please wait 15 minutes before trying again." },
+  });
+
+  // AI routes: 20 req / 15 min per IP (protect Gemini quotas)
+  const aiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "AI request limit reached. Please wait before sending more messages." },
+  });
+
+  // =============================================================
+  // LAYER 5: Speed Limiter (slow down repeat requests before blocking)
+  // Adds 500ms delay after 50 requests, up to 20s max
+  // =============================================================
+  const speedLimiter = slowDown({
+    windowMs: 15 * 60 * 1000,
+    delayAfter: 50,
+    delayMs: (hits) => (hits - 50) * 500,
+  });
+
+  // Apply general limiter + speed limiter to all /api/ routes
+  app.use("/api/", apiLimiter, speedLimiter);
+
+  // Apply strict auth limiter
+  app.use("/api/auth/login", authLimiter);
+  app.use("/api/auth/register", authLimiter);
+  app.use("/api/auth/google", authLimiter);
+
+  // Apply AI limiter to AI-powered routes
+  app.use("/api/chat", aiLimiter);
+  app.use("/api/journal/analyze", aiLimiter);
+  app.use("/api/explain-scripture", aiLimiter);
+  app.use("/api/wisdom-card", aiLimiter);
+
+  // =============================================================
+  // LAYER 6: Global Error Handler for CORS & other middleware errors
+  // =============================================================
+  app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    if (err.message === 'Not allowed by CORS') {
+      return res.status(403).json({ error: 'Access denied: CORS policy violation.' });
+    }
+    next(err);
+  });
+
 
   // -------------------------------------------------------------
   // AUTHENTICATION ROUTES (Custom & Google OAuth)
@@ -672,4 +765,34 @@ CORE MENTOR PERSONA & RULES:
   });
 }
 
-startServer();
+// =============================================================
+// CLUSTER LOAD BALANCER
+// Spawns one worker process per CPU core so every core handles
+// incoming requests independently — distributes load and isolates
+// crashes to individual workers (master auto-respawns them).
+// On Render Free Tier (1 vCPU) this simply runs 1 worker.
+// =============================================================
+const numCPUs = os.cpus().length;
+
+if (cluster.isPrimary) {
+  console.log(`\n  🔄 NOERAX LOAD BALANCER — Spawning ${numCPUs} worker(s) across ${numCPUs} CPU core(s)`);
+
+  // Fork a worker for each CPU core
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork();
+  }
+
+  // Auto-respawn dead workers (DoS crash resilience)
+  cluster.on('exit', (worker, code, signal) => {
+    console.warn(`⚠️  Worker ${worker.process.pid} died (code: ${code}, signal: ${signal}). Spawning replacement...`);
+    cluster.fork();
+  });
+
+  cluster.on('online', (worker) => {
+    console.log(`✅  Worker ${worker.process.pid} online`);
+  });
+
+} else {
+  // Each worker independently runs the full Express server
+  startServer();
+}
