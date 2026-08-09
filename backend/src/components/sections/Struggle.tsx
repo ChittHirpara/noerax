@@ -40,8 +40,8 @@ function TiltCard({ title, desc, stat, statLabel, delay, icon, statNum, statSuff
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const rotateX = useTransform(y, [-0.5, 0.5], [8, -8]);
-  const rotateY = useTransform(x, [-0.5, 0.5], [-8, 8]);
+  const rotateX = useTransform(y, [-0.5, 0.5], [6, -6]);
+  const rotateY = useTransform(x, [-0.5, 0.5], [-6, 6]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!ref.current) return;
@@ -60,18 +60,18 @@ function TiltCard({ title, desc, stat, statLabel, delay, icon, statNum, statSuff
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 40 }}
+      initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.7, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
+      transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
       style={{ rotateX, rotateY, transformStyle: 'preserve-3d', perspective: 1000 }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="group relative p-8 rounded-2xl bg-dharma-ink-2 border border-dharma-line-dark hover:border-dharma-flame/40 transition-colors duration-500 cursor-default overflow-hidden h-full flex flex-col justify-between"
+      className="group relative p-8 rounded-3xl bg-dharma-ink-2/90 border border-dharma-line-dark hover:border-dharma-flame/40 transition-all duration-300 cursor-default overflow-hidden h-full flex flex-col justify-between hover:shadow-2xl hover:shadow-dharma-flame/5"
     >
       {/* Inner glow on hover */}
-      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-        style={{ background: 'radial-gradient(circle at 50% 0%, rgba(56,189,248,0.1), transparent 70%)' }}
+      <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+        style={{ background: 'radial-gradient(circle at 50% 0%, rgba(56,189,248,0.12), transparent 70%)' }}
       />
 
       <div>

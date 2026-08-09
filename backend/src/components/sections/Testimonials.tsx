@@ -2,60 +2,78 @@ import { motion } from "motion/react";
 
 const testimonials = [
   {
-    quote: "It feels like having a deeply wise mentor in my pocket. When my anxiety peaks, Noerax helps me find ground again.",
-    name: "Elena R.",
-    role: "Product Designer",
-    avatar: "E",
+    quote: "bro i told noerax i was scared to talk to my dad for 3 years. it gave me an actual script. the conversation happened. it worked.",
+    name: "Aryan S.",
+    location: "Mumbai, India",
+    platform: "WhatsApp",
+    avatar: "A",
     color: "from-orange-500 to-yellow-500",
   },
   {
-    quote: "I've tried every meditation app. This is different. It doesn't just tell me to breathe, it helps me understand *why* I'm stressed.",
+    quote: "every other app just tells you to breathe. noerax actually explains WHY you're stressed and what to do about it. finally.",
     name: "James T.",
-    role: "Software Engineer",
+    location: "London, UK",
+    platform: "Twitter",
     avatar: "J",
     color: "from-blue-500 to-purple-500",
   },
   {
-    quote: "Beautiful, minimal, and profound. The interface itself is calming, let alone the actual conversations.",
-    name: "Sarah M.",
-    role: "Student",
-    avatar: "S",
+    quote: "my anxiety spirals used to last 3 hours minimum. noerax cuts it to like 20 minutes now. not even joking.",
+    name: "Priya M.",
+    location: "Bangalore, India",
+    platform: "Instagram",
+    avatar: "P",
     color: "from-emerald-500 to-teal-500",
   },
   {
-    quote: "The Bhagavad Gita explanations actually make sense now. Never thought I'd relate to 5000-year-old texts so deeply.",
-    name: "Arjun K.",
-    role: "Entrepreneur",
-    avatar: "A",
+    quote: "i'm not spiritual at all but the gita explanations actually make sense?? never thought 5000 year old advice would slap this hard",
+    name: "Karan B.",
+    location: "Delhi, India",
+    platform: "Twitter",
+    avatar: "K",
     color: "from-pink-500 to-rose-500",
   },
   {
-    quote: "The journal feature is unreal — the AI caught things about myself that took me years in therapy to understand.",
+    quote: "the journal feature caught patterns about myself that took me 2 years of therapy to understand. it's genuinely different.",
     name: "Maya L.",
-    role: "Writer",
+    location: "Toronto, Canada",
+    platform: "WhatsApp",
     avatar: "M",
     color: "from-violet-500 to-indigo-500",
   },
   {
-    quote: "Noerax is the intersection of spirituality and technology I didn't know I needed. Game changer.",
-    name: "Rohan S.",
-    role: "UX Researcher",
+    quote: "not therapy. not self-help fluff. just actually useful for once. showed it to my friends and now we all use it",
+    name: "Rohan N.",
+    location: "Pune, India",
+    platform: "Instagram",
     avatar: "R",
     color: "from-amber-500 to-orange-500",
   },
 ];
 
+const platformIcons: Record<string, string> = {
+  Twitter: "𝕏",
+  Instagram: "◎",
+  WhatsApp: "✦",
+};
+
 function TestimonialCard({ item }: { item: typeof testimonials[0] }) {
   return (
     <div className="flex-shrink-0 w-[280px] sm:w-[340px] md:w-[400px] p-5 sm:p-7 rounded-2xl bg-dharma-ink-2 border border-dharma-line-dark hover:border-dharma-flame/20 transition-colors duration-300 mx-2 sm:mx-3 group">
-      {/* Stars */}
-      <div className="flex gap-1 mb-4 sm:mb-5">
-        {Array(5).fill(0).map((_, i) => (
-          <span key={i} className="text-dharma-gold text-xs sm:text-sm">★</span>
-        ))}
+
+      {/* Platform badge + Stars row */}
+      <div className="flex items-center justify-between mb-4 sm:mb-5">
+        <div className="flex gap-1">
+          {Array(5).fill(0).map((_, i) => (
+            <span key={i} className="text-dharma-gold text-xs sm:text-sm">★</span>
+          ))}
+        </div>
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-dharma-ink border border-dharma-line-dark text-dharma-ivory-dim tracking-wide">
+          {platformIcons[item.platform]} {item.platform}
+        </span>
       </div>
 
-      <p className="text-dharma-ivory/80 text-sm sm:text-base leading-relaxed italic mb-5 sm:mb-7 font-serif">
+      <p className="text-dharma-ivory/85 text-sm sm:text-[15px] leading-relaxed mb-5 sm:mb-7 font-sans">
         "{item.quote}"
       </p>
 
@@ -65,7 +83,7 @@ function TestimonialCard({ item }: { item: typeof testimonials[0] }) {
         </div>
         <div>
           <h4 className="text-dharma-ivory font-semibold text-xs sm:text-sm">{item.name}</h4>
-          <p className="text-dharma-ivory-dim text-[11px] sm:text-xs">{item.role}</p>
+          <p className="text-dharma-ivory-dim text-[11px] sm:text-xs">{item.location}</p>
         </div>
       </div>
     </div>

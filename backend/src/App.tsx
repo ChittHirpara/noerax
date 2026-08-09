@@ -13,6 +13,7 @@ import { DailyCardPage } from './components/pages/DailyCardPage';
 import { SettingsPage } from './components/pages/SettingsPage';
 import { Features } from './components/sections/Features';
 import { DailyMantra } from './components/sections/DailyMantra';
+
 import { Testimonials } from './components/sections/Testimonials';
 import { Footer } from './components/layout/Footer';
 import { StreakProvider } from './lib/StreakContext';
@@ -23,7 +24,6 @@ import { ProfileDrawer } from './components/layout/ProfileDrawer';
 import { CommandMenu } from './components/layout/CommandMenu';
 import { QuoteCardModal } from './components/ui/QuoteCardModal';
 import { WisdomCardDraw } from './components/sections/WisdomCardDraw';
-
 import { ChatWorkspacePage } from './components/pages/ChatWorkspacePage';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 

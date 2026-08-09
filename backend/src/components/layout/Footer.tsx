@@ -29,24 +29,30 @@ export function Footer() {
       setLegalModal("terms");
       return;
     }
+    if (linkName === "Decision Guide" || linkName === "Frameworks") {
+      const el = document.getElementById("features");
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    if (linkName === "Contact") {
+      window.location.href = "mailto:support@noerax.com?subject=Inquiry%20from%20Noerax";
+      return;
+    }
 
     const sectionMap: Record<string, string> = {
-      "Philosophy": "home",
+      "Philosophy": "philosophy",
       "Library": "library",
-      "Daily Mantra": "journal",
+      "Notes": "journal",
       "Features": "features",
-      "The Shop": "shop",
-      "Journal": "journal",
-      "Ancient Texts": "library",
-      "Meditation Guide": "mixtape",
-      "About Us": "home",
-      "Contact": "home"
+      "About Us": "home"
     };
 
     const targetId = sectionMap[linkName];
     if (targetId) {
       const el = document.getElementById(targetId);
       if (el) el.scrollIntoView({ behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 

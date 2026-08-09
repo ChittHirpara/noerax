@@ -124,6 +124,8 @@ export function Hero() {
             <span className="absolute inset-0 rounded-full bg-dharma-flame/30 animate-pulse-ring" />
             <span className="absolute inset-0 rounded-full bg-dharma-flame/20 animate-pulse-ring" style={{ animationDelay: '0.5s' }} />
             <motion.button
+              data-magnetic
+              data-cursor-label="GO"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate(user ? '/chat' : '/auth')}
@@ -134,6 +136,7 @@ export function Hero() {
           </div>
 
           <motion.button
+            data-magnetic
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => {
@@ -155,16 +158,29 @@ export function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 1.8 }}
-          className="flex flex-wrap items-center gap-3 sm:gap-6 text-[10px] sm:text-xs text-dharma-ivory-dim/60 font-medium tracking-[0.15em] sm:tracking-[0.25em] uppercase"
+          className="flex flex-wrap items-center gap-4 sm:gap-6"
         >
-          <div className="flex -space-x-2">
-            {['S', 'A', 'R', 'J', 'M'].map((l, i) => (
-              <div key={i} className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-dharma-ink-3 border border-dharma-line-dark flex items-center justify-center text-[9px] sm:text-[10px] text-dharma-ivory-dim font-medium">
-                {l}
-              </div>
-            ))}
+          {/* Real-feeling user pill */}
+          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-dharma-ink-2 border border-dharma-line-dark">
+            <div className="flex -space-x-1.5">
+              {['A', 'K', 'P', 'J', 'M'].map((l, i) => (
+                <div key={i} className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full border-2 border-dharma-ink-2 flex items-center justify-center text-[9px] font-bold text-white bg-gradient-to-br ${
+                  ['from-orange-500 to-amber-500', 'from-pink-500 to-rose-500', 'from-emerald-500 to-teal-500', 'from-blue-500 to-indigo-500', 'from-violet-500 to-purple-500'][i]
+                }`}>{l}</div>
+              ))}
+            </div>
+            <span className="text-[11px] sm:text-xs text-dharma-ivory-dim font-medium">
+              3,200+ using Noerax right now
+            </span>
           </div>
-          <span>Trusted by 12k+ seekers worldwide</span>
+
+          {/* Micro quote */}
+          <div className="hidden sm:flex items-center gap-2 text-[11px] text-dharma-ivory-dim/70">
+            <span className="text-dharma-flame">"</span>
+            <span>finally something that actually helps</span>
+            <span className="text-dharma-flame">"</span>
+            <span className="text-[10px] opacity-50">— Aryan, Mumbai</span>
+          </div>
         </motion.div>
       </div>
 

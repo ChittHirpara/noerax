@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, RefreshCw, Layers, CheckCircle2, ArrowRight } from 'lucide-react';
 
@@ -58,6 +58,31 @@ export function WisdomCardDraw() {
   const [currentCard, setCurrentCard] = useState<WisdomCard | null>(null);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isShuffling, setIsShuffling] = useState(false);
+  const [tilt, setTilt] = useState({ x: 0, y: 0, glareX: 50, glareY: 50 });
+
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    // Tilt angle max 12 deg
+    const rotateX = ((y - centerY) / centerY) * -12;
+    const rotateY = ((x - centerX) / centerX) * 12;
+    
+    const glareX = (x / rect.width) * 100;
+    const glareY = (y / rect.height) * 100;
+
+    setTilt({ x: rotateX, y: rotateY, glareX, glareY });
+  };
+
+  const handleMouseLeave = () => {
+    setTilt({ x: 0, y: 0, glareX: 50, glareY: 50 });
+  };
 
   const drawCard = () => {
     setIsShuffling(true);
@@ -84,7 +109,7 @@ export function WisdomCardDraw() {
           viewport={{ once: true }}
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-dharma-flame/30 bg-dharma-flame/10 text-dharma-flame text-xs font-semibold uppercase tracking-widest mb-6"
         >
-          <Sparkles className="w-3.5 h-3.5" /> Daily Practice
+          <Sparkles className="w-3.5 h-3.5" /> Holographic Wisdom Deck
         </motion.div>
 
         <motion.h2
@@ -93,7 +118,7 @@ export function WisdomCardDraw() {
           viewport={{ once: true }}
           className="font-serif text-4xl md:text-5xl text-dharma-ivory mb-4"
         >
-          Draw Today's Decision Framework
+          Draw Today&apos;s Decision Framework
         </motion.h2>
 
         <motion.p
@@ -102,24 +127,40 @@ export function WisdomCardDraw() {
           viewport={{ once: true }}
           className="text-dharma-ivory-dim text-lg max-w-xl mx-auto mb-12"
         >
-          Draw a card from the life curriculum deck for a practical mental model to apply to your decisions today.
+          Hover over the deck to feel the 3D tilt. Tap to draw a mental model for today.
         </motion.p>
 
         {/* 3D Card Area */}
-        <div className="flex justify-center mb-10 perspective-1000">
+        <div className="flex justify-center mb-10" style={{ perspective: 1200 }}>
           <motion.div
-            animate={{ rotateY: isFlipped ? 180 : 0, scale: isShuffling ? [1, 0.95, 1.05, 1] : 1 }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-md h-[440px] relative cursor-pointer"
+            ref={cardRef}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            animate={{
+              rotateX: tilt.x,
+              rotateY: isFlipped ? 180 + tilt.y : tilt.y,
+              scale: isShuffling ? [1, 0.95, 1.05, 1] : 1,
+            }}
+            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+            className="w-full max-w-md h-[440px] relative cursor-pointer group"
             style={{ transformStyle: 'preserve-3d' }}
             onClick={() => {
               if (!currentCard) drawCard();
               else setIsFlipped(!isFlipped);
             }}
           >
+            {/* Holographic Sheen Overlay */}
+            <div
+              className="absolute inset-0 rounded-3xl z-20 pointer-events-none opacity-40 group-hover:opacity-70 transition-opacity duration-300"
+              style={{
+                background: `radial-gradient(circle at ${tilt.glareX}% ${tilt.glareY}%, rgba(255,255,255,0.4) 0%, rgba(56,189,248,0.2) 30%, transparent 70%)`,
+                mixBlendMode: 'overlay',
+              }}
+            />
+
             {/* FRONT OF CARD (Back of deck design) */}
             <div
-              className="absolute inset-0 rounded-3xl p-8 bg-dharma-ink-2 border-2 border-dharma-flame/30 shadow-2xl flex flex-col items-center justify-between overflow-hidden"
+              className="absolute inset-0 rounded-3xl p-8 bg-dharma-ink-2 border-2 border-dharma-flame/40 shadow-2xl flex flex-col items-center justify-between overflow-hidden"
               style={{ backfaceVisibility: 'hidden' }}
             >
               <div className="w-full flex justify-between items-center text-xs text-dharma-flame font-mono">
@@ -132,7 +173,7 @@ export function WisdomCardDraw() {
                   <Layers className={`w-10 h-10 text-dharma-flame ${isShuffling ? 'animate-spin' : ''}`} />
                 </div>
                 <h3 className="font-serif text-2xl text-dharma-ivory mb-2">Tap to Draw</h3>
-                <p className="text-xs text-dharma-ivory-dim">Unveil today's wisdom guidance</p>
+                <p className="text-xs text-dharma-ivory-dim">Unveil today&apos;s wisdom guidance</p>
               </div>
 
               <div className="text-xs text-dharma-ivory-dim/60 font-mono">01 / 05</div>
@@ -152,7 +193,7 @@ export function WisdomCardDraw() {
                 </div>
                 <h3 className="font-serif text-2xl text-dharma-ivory mb-3">{currentCard?.title}</h3>
                 <p className="font-serif italic text-dharma-ivory/90 text-sm mb-4 leading-relaxed bg-dharma-ink-3/60 p-3 rounded-xl border border-dharma-line-dark">
-                  "{currentCard?.quote}"
+                  &quot;{currentCard?.quote}&quot;
                 </p>
                 <p className="text-xs text-dharma-ivory-dim leading-relaxed mb-4">
                   {currentCard?.insight}
@@ -161,7 +202,7 @@ export function WisdomCardDraw() {
 
               <div className="pt-3 border-t border-dharma-line-dark">
                 <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest block mb-1 flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> Today's Micro-Practice
+                  <CheckCircle2 className="w-3 h-3" /> Today&apos;s Micro-Practice
                 </span>
                 <p className="text-xs text-dharma-ivory font-medium">
                   {currentCard?.microPractice}

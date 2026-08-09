@@ -623,7 +623,7 @@ export function ChatWorkspacePage() {
                 </h2>
 
                 {/* Dynamic Bot Name Editor Badge */}
-                <div className="hidden sm:flex items-center gap-1.5 ml-2 bg-dharma-ink-3/90 border border-dharma-line-dark px-2.5 py-1 rounded-full text-xs shadow-sm shrink-0">
+                <div className="flex items-center gap-1.5 ml-1 sm:ml-2 bg-dharma-ink-3/90 border border-dharma-line-dark px-2 sm:px-2.5 py-1 rounded-full text-xs shadow-sm shrink-0">
                   <Bot className="w-3.5 h-3.5 text-dharma-flame" />
                   {isEditingBotName ? (
                     <input
@@ -634,7 +634,7 @@ export function ChatWorkspacePage() {
                       onKeyDown={(e) => { if (e.key === 'Enter') handleSaveBotName(); }}
                       autoFocus
                       placeholder="Name bot..."
-                      className="bg-dharma-ink border-b border-dharma-flame text-xs text-dharma-ivory px-1.5 py-0.5 focus:outline-none w-24"
+                      className="bg-dharma-ink border-b border-dharma-flame text-xs text-dharma-ivory px-1 py-0.5 focus:outline-none w-20 sm:w-24"
                     />
                   ) : (
                     <button
@@ -642,11 +642,11 @@ export function ChatWorkspacePage() {
                         setBotNameInput(activeSession?.botName || 'Noerax');
                         setIsEditingBotName(true);
                       }}
-                      className="text-dharma-ivory font-medium cursor-pointer hover:text-dharma-flame transition-colors flex items-center gap-1"
+                      className="text-dharma-ivory font-medium cursor-pointer hover:text-dharma-flame transition-colors flex items-center gap-1 text-[11px] sm:text-xs"
                       title="Click to rewrite bot name for this chat"
                     >
-                      <span>{activeSession?.botName || 'Noerax'}</span>
-                      <Edit2 className="w-3 h-3 text-dharma-ivory-dim" />
+                      <span className="truncate max-w-[80px] sm:max-w-none">{activeSession?.botName || 'Noerax'}</span>
+                      <Edit2 className="w-3 h-3 text-dharma-ivory-dim shrink-0" />
                     </button>
                   )}
                 </div>
@@ -678,12 +678,12 @@ export function ChatWorkspacePage() {
                 </div>
 
                 {/* Message Bubble Content */}
-                <div className={`group relative p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl text-xs sm:text-sm leading-relaxed border ${
+                <div className={`group relative p-3 sm:p-5 rounded-2xl sm:rounded-3xl text-xs sm:text-sm leading-relaxed border max-w-full overflow-hidden ${
                   msg.role === 'user'
                     ? 'bg-dharma-flame text-white border-dharma-flame/50 rounded-tr-none shadow-lg'
                     : 'bg-dharma-ink-2 border-dharma-line-dark text-dharma-ivory rounded-tl-none shadow-md'
                 }`}>
-                  <p className="whitespace-pre-wrap font-sans text-sm sm:text-base leading-relaxed tracking-normal">
+                  <p className="whitespace-pre-wrap font-sans text-xs sm:text-base leading-relaxed tracking-normal break-words overflow-wrap-anywhere">
                     {msg.content ? formatMessage(msg.content) : '...'}
                   </p>
 
