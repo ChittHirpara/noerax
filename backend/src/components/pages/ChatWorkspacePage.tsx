@@ -13,7 +13,33 @@ interface Message {
   role: 'user' | 'ai';
   content: string;
   timestamp: string;
+  suggestions?: string[];
 }
+
+// Strip markdown symbols and return clean plain text
+const formatMessage = (text: string): string => {
+  return text
+    .replace(/\*\*\*(.+?)\*\*\*/g, '$1')  // bold-italic
+    .replace(/\*\*(.+?)\*\*/g, '$1')      // bold
+    .replace(/\*(.+?)\*/g, '$1')          // italic
+    .replace(/^#{1,6}\s+/gm, '')          // headings
+    .replace(/^[-–—]\s+/gm, '')           // dash bullets
+    .replace(/`([^`]+)`/g, '$1')          // inline code
+    .trim();
+};
+
+// Extract SUGGESTIONS: [...] block from AI text, return cleaned text + parsed suggestions
+const parseSuggestions = (raw: string): { text: string; suggestions: string[] } => {
+  const match = raw.match(/SUGGESTIONS:\s*(\[.*?\])/s);
+  if (!match) return { text: formatMessage(raw), suggestions: [] };
+  let suggestions: string[] = [];
+  try {
+    const parsed = JSON.parse(match[1]);
+    if (Array.isArray(parsed)) suggestions = parsed.slice(0, 3).map(String);
+  } catch {}
+  const cleanText = formatMessage(raw.slice(0, raw.indexOf('SUGGESTIONS:')).trim());
+  return { text: cleanText, suggestions };
+};
 
 interface ChatSession {
   id: string;
@@ -313,10 +339,21 @@ export function ChatWorkspacePage() {
         }
       }
 
-      // Persist finalized sessions to localStorage using functional update to get latest state
+      // Parse suggestions out of the final streamed text and save clean version
       setSessions((prev) => {
-        try { localStorage.setItem('noerax_chat_sessions', JSON.stringify(prev)); } catch {}
-        return prev;
+        const updated = prev.map((s) => {
+          if (s.id !== activeSession.id) return s;
+          return {
+            ...s,
+            messages: s.messages.map((m) => {
+              if (m.id !== aiMsgId) return m;
+              const { text, suggestions } = parseSuggestions(m.content);
+              return { ...m, content: text, suggestions };
+            }),
+          };
+        });
+        try { localStorage.setItem('noerax_chat_sessions', JSON.stringify(updated)); } catch {}
+        return updated;
       });
 
       // Scroll to bottom after AI response is complete
@@ -624,43 +661,67 @@ export function ChatWorkspacePage() {
         {/* Messages Stream Container — ref used for direct scrollTop (bypasses Lenis) */}
         <div ref={containerRef} data-lenis-prevent className="flex-1 overflow-y-auto p-3 sm:p-6 md:p-10 space-y-4 sm:space-y-6 overscroll-contain">
           {activeSession?.messages.map((msg) => (
-            <motion.div
-              key={msg.id}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className={`flex items-start gap-2.5 sm:gap-4 max-w-[92%] sm:max-w-3xl ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
-            >
-              {/* Avatar Icon */}
-              <div className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center border shrink-0 ${
-                msg.role === 'user'
-                  ? 'bg-dharma-flame/20 border-dharma-flame/40 text-dharma-flame'
-                  : 'bg-cyan-500/20 border-cyan-500/40 text-cyan-300'
-              }`}>
-                {msg.role === 'user' ? <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
-              </div>
-
-              {/* Message Bubble Content */}
-              <div className={`group relative p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl text-xs sm:text-sm leading-relaxed border ${
-                msg.role === 'user'
-                  ? 'bg-dharma-flame text-white border-dharma-flame/50 rounded-tr-none shadow-lg'
-                  : 'bg-dharma-ink-2 border-dharma-line-dark text-dharma-ivory rounded-tl-none shadow-md'
-              }`}>
-                <p className="whitespace-pre-wrap font-serif text-sm sm:text-base leading-relaxed">{msg.content || '...'}</p>
-
-                <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-dharma-line-dark/40 text-[10px] text-dharma-ivory-dim">
-                  <span>{msg.timestamp}</span>
-
-                  <button
-                    onClick={() => copyToClipboard(msg.id, msg.content)}
-                    className="opacity-0 group-hover:opacity-100 p-1 hover:text-dharma-ivory transition-opacity cursor-pointer"
-                    title="Copy Text"
-                  >
-                    {copiedId === msg.id ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                  </button>
+            <React.Fragment key={msg.id}>
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className={`flex items-start gap-2.5 sm:gap-4 max-w-[92%] sm:max-w-3xl ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
+              >
+                {/* Avatar Icon */}
+                <div className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center border shrink-0 ${
+                  msg.role === 'user'
+                    ? 'bg-dharma-flame/20 border-dharma-flame/40 text-dharma-flame'
+                    : 'bg-cyan-500/20 border-cyan-500/40 text-cyan-300'
+                }`}>
+                  {msg.role === 'user' ? <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
                 </div>
-              </div>
-            </motion.div>
+
+                {/* Message Bubble Content */}
+                <div className={`group relative p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl text-xs sm:text-sm leading-relaxed border ${
+                  msg.role === 'user'
+                    ? 'bg-dharma-flame text-white border-dharma-flame/50 rounded-tr-none shadow-lg'
+                    : 'bg-dharma-ink-2 border-dharma-line-dark text-dharma-ivory rounded-tl-none shadow-md'
+                }`}>
+                  <p className="whitespace-pre-wrap font-sans text-sm sm:text-base leading-relaxed tracking-normal">
+                    {msg.content ? formatMessage(msg.content) : '...'}
+                  </p>
+
+                  <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-dharma-line-dark/40 text-[10px] text-dharma-ivory-dim">
+                    <span>{msg.timestamp}</span>
+
+                    <button
+                      onClick={() => copyToClipboard(msg.id, msg.content)}
+                      className="opacity-0 group-hover:opacity-100 p-1 hover:text-dharma-ivory transition-opacity cursor-pointer"
+                      title="Copy Text"
+                    >
+                      {copiedId === msg.id ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Follow-up Suggestion Chips — shown after AI messages that have suggestions */}
+              {msg.role === 'ai' && msg.suggestions && msg.suggestions.length > 0 && !isLoading && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.15 }}
+                  className="flex flex-wrap gap-2 max-w-[92%] sm:max-w-3xl pl-10 sm:pl-14 mt-1"
+                >
+                  {msg.suggestions.map((suggestion, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleSendMessage(suggestion)}
+                      disabled={isLoading}
+                      className="px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-medium border border-dharma-flame/30 bg-dharma-flame/5 text-dharma-ivory-dim hover:text-dharma-ivory hover:bg-dharma-flame/15 hover:border-dharma-flame/60 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </React.Fragment>
           ))}
 
           {isLoading && (
