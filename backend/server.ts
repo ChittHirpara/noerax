@@ -732,9 +732,18 @@ CORE MENTOR PERSONA & RULES:
     }
   });
 
-  // Health Check Endpoint (for Render & Uptime Monitors)
+  // Health Check Endpoint — enriched with live DB & uptime status
   app.get("/api/health", (req: Request, res: Response) => {
-    res.json({ status: "ok", timestamp: new Date().toISOString(), app: "Noerax Sanctuary" });
+    const dbState = mongoose.connection.readyState;
+    const dbStatus = dbState === 1 ? 'connected' : dbState === 2 ? 'connecting' : 'disconnected';
+    res.json({
+      status: "ok",
+      app: "Noerax Sanctuary",
+      timestamp: new Date().toISOString(),
+      uptimeSeconds: Math.floor(process.uptime()),
+      database: dbStatus,
+      worker: process.pid,
+    });
   });
 
   // -------------------------------------------------------------
@@ -757,19 +766,28 @@ CORE MENTOR PERSONA & RULES:
   const server = app.listen(PORT, "0.0.0.0", () => {
     console.log(`\n  NOERAX SERVER — Worker ${process.pid}\n  ⚡ Running at http://localhost:${PORT}\n`);
 
-    // Auto Keep-Alive Self-Ping — only run on 1 worker to avoid duplicate pings
+    // Only Worker 1 runs keep-alive to avoid duplicate pings across workers
     if (!cluster.isWorker || cluster.worker?.id === 1) {
-      setInterval(() => {
-        const pingUrl = process.env.RENDER_EXTERNAL_URL
-          ? `${process.env.RENDER_EXTERNAL_URL}/api/health`
-          : `http://localhost:${PORT}/api/health`;
+      const pingUrl = process.env.RENDER_EXTERNAL_URL
+        ? `${process.env.RENDER_EXTERNAL_URL}/api/health`
+        : `http://localhost:${PORT}/api/health`;
+
+      const sendPing = () => {
         const protocol = pingUrl.startsWith('https') ? https : http;
         protocol.get(pingUrl, (res: any) => {
-          console.log(`💓 [Keep-Alive] Health check: ${res.statusCode}`);
+          console.log(`💓 [Keep-Alive] Ping OK — status: ${res.statusCode} — ${new Date().toLocaleTimeString()}`);
         }).on('error', (e: any) => {
-          console.warn('⚠️ [Keep-Alive] Warning:', e.message);
+          console.warn('⚠️ [Keep-Alive] Ping failed:', e.message);
         });
-      }, 10 * 60 * 1000);
+      };
+
+      // Immediate startup ping — confirms server is live right after boot
+      setTimeout(sendPing, 5000);
+
+      // Recurring ping every 4 minutes (Render sleeps after 15min inactivity)
+      setInterval(sendPing, 4 * 60 * 1000);
+
+      console.log(`🕓 [Keep-Alive] Auto-ping active every 4 min → ${pingUrl}`);
     }
   });
 
