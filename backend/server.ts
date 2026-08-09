@@ -24,32 +24,11 @@ import { Streak } from "./src/models/Streak";
 import { Subscriber } from "./src/models/Subscriber";
 
 // ---------------------------------------------------------------
-// ENV VALIDATION — fail fast if critical config is missing
+// ENV VALIDATION (lightweight — available in all processes)
 // ---------------------------------------------------------------
 const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  console.error("❌ FATAL: JWT_SECRET is not set in .env. Server cannot start securely.");
-  process.exit(1);
-}
-
 const MONGODB_URI = process.env.MONGODB_URI;
-if (!MONGODB_URI) {
-  console.error("❌ FATAL: MONGODB_URI is not set in .env. Server cannot start.");
-  process.exit(1);
-}
-
-// Connect to MongoDB Cloud Database
-mongoose.connect(MONGODB_URI)
-  .then(async () => {
-    console.log("🟢 Connected to MongoDB Atlas Database");
-    try {
-      await mongoose.connection.collection('users').dropIndex('id_1');
-      console.log("🧹 Cleaned up legacy id_1 index from users collection");
-    } catch {
-      // index does not exist or already dropped
-    }
-  })
-  .catch((err) => console.error("🔴 MongoDB Connection Error:", err));
+// Full validation happens inside startServer() (worker only)
 
 // Auth Middleware interface extension
 export interface AuthenticatedRequest extends Request {
@@ -75,6 +54,32 @@ const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunctio
 };
 
 async function startServer() {
+  // ---------------------------------------------------------------
+  // Validate critical env vars in worker process before doing anything
+  // ---------------------------------------------------------------
+  if (!JWT_SECRET) {
+    console.error("❌ FATAL: JWT_SECRET is not set. Worker cannot start.");
+    process.exit(1);
+  }
+  if (!MONGODB_URI) {
+    console.error("❌ FATAL: MONGODB_URI is not set. Worker cannot start.");
+    process.exit(1);
+  }
+
+  // Connect to MongoDB (only inside worker processes)
+  try {
+    await mongoose.connect(MONGODB_URI);
+    console.log(`🟢 Worker ${process.pid}: Connected to MongoDB Atlas`);
+    try {
+      await mongoose.connection.collection('users').dropIndex('id_1');
+    } catch {
+      // legacy index already dropped — safe to ignore
+    }
+  } catch (err) {
+    console.error(`🔴 Worker ${process.pid}: MongoDB connection failed:`, err);
+    process.exit(1); // Exit so cluster primary respawns this worker
+  }
+
   const app = express();
   const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5555;
 
@@ -749,50 +754,85 @@ CORE MENTOR PERSONA & RULES:
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log("\n  NOERAX PRODUCTION SERVER\n  ⚡ Running at http://localhost:" + PORT + "\n");
-    
-    // Auto Keep-Alive Self-Ping (Pings every 10 minutes so Render free tier never goes to sleep)
-    setInterval(() => {
-      const pingUrl = process.env.RENDER_EXTERNAL_URL ? `${process.env.RENDER_EXTERNAL_URL}/api/health` : `http://localhost:${PORT}/api/health`;
-      const protocol = pingUrl.startsWith('https') ? https : http;
-      protocol.get(pingUrl, (res: any) => {
-        console.log(`💓 [Keep-Alive Ping] Server health status: ${res.statusCode}`);
-      }).on('error', (e: any) => {
-        console.warn('⚠️ [Keep-Alive Ping] Warning:', e.message);
-      });
-    }, 10 * 60 * 1000);
+  const server = app.listen(PORT, "0.0.0.0", () => {
+    console.log(`\n  NOERAX SERVER — Worker ${process.pid}\n  ⚡ Running at http://localhost:${PORT}\n`);
+
+    // Auto Keep-Alive Self-Ping — only run on 1 worker to avoid duplicate pings
+    if (!cluster.isWorker || cluster.worker?.id === 1) {
+      setInterval(() => {
+        const pingUrl = process.env.RENDER_EXTERNAL_URL
+          ? `${process.env.RENDER_EXTERNAL_URL}/api/health`
+          : `http://localhost:${PORT}/api/health`;
+        const protocol = pingUrl.startsWith('https') ? https : http;
+        protocol.get(pingUrl, (res: any) => {
+          console.log(`💓 [Keep-Alive] Health check: ${res.statusCode}`);
+        }).on('error', (e: any) => {
+          console.warn('⚠️ [Keep-Alive] Warning:', e.message);
+        });
+      }, 10 * 60 * 1000);
+    }
   });
+
+  // Graceful shutdown on SIGTERM (Render sends this before stopping instances)
+  const shutdown = () => {
+    console.log(`\n⚠️  Worker ${process.pid} received shutdown signal. Closing gracefully...`);
+    server.close(() => {
+      mongoose.connection.close().then(() => {
+        console.log(`✅  Worker ${process.pid} shut down cleanly.`);
+        process.exit(0);
+      });
+    });
+    // Force exit if graceful shutdown takes too long
+    setTimeout(() => process.exit(1), 10000);
+  };
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
 }
 
 // =============================================================
 // CLUSTER LOAD BALANCER
-// Spawns one worker process per CPU core so every core handles
-// incoming requests independently — distributes load and isolates
-// crashes to individual workers (master auto-respawns them).
-// On Render Free Tier (1 vCPU) this simply runs 1 worker.
+// Primary process is lightweight — it only manages workers.
+// Workers independently connect to MongoDB and serve Express.
+// On Render Free Tier (1 vCPU) this runs exactly 1 worker.
 // =============================================================
-const numCPUs = os.cpus().length;
+const numCPUs = Math.min(os.cpus().length, 2); // Cap at 2 workers max on Render free tier
 
 if (cluster.isPrimary) {
-  console.log(`\n  🔄 NOERAX LOAD BALANCER — Spawning ${numCPUs} worker(s) across ${numCPUs} CPU core(s)`);
+  console.log(`\n  🔄 NOERAX LOAD BALANCER — Spawning ${numCPUs} worker(s)`);
 
-  // Fork a worker for each CPU core
+  // Track worker crash frequency to prevent restart loops
+  const workerRestarts: Record<number, { count: number; lastRestart: number }> = {};
+
   for (let i = 0; i < numCPUs; i++) {
     cluster.fork();
   }
 
-  // Auto-respawn dead workers (DoS crash resilience)
-  cluster.on('exit', (worker, code, signal) => {
-    console.warn(`⚠️  Worker ${worker.process.pid} died (code: ${code}, signal: ${signal}). Spawning replacement...`);
-    cluster.fork();
+  cluster.on('online', (worker) => {
+    console.log(`✅  Worker ${worker.process.pid} is online (id: ${worker.id})`);
   });
 
-  cluster.on('online', (worker) => {
-    console.log(`✅  Worker ${worker.process.pid} online`);
+  // Exponential backoff respawn — prevents rapid restart loops that cause 502s
+  cluster.on('exit', (worker, code, signal) => {
+    const pid = worker.process.pid ?? 0;
+    const now = Date.now();
+    const restartInfo = workerRestarts[pid] || { count: 0, lastRestart: 0 };
+
+    // Reset crash count if last crash was > 60s ago
+    if (now - restartInfo.lastRestart > 60000) restartInfo.count = 0;
+    restartInfo.count++;
+    restartInfo.lastRestart = now;
+    workerRestarts[pid] = restartInfo;
+
+    const backoffMs = Math.min(1000 * Math.pow(2, restartInfo.count - 1), 30000); // max 30s
+    console.warn(`⚠️  Worker ${pid} exited (code: ${code}). Restarting in ${backoffMs}ms (attempt #${restartInfo.count})...`);
+
+    setTimeout(() => cluster.fork(), backoffMs);
   });
 
 } else {
-  // Each worker independently runs the full Express server
-  startServer();
+  // Worker: run the full Express + MongoDB server
+  startServer().catch((err) => {
+    console.error(`🔴 Worker ${process.pid} failed to start:`, err);
+    process.exit(1);
+  });
 }
