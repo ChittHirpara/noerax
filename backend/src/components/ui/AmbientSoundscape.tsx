@@ -112,6 +112,47 @@ export function AmbientSoundscape() {
     } catch (e) {}
   };
 
+  // Initialize YT player instance — uses DEFAULT_TRACKS[0] to avoid stale closure on mount
+  const initPlayer = () => {
+    if (!window.YT || !window.YT.Player || playerRef.current) return;
+    // Small delay to ensure #noerax-yt-player DOM node exists
+    setTimeout(() => {
+      if (playerRef.current) return;
+      try {
+        playerRef.current = new window.YT.Player('noerax-yt-player', {
+          height: '1',
+          width: '1',
+          videoId: DEFAULT_TRACKS[0].youtubeId,
+          playerVars: {
+            autoplay: 0,
+            controls: 0,
+            loop: 1,
+            playlist: DEFAULT_TRACKS[0].youtubeId,
+            modestbranding: 1,
+            origin: window.location.origin,
+          },
+          events: {
+            onReady: (event: any) => {
+              event.target.setVolume(70);
+            },
+            onError: (err: any) => {
+              console.warn('YouTube Player error code:', err.data);
+              setYtError('This track has embedding restrictions. Playing ambient synth instead.');
+            },
+            onStateChange: (event: any) => {
+              // Auto-loop when video ends
+              if (event.data === window.YT.PlayerState.ENDED) {
+                event.target.playVideo();
+              }
+            },
+          },
+        });
+      } catch (e) {
+        console.warn('Failed to init YT player:', e);
+      }
+    }, 300);
+  };
+
   // Load YouTube IFrame API script
   useEffect(() => {
     if (!window.YT) {
@@ -119,7 +160,6 @@ export function AmbientSoundscape() {
       tag.src = 'https://www.youtube.com/iframe_api';
       const firstScriptTag = document.getElementsByTagName('script')[0];
       firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
-
       window.onYouTubeIframeAPIReady = () => {
         isApiReady.current = true;
         initPlayer();
@@ -149,44 +189,6 @@ export function AmbientSoundscape() {
   }, []);
 
   const activeTrack = tracks.find((t) => t.id === activeTrackId) || tracks[0];
-
-  // Initialize YT player instance
-  const initPlayer = () => {
-    if (!window.YT || !window.YT.Player || playerRef.current) return;
-
-    try {
-      playerRef.current = new window.YT.Player('noerax-yt-player', {
-        height: '1',
-        width: '1',
-        videoId: activeTrack.youtubeId,
-        playerVars: {
-          autoplay: 0,
-          controls: 0,
-          loop: 1,
-          playlist: activeTrack.youtubeId,
-          modestbranding: 1,
-          origin: window.location.origin,
-        },
-        events: {
-          onReady: (event: any) => {
-            event.target.setVolume(volume * 100);
-          },
-          onError: (err: any) => {
-            console.warn('YouTube Player error code:', err.data);
-            setYtError('YouTube audio restricted for this video. Switching to ambient synth fallback.');
-            if (isPlaying) startSynthFallback();
-          },
-          onStateChange: (event: any) => {
-            if (event.data === window.YT.PlayerState.ENDED) {
-              event.target.playVideo();
-            }
-          },
-        },
-      });
-    } catch (e) {
-      console.warn('Failed to init YT player:', e);
-    }
-  };
 
   // Play / Pause / Change Track handling
   useEffect(() => {
