@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Volume2, VolumeX, Play, Pause, ChevronUp, Music, Plus, Trash2, Link as LinkIcon, Radio, CloudRain, Waves, Wind, SkipForward, SkipBack } from 'lucide-react';
+import { Volume2, VolumeX, Play, Pause, ChevronUp, Music, Plus, Trash2, Link as LinkIcon, Radio, CloudRain, Waves, Wind, SkipForward, SkipBack, AlertCircle } from 'lucide-react';
 
 interface SoundTrack {
   id: string;
@@ -50,12 +50,20 @@ function extractYouTubeId(url: string): string | null {
   return (match && match[2].length === 11) ? match[2] : null;
 }
 
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
+
 export function AmbientSoundscape() {
   const [tracks, setTracks] = useState<SoundTrack[]>(DEFAULT_TRACKS);
   const [activeTrackId, setActiveTrackId] = useState<string>('track_1');
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState<number>(0.6);
+  const [volume, setVolume] = useState<number>(0.7);
   const [isOpen, setIsOpen] = useState(false);
+  const [ytError, setYtError] = useState<string | null>(null);
 
   // Custom YT link input state
   const [customUrl, setCustomUrl] = useState('');
@@ -63,7 +71,64 @@ export function AmbientSoundscape() {
   const [inputError, setInputError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
 
-  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const playerRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const isApiReady = useRef(false);
+
+  // Web Audio Fallback synth
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const activeNodesRef = useRef<any[]>([]);
+
+  const stopSynthFallback = () => {
+    activeNodesRef.current.forEach((n) => {
+      try { n.stop?.(); n.disconnect?.(); } catch (e) {}
+    });
+    activeNodesRef.current = [];
+  };
+
+  const startSynthFallback = () => {
+    stopSynthFallback();
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!audioCtxRef.current) audioCtxRef.current = new AudioCtx();
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') ctx.resume();
+
+      const master = ctx.createGain();
+      master.gain.setValueAtTime(volume * 0.3, ctx.currentTime);
+      master.connect(ctx.destination);
+
+      [108, 216, 432].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(0.2 / (i + 1), ctx.currentTime);
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start();
+        activeNodesRef.current.push(osc, gain);
+      });
+    } catch (e) {}
+  };
+
+  // Load YouTube IFrame API script
+  useEffect(() => {
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
+
+      window.onYouTubeIframeAPIReady = () => {
+        isApiReady.current = true;
+        initPlayer();
+      };
+    } else {
+      isApiReady.current = true;
+      initPlayer();
+    }
+  }, []);
 
   // Load custom tracks from localStorage on mount
   useEffect(() => {
@@ -84,6 +149,80 @@ export function AmbientSoundscape() {
   }, []);
 
   const activeTrack = tracks.find((t) => t.id === activeTrackId) || tracks[0];
+
+  // Initialize YT player instance
+  const initPlayer = () => {
+    if (!window.YT || !window.YT.Player || playerRef.current) return;
+
+    try {
+      playerRef.current = new window.YT.Player('noerax-yt-player', {
+        height: '1',
+        width: '1',
+        videoId: activeTrack.youtubeId,
+        playerVars: {
+          autoplay: 0,
+          controls: 0,
+          loop: 1,
+          playlist: activeTrack.youtubeId,
+          modestbranding: 1,
+          origin: window.location.origin,
+        },
+        events: {
+          onReady: (event: any) => {
+            event.target.setVolume(volume * 100);
+          },
+          onError: (err: any) => {
+            console.warn('YouTube Player error code:', err.data);
+            setYtError('YouTube audio restricted for this video. Switching to ambient synth fallback.');
+            if (isPlaying) startSynthFallback();
+          },
+          onStateChange: (event: any) => {
+            if (event.data === window.YT.PlayerState.ENDED) {
+              event.target.playVideo();
+            }
+          },
+        },
+      });
+    } catch (e) {
+      console.warn('Failed to init YT player:', e);
+    }
+  };
+
+  // Play / Pause / Change Track handling
+  useEffect(() => {
+    setYtError(null);
+    if (!playerRef.current || !playerRef.current.loadVideoById) {
+      if (isPlaying) startSynthFallback();
+      else stopSynthFallback();
+      return;
+    }
+
+    try {
+      if (isPlaying) {
+        stopSynthFallback();
+        playerRef.current.loadVideoById({
+          videoId: activeTrack.youtubeId,
+          startSeconds: 0,
+        });
+        playerRef.current.setVolume(volume * 100);
+        playerRef.current.playVideo();
+      } else {
+        stopSynthFallback();
+        playerRef.current.pauseVideo();
+      }
+    } catch (e) {
+      if (isPlaying) startSynthFallback();
+    }
+  }, [isPlaying, activeTrackId]);
+
+  // Volume slider update
+  useEffect(() => {
+    if (playerRef.current && playerRef.current.setVolume) {
+      try {
+        playerRef.current.setVolume(volume * 100);
+      } catch (e) {}
+    }
+  }, [volume]);
 
   const handleNextTrack = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -127,7 +266,6 @@ export function AmbientSoundscape() {
     setActiveTrackId(newTrack.id);
     setIsPlaying(true);
 
-    // Save custom tracks to localStorage
     const customOnly = updated.filter((t) => t.isCustom).map(({ icon, ...rest }) => rest);
     try {
       localStorage.setItem('noerax_custom_tracks', JSON.stringify(customOnly));
@@ -153,20 +291,12 @@ export function AmbientSoundscape() {
     } catch (err) {}
   };
 
-  // Embed iframe src URL with YouTube embed API
-  const iframeSrc = `https://www.youtube.com/embed/${activeTrack.youtubeId}?enablejsapi=1&autoplay=${isPlaying ? 1 : 0}&loop=1&playlist=${activeTrack.youtubeId}&controls=0&modestbranding=1`;
-
   return (
     <div className="fixed bottom-6 right-6 z-40">
       
-      {/* Hidden YouTube Iframe Player */}
-      <div className="sr-only opacity-0 pointer-events-none w-0 h-0 overflow-hidden">
-        <iframe
-          ref={iframeRef}
-          src={iframeSrc}
-          title="YouTube Soundscape Player"
-          allow="autoplay; encrypted-media"
-        />
+      {/* 1x1 Pixel YouTube Player Container (Required for browser audio autoplay permission) */}
+      <div className="fixed bottom-0 right-0 w-1 h-1 opacity-0 pointer-events-none overflow-hidden" ref={containerRef}>
+        <div id="noerax-yt-player" />
       </div>
 
       {/* Expanded Control Drawer */}
@@ -193,7 +323,14 @@ export function AmbientSoundscape() {
               </button>
             </div>
 
-            {/* Currently Playing Card Banner */}
+            {ytError && (
+              <div className="mb-3 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{ytError}</span>
+              </div>
+            )}
+
+            {/* Currently Playing Banner */}
             <div className="mb-4 p-3.5 rounded-2xl bg-dharma-ink border border-dharma-flame/30 flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 rounded-xl bg-dharma-flame/15 border border-dharma-flame/40 flex items-center justify-center text-dharma-flame shrink-0">
@@ -201,7 +338,7 @@ export function AmbientSoundscape() {
                 </div>
                 <div className="min-w-0">
                   <h4 className="text-xs font-bold text-dharma-ivory truncate">{activeTrack.name}</h4>
-                  <p className="text-[10px] text-dharma-ivory-dim truncate">{isPlaying ? 'Currently Playing' : 'Paused'}</p>
+                  <p className="text-[10px] text-dharma-ivory-dim truncate">{isPlaying ? 'Playing Audio' : 'Paused'}</p>
                 </div>
               </div>
 
@@ -231,7 +368,7 @@ export function AmbientSoundscape() {
               </div>
             </div>
 
-            {/* Add Custom Song Button (Prominently at top of playlist) */}
+            {/* Add Custom Song Button */}
             {!showAddForm ? (
               <button
                 onClick={() => setShowAddForm(true)}
@@ -284,7 +421,7 @@ export function AmbientSoundscape() {
               </form>
             )}
 
-            {/* Sound Tracks Playlist */}
+            {/* Playlist */}
             <div data-lenis-prevent className="space-y-2 mb-4 max-h-48 overflow-y-auto pr-1">
               {tracks.map((track) => {
                 const isActive = activeTrackId === track.id;
@@ -412,4 +549,5 @@ export function AmbientSoundscape() {
     </div>
   );
 }
+
 
