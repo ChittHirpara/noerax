@@ -10,10 +10,10 @@ interface Message {
 }
 
 const SUGGESTED = [
-  "Help me think through a hard decision",
-  "I don't know what direction to choose",
-  "Framework for handling a difficult conflict",
-  "How to stop overthinking and take action",
+  "I'm feeling overwhelmed and overthinking 💭",
+  "Help me think through a hard decision ✨",
+  "How to handle a difficult conflict peacefully 🕊️",
+  "I feel stuck and unsure about my next step 🧭",
 ];
 
 function TypingDots() {
@@ -35,7 +35,7 @@ export function ChatPreview() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'ai', content: 'What are you trying to figure out today?\n\nTell me the decision, situation, or challenge on your mind.' }
+    { role: 'ai', content: "Hey there! ✨ What are you trying to figure out today?\n\nTell me whatever decision, situation, or feelings are on your mind — I'm right here with you. 🤍" }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -102,7 +102,7 @@ export function ChatPreview() {
     } catch (err) {
       setMessages(prev => [
         ...prev,
-        { role: 'ai', content: "Here is a quick framework: 1. Define the decision clearly. 2. List the worst-case scenario. 3. Ask what you'd advise a friend to do." }
+        { role: 'ai', content: "Here is a gentle perspective to center yourself: ✨\n\n1. Take a slow, deep breath. 🌿\n2. Ask what you'd say to a close friend facing this exact moment.\n3. Remember you don't have to solve everything today — just focus on one small next step. 🤍" }
       ]);
     } finally {
       setIsLoading(false);
@@ -117,7 +117,7 @@ export function ChatPreview() {
   };
 
   const reset = () => {
-    setMessages([{ role: 'ai', content: 'What are you trying to figure out today?\n\nTell me the decision, situation, or challenge on your mind.' }]);
+    setMessages([{ role: 'ai', content: "Hey there! ✨ What are you trying to figure out today?\n\nTell me whatever decision, situation, or feelings are on your mind — I'm right here with you. 🤍" }]);
     setInput('');
   };
 
@@ -146,24 +146,24 @@ export function ChatPreview() {
           >
             {/* Highlight Badge */}
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-dharma-flame/15 border border-dharma-flame/40 text-dharma-flame text-xs font-bold tracking-widest uppercase mb-6 shadow-xl shadow-dharma-flame/10">
-              <Sparkles className="w-4 h-4" /> FLAGSHIP AI MENTOR
+              <Sparkles className="w-4 h-4" /> HUMAN-LIKE WISDOM GUIDE
             </span>
 
             {/* Giant Highlighted Headline */}
             <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl lg:text-7xl text-dharma-ivory mb-6 leading-[1.1]">
-              Think through hard decisions with <span className="gradient-text">AI frameworks.</span>
+              A warm, human space to <span className="gradient-text">unravel hard choices.</span>
             </h2>
 
             <p className="text-dharma-ivory-dim text-lg sm:text-xl leading-relaxed mb-8 font-light">
-              Don't figure it out alone. Noerax helps you break down complex choices, career crossroads, and personal conflicts into <span className="text-dharma-ivory font-medium border-b border-dharma-flame/50 pb-0.5">structured, actionable mental models</span>.
+              You don't have to figure it out alone. Noerax listens to what you mean, understands your situation, and brings <span className="text-dharma-ivory font-medium border-b border-dharma-flame/50 pb-0.5">calm, human wisdom &amp; actionable perspective 🌿</span>.
             </p>
 
             {/* Feature Highlights Checklist */}
             <div className="space-y-4 mb-10">
               {[
-                { title: 'Real-Time Decision Engine', desc: 'Powered by Groq Llama-3.3 for instant, stream-of-thought clarity.' },
-                { title: 'Practical Life Frameworks', desc: 'Built for career choices, difficult conversations, and overthinking.' },
-                { title: '100% Private & Confidential', desc: 'Your reflections and choices stay completely private.' }
+                { title: 'Empathetic & Human-Like', desc: 'Responds to who you are, not just a category. Speaks naturally in your language. ❤️' },
+                { title: 'Practical & Timeless Wisdom', desc: 'Gives clear perspectives without preaching, lecture walls, or forced positivity. ✨' },
+                { title: '100% Private & Confidential', desc: 'Your reflections, decisions, and personal thoughts stay completely secure. 🛡️' }
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-3 bg-dharma-ink-2/60 border border-dharma-line-dark/60 p-3.5 sm:p-4 rounded-2xl">
                   <CheckCircle2 className="w-5 h-5 text-dharma-flame shrink-0 mt-0.5" />
@@ -177,7 +177,7 @@ export function ChatPreview() {
 
             {/* Curriculum Tags */}
             <div className="flex flex-wrap gap-2">
-              {['Decision-Making', 'Conflict Resolution', 'Career Direction', 'Mental Models', 'Focus'].map(tag => (
+              {['Human Touch ✨', 'Decision-Making 🧭', 'Inner Calm 🕊️', 'Career Clarity 🎯', 'Focus 💡'].map(tag => (
                 <span key={tag} className="px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-dharma-ink-2 border border-dharma-line-dark text-dharma-ivory-dim text-[11px] sm:text-xs font-semibold">
                   {tag}
                 </span>
