@@ -293,20 +293,7 @@ export function ChatPreview() {
                 </AnimatePresence>
               </div>
 
-              {/* Suggested prompts (shown when minimal messages) */}
-              {messages.length <= 1 && (
-                <div className="px-5 pb-2 flex flex-wrap gap-2">
-                  {SUGGESTED.map(s => (
-                    <button
-                      key={s}
-                      onClick={() => sendMessage(s)}
-                      className="px-3 py-1.5 text-xs rounded-full border border-dharma-line-dark text-dharma-ivory-dim hover:border-dharma-flame/40 hover:text-dharma-ivory transition-colors bg-dharma-ink"
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              )}
+
 
               {/* Input */}
               <div className="p-4 border-t border-dharma-line-dark bg-dharma-ink/60">

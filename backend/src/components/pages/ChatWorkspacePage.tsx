@@ -52,15 +52,15 @@ interface ChatSession {
 const DEFAULT_WELCOME: Message = {
   id: 'msg-welcome',
   role: 'ai',
-  content: 'What are you trying to figure out today? 💡\n\nTell me the decision, conflict, or situation on your mind. I am here to help you break it down using practical mental frameworks — not therapy, not religion.',
+  content: "Hey. What's on your mind today?\n\nTell me whatever decision, situation, or feelings you're carrying right now. I'm here to listen and help you think clearly.",
   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 };
 
 const SUGGESTED_PROMPTS = [
-  "Help me think through a hard decision",
-  "I don't know what direction to choose",
-  "Framework for handling a difficult conflict",
-  "How to stop overthinking and take action",
+  "Aa, batao na kya hua. Mood off hai kya?",
+  "I'm feeling overwhelmed and overthinking everything",
+  "Help me think through a hard life decision",
+  "I feel lost and unsure what to do next",
 ];
 
 export function ChatWorkspacePage() {
@@ -730,25 +730,6 @@ export function ChatWorkspacePage() {
             </div>
           )}
         </div>
-
-        {/* Suggested Prompts Grid */}
-        {activeSession?.messages.length <= 1 && (
-          <div className="px-3 sm:px-6 py-3 max-w-3xl mx-auto w-full shrink-0">
-            <p className="text-[11px] sm:text-xs text-dharma-ivory-dim mb-2 text-center font-medium">Suggested decision topics:</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-              {SUGGESTED_PROMPTS.map((prompt, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSendMessage(prompt)}
-                  className="p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-dharma-line-dark bg-dharma-ink-2/80 hover:bg-dharma-ink-3 text-xs sm:text-sm text-dharma-ivory text-left transition-all hover:border-dharma-flame/40 cursor-pointer shadow-sm flex items-center justify-between group"
-                >
-                  <span className="leading-snug">{prompt}</span>
-                  <Sparkles className="w-3.5 h-3.5 text-dharma-flame/40 group-hover:text-dharma-flame shrink-0 ml-2 transition-colors" />
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Input Bar Footer */}
         <div className="p-2.5 sm:p-4 md:p-6 border-t border-dharma-line-dark bg-dharma-ink-2/90 backdrop-blur-xl shrink-0">

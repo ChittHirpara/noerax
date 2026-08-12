@@ -696,9 +696,9 @@ Do not add any other text after the SUGGESTIONS line.`;
 
     // 3. OFFLINE WISDOM FALLBACK (Guarantees zero silent failures)
     const fallbackResponses = [
-      "Inner stillness is not the absence of thought, but the awareness behind it. Observe your mind today without judgment, like watching clouds cross an open sky.",
-      "Whatever struggle you are experiencing right now holds a valuable teaching. Take a deep breath, ground yourself in this moment, and remember: this too shall pass.",
-      "Focus on the effort, never on the fruit of your labor. When you release attachment to outcomes, peace naturally follows."
+      "There's an old idea in the Gita. You get to control the effort, not what comes back from it. Doesn't make it hurt less right now, but it changes what you're actually responsible for.",
+      "Aa, batao na kya hua. Kuch hua ya bas mood off hai?",
+      "That sounds heavy. Take a breath. What's the main thing bothering you right now?"
     ];
     const responseText = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
     streamText(responseText);
