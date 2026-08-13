@@ -79,30 +79,41 @@ export function Magnet({ children, padding = 150, strength = 3, className = "" }
     const element = ref.current;
     if (!element) return;
 
+    if (window.matchMedia('(pointer: coarse)').matches) return;
+
+    let ticking = false;
+
     const handleMouseMove = (e: MouseEvent) => {
-      const rect = element.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          if (!element) return;
+          const rect = element.getBoundingClientRect();
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
 
-      const distanceX = e.clientX - centerX;
-      const distanceY = e.clientY - centerY;
-      const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+          const distanceX = e.clientX - centerX;
+          const distanceY = e.clientY - centerY;
+          const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
 
-      const maxRadius = Math.max(rect.width, rect.height) / 2 + padding;
+          const maxRadius = Math.max(rect.width, rect.height) / 2 + padding;
 
-      if (distance < maxRadius) {
-        setIsHovered(true);
-        setPosition({
-          x: distanceX / strength,
-          y: distanceY / strength,
+          if (distance < maxRadius) {
+            setIsHovered(true);
+            setPosition({
+              x: distanceX / strength,
+              y: distanceY / strength,
+            });
+          } else {
+            setIsHovered(false);
+            setPosition({ x: 0, y: 0 });
+          }
+          ticking = false;
         });
-      } else {
-        setIsHovered(false);
-        setPosition({ x: 0, y: 0 });
+        ticking = true;
       }
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [padding, strength]);
 
@@ -161,7 +172,7 @@ export function AnimatedText({ text, className = "" }: { text: string; className
 
 function CharacterKey({ char, range, progress }: { char: string; range: [number, number]; progress: any }) {
   const opacity = useTransform(progress, range, [0.2, 1]);
-  return <motion.span style={{ opacity }}>{char}</motion.span>;
+  return <motion.span style={{ opacity, willChange: 'opacity' }}>{char}</motion.span>;
 }
 
 // ============================================================================
@@ -206,13 +217,21 @@ export function AiCompanionPage() {
     };
   }, []);
 
-  // Passive Scroll Listener for Marquee Section
+  // Optimized Scroll Listener using requestAnimationFrame
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      if (!marqueeRef.current) return;
-      const rect = marqueeRef.current.getBoundingClientRect();
-      const offset = (window.scrollY - (window.scrollY + rect.top) + window.innerHeight) * 0.3;
-      setScrollOffset(offset);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          if (marqueeRef.current) {
+            const rect = marqueeRef.current.getBoundingClientRect();
+            const offset = (window.scrollY - (window.scrollY + rect.top) + window.innerHeight) * 0.3;
+            setScrollOffset(offset);
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
