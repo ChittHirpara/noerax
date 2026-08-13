@@ -57,10 +57,10 @@ const DEFAULT_WELCOME: Message = {
 };
 
 const SUGGESTED_PROMPTS = [
-  "Aa, batao na kya hua. Mood off hai kya?",
-  "I'm feeling overwhelmed and overthinking everything",
-  "Help me think through a hard life decision",
-  "I feel lost and unsure what to do next",
+  "Why do I overthink every small thing?",
+  "What if I make the wrong decision?",
+  "What if nothing works out?",
+  "How do I make the first move?",
 ];
 
 export function ChatWorkspacePage() {
@@ -730,6 +730,27 @@ export function ChatWorkspacePage() {
             </div>
           )}
         </div>
+
+        {/* Suggestion Chips Bar Above Input Bar */}
+        {activeSession?.messages && activeSession.messages.length <= 1 && !isLoading && (
+          <div className="px-3 sm:px-6 pt-3 pb-1 max-w-3xl mx-auto border-t border-dharma-line-dark/40">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-dharma-ivory-dim mb-2 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-dharma-flame" /> Suggestions
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {SUGGESTED_PROMPTS.map((prompt, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSendMessage(prompt)}
+                  className="text-left px-3.5 py-2.5 rounded-xl border border-dharma-line-dark bg-dharma-ink-2/90 hover:bg-dharma-ink-3 hover:border-dharma-flame/50 text-dharma-ivory text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer flex items-center justify-between group shadow-sm"
+                >
+                  <span>{prompt}</span>
+                  <span className="text-dharma-flame opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Input Bar Footer */}
         <div className="p-2.5 sm:p-4 md:p-6 border-t border-dharma-line-dark bg-dharma-ink-2/90 backdrop-blur-xl shrink-0">

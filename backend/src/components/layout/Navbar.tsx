@@ -29,6 +29,7 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
 
   const navItems = [
     { label: 'Home', path: '/' },
+    { label: 'AI Companion', path: '/ai-companion' },
     { label: 'Frameworks', path: '/#guides' },
     { label: 'Notes', path: '/#journal' },
     { label: 'Library', path: '/#library' },
@@ -59,16 +60,36 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
 
         {/* Desktop Nav Links */}
         <div className="hidden md:flex items-center gap-8 text-base font-medium text-dharma-ivory-dim">
-          {navItems.map(({ label, path }) => (
-            <Link
-              key={label}
-              to={path}
-              className="relative group hover:text-dharma-ivory transition-colors duration-200"
-            >
-              {label}
-              <span className="absolute -bottom-1 left-0 w-0 h-px bg-dharma-flame transition-all duration-300 group-hover:w-full" />
-            </Link>
-          ))}
+          {navItems.map(({ label, path }) => {
+            const isMVP = label === 'AI Companion';
+            if (isMVP) {
+              return (
+                <Link
+                  key={label}
+                  to={path}
+                  className="relative group inline-flex items-center hover:text-white transition-colors duration-200"
+                >
+                  <span className="relative -top-2.5 mr-1.5 px-1.5 py-0.5 text-[9px] font-black tracking-wider text-black bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-300 rounded-md shadow-md -rotate-6 group-hover:rotate-0 transition-transform duration-300">
+                    NEW
+                  </span>
+                  <span className="font-semibold text-base tracking-wide sleek-mvp-text">
+                    AI Companion
+                  </span>
+                  <span className="absolute -bottom-1 left-0 w-0 h-px bg-dharma-flame transition-all duration-300 group-hover:w-full" />
+                </Link>
+              );
+            }
+            return (
+              <Link
+                key={label}
+                to={path}
+                className="relative group hover:text-dharma-ivory transition-colors duration-200"
+              >
+                {label}
+                <span className="absolute -bottom-1 left-0 w-0 h-px bg-dharma-flame transition-all duration-300 group-hover:w-full" />
+              </Link>
+            );
+          })}
         </div>
 
         {/* Actions */}
@@ -163,16 +184,36 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
             className="fixed inset-x-0 top-16 bg-dharma-ink-2/95 border-b border-dharma-line-dark backdrop-blur-2xl z-30 p-6 shadow-2xl md:hidden"
           >
             <div className="flex flex-col space-y-4">
-              {navItems.map(({ label, path }) => (
-                <Link
-                  key={label}
-                  to={path}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-lg font-medium text-dharma-ivory hover:text-dharma-flame transition-colors py-1 border-b border-dharma-line-dark/40"
-                >
-                  {label}
-                </Link>
-              ))}
+              {navItems.map(({ label, path }) => {
+                const isMVP = label === 'AI Companion';
+                if (isMVP) {
+                  return (
+                    <Link
+                      key={label}
+                      to={path}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-2.5 text-lg font-medium py-1 border-b border-dharma-line-dark/40"
+                    >
+                      <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-black bg-gradient-to-r from-cyan-400 to-sky-300 rounded-md shadow-sm -rotate-6">
+                        NEW
+                      </span>
+                      <span className="font-semibold sleek-mvp-text">
+                        AI Companion
+                      </span>
+                    </Link>
+                  );
+                }
+                return (
+                  <Link
+                    key={label}
+                    to={path}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="text-lg font-medium text-dharma-ivory hover:text-dharma-flame transition-colors py-1 border-b border-dharma-line-dark/40"
+                  >
+                    {label}
+                  </Link>
+                );
+              })}
 
               <div className="pt-2 flex justify-between items-center text-xs text-dharma-ivory-dim">
                 <span>Daily Practice Streak:</span>

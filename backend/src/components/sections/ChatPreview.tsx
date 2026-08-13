@@ -10,10 +10,10 @@ interface Message {
 }
 
 const SUGGESTED = [
-  "I'm feeling overwhelmed and overthinking 💭",
-  "Help me think through a hard decision ✨",
-  "How to handle a difficult conflict peacefully 🕊️",
-  "I feel stuck and unsure about my next step 🧭",
+  "Why do I overthink every small thing?",
+  "What if I make the wrong decision?",
+  "What if nothing works out?",
+  "How do I make the first move?",
 ];
 
 function TypingDots() {
@@ -211,7 +211,7 @@ export function ChatPreview() {
                     </h4>
                     <p className="text-emerald-400 text-xs font-medium flex items-center gap-1 mt-0.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
-                      Live Assistant · Groq Streaming Engine
+                      Live Assistant · Online
                     </p>
                   </div>
                 </div>
@@ -294,6 +294,27 @@ export function ChatPreview() {
               </div>
 
 
+
+              {/* Suggestion Chips Above Input */}
+              {messages.length <= 1 && !isLoading && (
+                <div className="px-5 py-3 border-t border-dharma-line-dark/40 bg-dharma-ink/40">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-dharma-ivory-dim mb-2 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-dharma-flame" /> Suggestions
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {SUGGESTED.map((prompt, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => sendMessage(prompt)}
+                        className="text-left px-3.5 py-2.5 rounded-xl border border-dharma-line-dark bg-dharma-ink-3/90 hover:bg-dharma-ink-2 hover:border-dharma-flame/50 text-dharma-ivory text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer flex items-center justify-between group shadow-sm"
+                      >
+                        <span>{prompt}</span>
+                        <span className="text-dharma-flame opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Input */}
               <div className="p-4 border-t border-dharma-line-dark bg-dharma-ink/60">

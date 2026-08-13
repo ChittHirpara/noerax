@@ -27,6 +27,8 @@ import { WisdomCardDraw } from './components/sections/WisdomCardDraw';
 import { ChatWorkspacePage } from './components/pages/ChatWorkspacePage';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 
+import { AiCompanionPage } from './components/pages/AiCompanionPage';
+
 function Home() {
   return (
     <>
@@ -50,8 +52,8 @@ function ScrollManager() {
       window.history.scrollRestoration = 'manual';
     }
 
-    // Don't interfere with the /chat page - it manages its own scroll
-    if (location.pathname === '/chat') return;
+    // Don't interfere with /chat or /ai-companion pages
+    if (location.pathname === '/chat' || location.pathname === '/ai-companion') return;
 
     if (location.hash) {
       const id = location.hash.replace('#', '');
@@ -70,7 +72,8 @@ function AppLayout() {
   const location = useLocation();
   const isAuthPage = location.pathname === '/auth';
   const isChatPage = location.pathname === '/chat';
-  const hideFooter = isAuthPage || isChatPage;
+  const isCompanionPage = location.pathname === '/ai-companion';
+  const hideFooter = isAuthPage || isChatPage || isCompanionPage;
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isCommandMenuOpen, setIsCommandMenuOpen] = useState(false);
@@ -80,9 +83,9 @@ function AppLayout() {
     source: ''
   });
 
-  // Manage Lenis smooth scrolling (destroy on /chat to prevent lagging)
+  // Manage Lenis smooth scrolling (destroy on /chat or /ai-companion to prevent lagging)
   useEffect(() => {
-    if (isChatPage) return;
+    if (isChatPage || isCompanionPage) return;
 
     const lenis = new Lenis({
       duration: 1.2,
@@ -105,7 +108,7 @@ function AppLayout() {
       cancelAnimationFrame(rafId);
       lenis.destroy();
     };
-  }, [isChatPage]);
+  }, [isChatPage, isCompanionPage]);
 
   useEffect(() => {
     const handleOpenCommand = () => setIsCommandMenuOpen(true);
@@ -130,6 +133,7 @@ function AppLayout() {
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/ai-companion" element={<AiCompanionPage />} />
           <Route path="/chat" element={<ProtectedRoute><ChatWorkspacePage /></ProtectedRoute>} />
           <Route path="/daily-card" element={<DailyCardPage />} />
           <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />

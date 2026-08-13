@@ -37,6 +37,29 @@ body {
   overflow-x: hidden;
 }
 
+.font-kanit {
+  font-family: 'Kanit', sans-serif;
+}
+
+.hero-heading {
+  background: linear-gradient(180deg, #646973 0%, #BBCCD7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes shimmerGlow {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.sleek-mvp-text {
+  background: linear-gradient(90deg, #fafafa 0%, #c084fc 30%, #38bdf8 50%, #c084fc 70%, #fafafa 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmerGlow 6s linear infinite;
+}
+
 /* Lenis recommended styles */
 html.lenis, html.lenis body {
   height: auto;
