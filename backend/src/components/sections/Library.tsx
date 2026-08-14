@@ -225,7 +225,7 @@ export function Library() {
       viewport={{ once: true, margin: "-100px" }} 
       transition={{ duration: 0.8, ease: "easeOut" }} 
       id="library" 
-      className="py-36 bg-[#070709] relative overflow-hidden text-white"
+      className="py-20 sm:py-28 md:py-36 bg-[#070709] relative overflow-hidden text-white"
     >
       {/* Ambient background light gradients */}
       <div className="absolute top-1/4 right-10 w-[550px] h-[550px] bg-dharma-flame/10 blur-[180px] pointer-events-none rounded-full" />

@@ -281,7 +281,7 @@ Archived from Noerax Sanctuary · www.noerax.com
       viewport={{ once: true, margin: "-100px" }} 
       transition={{ duration: 0.8, ease: "easeOut" }} 
       id="journal" 
-      className="py-36 bg-[#070709] relative overflow-hidden text-white selection:bg-sky-400 selection:text-black"
+      className="py-20 sm:py-28 md:py-36 bg-[#070709] relative overflow-hidden text-white selection:bg-sky-400 selection:text-black"
     >
       {/* Subtle Atmospheric Light Shimmer */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-gradient-to-b from-sky-500/8 via-cyan-500/4 to-transparent blur-[160px] pointer-events-none" />

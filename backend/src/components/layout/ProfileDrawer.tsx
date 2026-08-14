@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, User, BookOpen, Bookmark, LogOut, Calendar, Sparkles, Loader2, Flame, Award, Clock, ShieldCheck, Zap, Download } from 'lucide-react';
+import { X, User, BookOpen, Bookmark, LogOut, Calendar, Sparkles, Loader2, Flame, Award, Clock, ShieldCheck, Zap, Download, Settings, ArrowUpRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/AuthContext';
 import { useStreak } from '../../lib/StreakContext';
 
@@ -20,6 +21,7 @@ interface SavedJournal {
 }
 
 export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
+  const navigate = useNavigate();
   const { user, token, logout } = useAuth();
   const { streak, history } = useStreak();
 
@@ -53,7 +55,7 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
 
   const level = Math.max(1, Math.floor(journals.length / 2) + Math.floor(streak / 2) + 1);
   const totalMins = (streak * 12) + (journals.length * 10) + 15;
-  const xpProgress = ((journals.length % 2) / 2) * 100 || 60;
+  const xpProgress = ((journals.length % 2) / 2) * 100 || 65;
 
   // 30-Day Activity Heatmap matrix
   const today = new Date();
@@ -66,10 +68,10 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
   });
 
   const BADGES = [
-    { id: '1', title: 'First Reflection', desc: 'Wrote your first journal entry', icon: <Sparkles className="w-4 h-4 text-cyan-400" />, unlocked: journals.length > 0 },
-    { id: '2', title: 'Streak Keeper', desc: 'Maintained a 3+ day streak', icon: <Flame className="w-4 h-4 text-dharma-flame" />, unlocked: streak >= 3 },
-    { id: '3', title: 'Sound Sanctuary', desc: 'Listened to 432Hz Soundscapes', icon: <Zap className="w-4 h-4 text-amber-400" />, unlocked: true },
-    { id: '4', title: 'Scripture Scholar', desc: 'Explored ancient texts', icon: <BookOpen className="w-4 h-4 text-emerald-400" />, unlocked: true },
+    { id: '1', title: 'First Inscription', desc: 'Inscribed your first journal entry', icon: <Sparkles className="w-4 h-4 text-cyan-400" />, unlocked: journals.length > 0 },
+    { id: '2', title: 'Sovereign Streak', desc: 'Maintained a 3+ day reflection rhythm', icon: <Flame className="w-4 h-4 text-dharma-flame" />, unlocked: streak >= 3 },
+    { id: '3', title: 'Sanctuary Master', desc: 'Listened to 432Hz Soundscapes', icon: <Clock className="w-4 h-4 text-amber-400" />, unlocked: true },
+    { id: '4', title: 'Classical Scholar', desc: 'Explored multi-tradition frameworks', icon: <BookOpen className="w-4 h-4 text-emerald-400" />, unlocked: true },
   ];
 
   const filteredJournals = journals.filter(j => 
@@ -87,7 +89,7 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md"
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md"
           />
 
           {/* Drawer Panel */}
@@ -96,78 +98,78 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 26, stiffness: 260 }}
-            className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-dharma-ink-2 border-l border-dharma-line-dark shadow-2xl flex flex-col font-sans"
+            className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-[#09090c] border-l border-white/10 shadow-2xl flex flex-col font-sans text-white"
           >
             {/* Header */}
-            <div className="p-6 border-b border-dharma-line-dark bg-dharma-ink/90 flex items-center justify-between">
+            <div className="p-6 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <img
-                    src={user?.picture || `https://api.dicebear.com/7.x/bottts/svg?seed=${user?.email || 'seeker'}`}
+                    src={user?.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=0284c7&color=fff`}
                     alt={user?.name || 'Seeker'}
-                    className="w-12 h-12 rounded-full border-2 border-dharma-flame/50 object-cover shadow-lg"
+                    className="w-12 h-12 rounded-full border-2 border-cyan-400/50 object-cover shadow-lg"
                   />
-                  <span className="absolute -bottom-1 -right-1 bg-dharma-flame text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full border border-dharma-ink">
+                  <span className="absolute -bottom-1 -right-1 bg-cyan-500 text-black text-[9px] font-bold px-1.5 py-0.2 rounded-full border border-black">
                     Lvl {level}
                   </span>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-dharma-ivory text-base flex items-center gap-1.5">
+                  <h3 className="font-serif italic text-white text-base font-medium flex items-center gap-1.5">
                     {user?.name || 'Mindful Seeker'}
                     <ShieldCheck className="w-4 h-4 text-cyan-400" />
                   </h3>
-                  <p className="text-xs text-dharma-ivory-dim">{user?.email || 'LoggedIn'}</p>
+                  <p className="text-[11px] text-white/40 font-mono">{user?.email || 'Verified Seeker'}</p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 text-dharma-ivory-dim hover:text-dharma-ivory hover:bg-dharma-ivory/5 rounded-full transition-colors cursor-pointer"
+                className="p-2 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Mindful Metrics Stats Grid */}
-            <div className="p-5 border-b border-dharma-line-dark bg-dharma-ink/40">
+            <div className="p-5 border-b border-white/10 bg-white/[0.01]">
               <div className="grid grid-cols-3 gap-2 text-center mb-4">
-                <div className="p-2.5 rounded-2xl bg-dharma-ink-3/60 border border-dharma-line-dark">
-                  <span className="text-xs text-dharma-ivory-dim block flex items-center justify-center gap-1">
-                    <Flame className="w-3.5 h-3.5 text-dharma-flame" /> Streak
+                <div className="p-2.5 rounded-2xl bg-white/[0.03] border border-white/8">
+                  <span className="text-[10px] text-white/40 block flex items-center justify-center gap-1 font-mono">
+                    <Flame className="w-3 h-3 text-dharma-flame" /> Streak
                   </span>
-                  <span className="font-bold text-lg text-dharma-ivory">{streak} Days</span>
+                  <span className="font-serif italic text-lg text-white font-medium">{streak} Days</span>
                 </div>
-                <div className="p-2.5 rounded-2xl bg-dharma-ink-3/60 border border-dharma-line-dark">
-                  <span className="text-xs text-dharma-ivory-dim block flex items-center justify-center gap-1">
-                    <BookOpen className="w-3.5 h-3.5 text-cyan-400" /> Entries
+                <div className="p-2.5 rounded-2xl bg-white/[0.03] border border-white/8">
+                  <span className="text-[10px] text-white/40 block flex items-center justify-center gap-1 font-mono">
+                    <BookOpen className="w-3 h-3 text-cyan-300" /> Entries
                   </span>
-                  <span className="font-bold text-lg text-dharma-ivory">{journals.length}</span>
+                  <span className="font-serif italic text-lg text-white font-medium">{journals.length}</span>
                 </div>
-                <div className="p-2.5 rounded-2xl bg-dharma-ink-3/60 border border-dharma-line-dark">
-                  <span className="text-xs text-dharma-ivory-dim block flex items-center justify-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-emerald-400" /> Mindful
+                <div className="p-2.5 rounded-2xl bg-white/[0.03] border border-white/8">
+                  <span className="text-[10px] text-white/40 block flex items-center justify-center gap-1 font-mono">
+                    <Clock className="w-3 h-3 text-emerald-400" /> Mindful
                   </span>
-                  <span className="font-bold text-lg text-dharma-ivory">{totalMins}m</span>
+                  <span className="font-serif italic text-lg text-white font-medium">{totalMins}m</span>
                 </div>
               </div>
 
               {/* Level XP Progress Bar */}
               <div>
-                <div className="flex justify-between text-[11px] font-semibold text-dharma-ivory-dim mb-1">
+                <div className="flex justify-between text-[11px] font-mono text-white/40 mb-1">
                   <span>Level {level} Seeker</span>
-                  <span className="text-dharma-flame">{xpProgress}% to Level {level + 1}</span>
+                  <span className="text-cyan-300">{xpProgress}% to Level {level + 1}</span>
                 </div>
-                <div className="w-full bg-dharma-ink h-1.5 rounded-full overflow-hidden border border-dharma-line-dark">
+                <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden border border-white/10">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${xpProgress}%` }}
-                    className="h-full bg-gradient-to-r from-dharma-flame to-cyan-400 rounded-full"
+                    className="h-full bg-gradient-to-r from-sky-500 to-cyan-400 rounded-full"
                   />
                 </div>
               </div>
 
-              {/* 30-Day Activity Heatmap Grid */}
-              <div className="mt-4 pt-3 border-t border-dharma-line-dark/60">
-                <span className="text-[10px] font-semibold uppercase tracking-widest text-dharma-ivory-dim block mb-2">
+              {/* 30-Day Activity Matrix */}
+              <div className="mt-4 pt-3 border-t border-white/5">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-white/40 block mb-2">
                   30-Day Activity Matrix
                 </span>
                 <div className="grid grid-cols-10 gap-1.5">
@@ -177,8 +179,8 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
                       title={`Date: ${day.dateStr}`}
                       className={`h-2.5 rounded-sm transition-colors ${
                         day.active
-                          ? 'bg-dharma-flame shadow-sm shadow-dharma-flame/50'
-                          : 'bg-dharma-ink-3/80'
+                          ? 'bg-gradient-to-br from-sky-400 to-cyan-500 shadow-sm shadow-sky-500/50'
+                          : 'bg-white/[0.04]'
                       }`}
                     />
                   ))}
@@ -187,22 +189,22 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
             </div>
 
             {/* Navigation Tabs */}
-            <div className="flex bg-dharma-ink-3 p-1.5 border-b border-dharma-line-dark">
+            <div className="flex bg-white/[0.02] p-1.5 border-b border-white/10 gap-1">
               <button
                 onClick={() => setActiveTab('journals')}
-                className={`flex-1 py-2 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'journals' ? 'bg-dharma-flame text-white shadow-md' : 'text-dharma-ivory-dim hover:text-dharma-ivory'
+                className={`flex-1 py-2 text-xs font-medium rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  activeTab === 'journals' ? 'bg-white/10 text-white font-semibold' : 'text-white/40 hover:text-white'
                 }`}
               >
                 <BookOpen className="w-3.5 h-3.5" /> Vault ({journals.length})
               </button>
               <button
                 onClick={() => setActiveTab('badges')}
-                className={`flex-1 py-2 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  activeTab === 'badges' ? 'bg-dharma-flame text-white shadow-md' : 'text-dharma-ivory-dim hover:text-dharma-ivory'
+                className={`flex-1 py-2 text-xs font-medium rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  activeTab === 'badges' ? 'bg-white/10 text-white font-semibold' : 'text-white/40 hover:text-white'
                 }`}
               >
-                <Award className="w-3.5 h-3.5" /> Badges
+                <Award className="w-3.5 h-3.5" /> Milestones
               </button>
             </div>
 
@@ -211,29 +213,29 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
               {activeTab === 'journals' && (
                 <div>
                   {isLoadingJournals ? (
-                    <div className="py-12 flex items-center justify-center text-dharma-flame gap-2 text-sm">
-                      <Loader2 className="w-5 h-5 animate-spin" /> Loading your reflections...
+                    <div className="py-12 flex items-center justify-center text-cyan-300 gap-2 text-xs font-mono">
+                      <Loader2 className="w-4 h-4 animate-spin" /> Loading your reflections...
                     </div>
                   ) : journals.length === 0 ? (
-                    <div className="py-16 text-center text-dharma-ivory-dim">
-                      <BookOpen className="w-12 h-12 text-dharma-ivory-dim/30 mx-auto mb-3" />
-                      <p className="text-sm font-medium text-dharma-ivory">No saved reflections yet</p>
-                      <p className="text-xs text-dharma-ivory-dim/60 mt-1">Write in the Journal section to record your journey!</p>
+                    <div className="py-16 text-center text-white/40">
+                      <BookOpen className="w-10 h-10 text-white/20 mx-auto mb-3" />
+                      <p className="text-xs font-medium text-white/60">No saved reflections yet</p>
+                      <p className="text-[11px] text-white/30 mt-1">Inscribe in the Reflection Studio to build your vault.</p>
                     </div>
                   ) : (
                     filteredJournals.map((j) => (
-                      <div key={j._id} className="p-4 rounded-2xl bg-dharma-ink border border-dharma-line-dark space-y-2 mb-3 shadow-sm hover:border-dharma-flame/40 transition-colors">
+                      <div key={j._id} className="p-4 rounded-2xl bg-white/[0.02] border border-white/8 space-y-2 mb-3 shadow-sm hover:border-cyan-400/30 transition-colors">
                         <div className="flex justify-between items-center text-xs">
-                          <h4 className="font-semibold text-dharma-ivory font-serif">{j.title || 'Daily Reflection'}</h4>
-                          <span className="text-[10px] text-dharma-flame flex items-center gap-1 font-mono">
+                          <h4 className="font-medium text-white font-serif italic">{j.title || 'Daily Reflection'}</h4>
+                          <span className="text-[10px] text-cyan-300 flex items-center gap-1 font-mono">
                             <Calendar className="w-3 h-3" />
                             {new Date(j.createdAt).toLocaleDateString()}
                           </span>
                         </div>
-                        <p className="text-xs text-dharma-ivory-dim italic font-serif">"{j.entryText}"</p>
+                        <p className="text-xs text-white/60 font-light line-clamp-2">"{j.entryText}"</p>
                         {j.insights && (
-                          <p className="text-[11px] text-dharma-ivory-dim/80 pt-1 border-t border-dharma-line-dark/60">
-                            <span className="text-dharma-flame font-semibold">Insight:</span> {j.insights}
+                          <p className="text-[11px] text-cyan-200/70 pt-1 border-t border-white/5 line-clamp-1">
+                            💡 {j.insights}
                           </p>
                         )}
                       </div>
@@ -247,25 +249,25 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
                   {BADGES.map((badge) => (
                     <div
                       key={badge.id}
-                      className={`p-4 rounded-2xl border flex flex-col justify-between text-left space-y-2 transition-all ${
+                      className={`p-3.5 rounded-2xl border flex flex-col justify-between text-left space-y-2 transition-all ${
                         badge.unlocked
-                          ? 'bg-dharma-ink border-dharma-flame/40 text-dharma-ivory shadow-md'
-                          : 'bg-dharma-ink-3/40 border-dharma-line-dark text-dharma-ivory-dim/50 opacity-60'
+                          ? 'bg-white/[0.03] border-cyan-400/30 text-white shadow-md'
+                          : 'bg-white/[0.01] border-white/5 text-white/30 opacity-50'
                       }`}
                     >
                       <div className="flex justify-between items-center">
-                        <div className="p-2 rounded-xl bg-dharma-ink-3 border border-dharma-line-dark">
+                        <div className="p-2 rounded-xl bg-white/[0.04] border border-white/10">
                           {badge.icon}
                         </div>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          badge.unlocked ? 'bg-emerald-500/20 text-emerald-400' : 'bg-dharma-ink text-dharma-ivory-dim'
+                        <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full ${
+                          badge.unlocked ? 'bg-emerald-500/20 text-emerald-300' : 'bg-white/5 text-white/40'
                         }`}>
                           {badge.unlocked ? 'Unlocked' : 'Locked'}
                         </span>
                       </div>
                       <div>
-                        <h4 className="text-xs font-bold text-dharma-ivory">{badge.title}</h4>
-                        <p className="text-[11px] text-dharma-ivory-dim">{badge.desc}</p>
+                        <h4 className="text-xs font-semibold text-white">{badge.title}</h4>
+                        <p className="text-[10px] text-white/40 font-light">{badge.desc}</p>
                       </div>
                     </div>
                   ))}
@@ -273,16 +275,28 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
               )}
             </div>
 
-            {/* Footer / Logout */}
-            <div className="p-5 border-t border-dharma-line-dark bg-dharma-ink/90">
+            {/* Footer Actions */}
+            <div className="p-5 border-t border-white/10 bg-white/[0.01] space-y-2">
+              <button
+                onClick={() => {
+                  onClose();
+                  navigate('/settings');
+                }}
+                className="w-full btn-liquid-secondary !py-2.5 !text-xs flex items-center justify-center gap-1.5"
+              >
+                <Settings className="w-3.5 h-3.5 text-cyan-300" />
+                <span>Open Full Settings</span>
+                <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
+              </button>
+
               <button
                 onClick={() => {
                   logout();
                   onClose();
                 }}
-                className="w-full py-3 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 font-semibold text-xs flex items-center justify-center gap-2 hover:bg-red-500/20 transition-colors cursor-pointer"
+                className="w-full py-2.5 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-300 font-medium text-xs flex items-center justify-center gap-1.5 hover:bg-rose-500/20 transition-colors cursor-pointer"
               >
-                <LogOut className="w-4 h-4" /> Sign Out of Account
+                <LogOut className="w-3.5 h-3.5" /> Sign Out
               </button>
             </div>
           </motion.div>
@@ -291,3 +305,4 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
     </AnimatePresence>
   );
 }
+

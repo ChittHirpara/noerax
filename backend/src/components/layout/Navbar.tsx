@@ -180,11 +180,11 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -15 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-x-0 top-16 bg-dharma-ink-2/95 border-b border-dharma-line-dark backdrop-blur-2xl z-30 p-6 shadow-2xl md:hidden"
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="fixed inset-x-0 top-16 bg-[#070709]/95 border-b border-white/15 backdrop-blur-2xl z-30 p-6 shadow-2xl md:hidden font-sans"
           >
             <div className="flex flex-col space-y-4">
               {navItems.map(({ label, path }) => {
@@ -195,7 +195,7 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
                       key={label}
                       to={path}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center justify-between text-lg font-medium py-1 border-b border-dharma-line-dark/40"
+                      className="flex items-center justify-between text-base font-medium py-2 border-b border-white/10"
                     >
                       <div className="flex items-center gap-2">
                         <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-black bg-gradient-to-r from-cyan-400 to-sky-300 rounded-md shadow-sm -rotate-6">
@@ -216,16 +216,16 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
                     key={label}
                     to={path}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-lg font-medium text-dharma-ivory hover:text-dharma-flame transition-colors py-1 border-b border-dharma-line-dark/40"
+                    className="text-base font-medium text-white/80 hover:text-cyan-300 transition-colors py-2 border-b border-white/10"
                   >
                     {label}
                   </Link>
                 );
               })}
 
-              <div className="pt-2 flex justify-between items-center text-xs text-dharma-ivory-dim">
+              <div className="pt-2 flex justify-between items-center text-xs text-white/50 font-mono">
                 <span>Daily Practice Streak:</span>
-                <span className="font-bold text-dharma-flame">{streak} Days</span>
+                <span className="font-bold text-cyan-300">{streak} Days</span>
               </div>
             </div>
           </motion.div>
