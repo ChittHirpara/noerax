@@ -139,17 +139,20 @@ export function Hero() {
             data-magnetic
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => {
-              const el = document.getElementById('library');
-              if (el) {
-                el.scrollIntoView({ behavior: 'smooth' });
-              } else {
-                navigate('/reading-room');
-              }
-            }}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full border border-dharma-line-dark text-dharma-ivory-dim hover:text-dharma-ivory hover:border-dharma-ivory/20 text-base sm:text-lg font-medium transition-colors cursor-pointer"
+            onClick={() => navigate('/ai-companion')}
+            className="relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 hover:border-sky-400/50 text-dharma-ivory text-base sm:text-lg font-semibold transition-all cursor-pointer shadow-md group"
           >
-            Explore Library
+            {/* Tilted NEW Tag on Left Corner */}
+            <span className="absolute -top-3 -left-2 px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-black bg-gradient-to-r from-cyan-400 to-sky-300 rounded-md shadow-md -rotate-6 group-hover:rotate-0 transition-transform duration-300">
+              NEW
+            </span>
+
+            <span className="sleek-mvp-text">Explore AI Companion</span>
+
+            {/* Tilted COMING SOON Tag on Right Corner */}
+            <span className="absolute -top-3 -right-2 px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-white bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 rounded-md shadow-md rotate-6 group-hover:rotate-0 transition-transform duration-300">
+              COMING SOON
+            </span>
           </motion.button>
         </motion.div>
 

@@ -75,6 +75,9 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
                   <span className="font-semibold text-base tracking-wide sleek-mvp-text">
                     AI Companion
                   </span>
+                  <span className="relative -top-2.5 ml-1.5 px-1.5 py-0.5 text-[9px] font-black tracking-wider text-white bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 rounded-md shadow-md rotate-6 group-hover:rotate-0 transition-transform duration-300">
+                    COMING SOON
+                  </span>
                   <span className="absolute -bottom-1 left-0 w-0 h-px bg-dharma-flame transition-all duration-300 group-hover:w-full" />
                 </Link>
               );
@@ -192,13 +195,18 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
                       key={label}
                       to={path}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center gap-2.5 text-lg font-medium py-1 border-b border-dharma-line-dark/40"
+                      className="flex items-center justify-between text-lg font-medium py-1 border-b border-dharma-line-dark/40"
                     >
-                      <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-black bg-gradient-to-r from-cyan-400 to-sky-300 rounded-md shadow-sm -rotate-6">
-                        NEW
-                      </span>
-                      <span className="font-semibold sleek-mvp-text">
-                        AI Companion
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-black bg-gradient-to-r from-cyan-400 to-sky-300 rounded-md shadow-sm -rotate-6">
+                          NEW
+                        </span>
+                        <span className="font-semibold sleek-mvp-text">
+                          AI Companion
+                        </span>
+                      </div>
+                      <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white bg-gradient-to-r from-amber-500 to-pink-500 rounded-md shadow-sm rotate-6">
+                        COMING SOON
                       </span>
                     </Link>
                   );
