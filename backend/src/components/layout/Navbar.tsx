@@ -20,12 +20,33 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 40);
+    let lastY = window.scrollY;
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      setScrolled(currentY > 40);
+
+      // Keep navbar visible if mobile menu is open or at the very top of page
+      if (isMobileMenuOpen || currentY < 40) {
+        setIsVisible(true);
+      } else if (currentY > lastY && currentY > 80) {
+        // Scrolling DOWN -> Hide navbar smoothly
+        setIsVisible(false);
+      } else if (currentY < lastY) {
+        // Scrolling UP (even slightly) -> Show navbar immediately
+        setIsVisible(true);
+      }
+
+      lastY = currentY > 0 ? currentY : 0;
+      setLastScrollY(lastY);
+    };
+
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isMobileMenuOpen]);
 
   const navItems = [
     { label: 'Home', path: '/' },
@@ -40,22 +61,41 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
     <>
       <motion.nav
         initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className={`fixed top-0 left-0 right-0 z-40 px-4 sm:px-6 md:px-12 py-4 flex items-center justify-between transition-all duration-500 ${
+        animate={{ y: isVisible ? 0 : -120 }}
+        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+        className={`fixed top-0 left-0 right-0 z-40 px-4 sm:px-6 md:px-12 py-4 flex items-center justify-between transition-colors duration-500 ${
           scrolled
-            ? 'bg-white/5 backdrop-blur-xl border-b border-white/8 shadow-[0_4px_30px_rgba(0,0,0,0.15)]'
+            ? 'bg-[#070709]/85 backdrop-blur-xl border-b border-white/8 shadow-[0_4px_30px_rgba(0,0,0,0.4)]'
             : 'bg-transparent'
         }`}
       >
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-3 group">
-          <img 
-            src={noeraxLogo} 
-            alt="Noerax Logo" 
-            className="h-12 sm:h-16 md:h-20 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
-            style={{ filter: 'brightness(1.15) contrast(1.05)' }}
-          />
+        {/* Luxury Brandmark & Wordmark */}
+        <Link to="/" className="flex items-center gap-3 group cursor-pointer select-none">
+          <div className="relative flex items-center justify-center">
+            {/* Subtle Aura Glow */}
+            <div className="absolute inset-0 bg-gradient-to-r from-sky-400/30 to-cyan-400/30 rounded-xl blur-md opacity-50 group-hover:opacity-100 group-hover:scale-115 transition-all duration-300 pointer-events-none" />
+            
+            {/* Glass Gem Icon Pill */}
+            <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/[0.06] border border-white/20 backdrop-blur-md flex items-center justify-center overflow-hidden shadow-lg group-hover:border-cyan-400/50 group-hover:bg-white/[0.09] transition-all duration-300">
+              <img 
+                src={noeraxLogo} 
+                alt="Noerax Emblem" 
+                className="w-7 h-7 sm:w-8 sm:h-8 object-contain mix-blend-screen brightness-125 contrast-125 transition-transform duration-300 group-hover:scale-110" 
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col text-left">
+            <span 
+              className="text-xl sm:text-2xl font-serif italic text-white font-semibold tracking-tight leading-none group-hover:text-cyan-200 transition-colors"
+              style={{ fontFamily: "'Instrument Serif', 'Playfair Display', serif" }}
+            >
+              Noerax
+            </span>
+            <span className="text-[9px] font-mono tracking-[0.22em] uppercase text-cyan-300/80 mt-0.5 leading-none font-medium">
+              Sanctuary
+            </span>
+          </div>
         </Link>
 
         {/* Desktop Nav Links */}
