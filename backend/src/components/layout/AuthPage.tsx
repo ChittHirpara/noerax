@@ -25,21 +25,27 @@ export function AuthPage() {
 
   useEffect(() => {
     if (user) {
-      navigate('/', { replace: true });
+      window.location.href = '/';
     }
-  }, [user, navigate]);
+  }, [user]);
 
   // Robust Google OAuth Flow (Works 100% across Edge, Chrome, Safari without blank transform popup)
   const handleGoogleAuth = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
+      setIsLoading(true);
+      setError('');
       try {
-        setIsLoading(true);
-        setError('');
-        // Fetch verified user profile directly from Google
-        const gRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-        });
-        const googleUser = await gRes.json();
+        let googleUser = null;
+        try {
+          const gRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+          });
+          if (gRes.ok) {
+            googleUser = await gRes.json();
+          }
+        } catch (clientErr) {
+          console.warn('Client userinfo fetch fallback to server:', clientErr);
+        }
 
         const result = await loginWithGoogle({
           accessToken: tokenResponse.access_token,
@@ -48,13 +54,13 @@ export function AuthPage() {
 
         setIsLoading(false);
         if (result.success) {
-          navigate('/', { replace: true });
+          window.location.href = '/';
         } else if (result.error) {
           setError(result.error);
         }
-      } catch (err) {
+      } catch (err: any) {
         setIsLoading(false);
-        setError('Google sign-in connection failed. Please try again.');
+        setError(err?.message || 'Google sign-in connection failed. Please try again.');
       }
     },
     onError: (err) => {
@@ -76,7 +82,7 @@ export function AuthPage() {
     const res = await loginWithEmail(fullName || firstName, email, password, mode === 'signup');
     setIsLoading(false);
     if (res.success) {
-      navigate('/', { replace: true });
+      window.location.href = '/';
     } else if (res.error) {
       setError(res.error);
     }
@@ -266,7 +272,7 @@ export function AuthPage() {
           </div>
 
           {/* Google OAuth Button */}
-          <div className="flex justify-center">
+          <div className="flex flex-col gap-3 justify-center">
             <button
               type="button"
               onClick={() => handleGoogleAuth()}
@@ -280,6 +286,29 @@ export function AuthPage() {
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
               </svg>
               <span>{mode === 'signup' ? 'Sign up with Google' : 'Sign in with Google'}</span>
+            </button>
+
+            {/* Quick Guest / Demo Entry */}
+            <button
+              type="button"
+              onClick={async () => {
+                setIsLoading(true);
+                const guestEmail = `guest_${Date.now()}@noerax.internal`;
+                const guestPass = 'noerax_demo_2026';
+                const res = await loginWithEmail('Sanctuary Explorer', guestEmail, guestPass, true);
+                setIsLoading(false);
+                if (res.success) {
+                  window.location.href = '/';
+                } else {
+                  // If already registered, sign in
+                  const loginRes = await loginWithEmail('Sanctuary Explorer', guestEmail, guestPass, false);
+                  if (loginRes.success) window.location.href = '/';
+                }
+              }}
+              disabled={isLoading}
+              className="w-full py-2.5 px-6 rounded-full bg-gray-50 hover:bg-gray-100 border border-gray-200 text-xs font-medium text-gray-600 transition-all text-center cursor-pointer disabled:opacity-50"
+            >
+              Continue as Guest Explorer →
             </button>
           </div>
 
