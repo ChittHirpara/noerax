@@ -15,7 +15,6 @@ const SEARCH_ITEMS = [
   { id: '3', title: 'Stoic Philosophy — Marcus Aurelius', type: 'Philosophy', section: 'Library', path: '/#library', icon: <BookOpen className="w-4 h-4 text-cyan-400" /> },
   { id: '4', title: 'Tao Te Ching — Lao Tzu (Wu Wei)', type: 'Philosophy', section: 'Library', path: '/#library', icon: <BookOpen className="w-4 h-4 text-cyan-400" /> },
   { id: '5', title: 'Notes & Application Vault', type: 'Feature', section: 'Journal', path: '/#journal', icon: <PenLine className="w-4 h-4 text-emerald-400" /> },
-  { id: '6', title: 'Daily Card of Clarity (3D Shuffle)', type: 'Ritual', section: 'Daily Card', path: '/daily-card', icon: <Layers className="w-4 h-4 text-indigo-400" /> },
   { id: '7', title: 'Daily Morning Reflection Mantra', type: 'Contemplation', section: 'Daily Mantra', path: '/#daily-reflection', icon: <Sun className="w-4 h-4 text-amber-400" /> },
   { id: '8', title: 'AI Companion 3D Universe', type: 'Interactive', section: 'AI Companion', path: '/ai-companion', icon: <Compass className="w-4 h-4 text-pink-400" /> },
   { id: '9', title: 'Profile & Sanctuary Settings', type: 'Account', section: 'Settings', path: '/settings', icon: <User className="w-4 h-4 text-sky-400" /> },

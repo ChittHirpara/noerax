@@ -30,7 +30,7 @@ export function Footer() {
     { num: "01", label: "AI COMPANION", path: "/ai-companion" },
     { num: "02", label: "FRAMEWORKS", target: "features" },
     { num: "03", label: "DIGITAL SANCTUARY", target: "home" },
-    { num: "04", label: "DAILY CARD", path: "/daily-card" },
+    { num: "04", label: "DAILY REFLECTION", target: "daily-reflection" },
   ];
 
   const handleNavClick = (link: { num: string; label: string; path?: string; target?: string }) => {
@@ -207,8 +207,8 @@ export function Footer() {
                 </button>
               </li>
               <li>
-                <button onClick={() => navigate('/daily-card')} className="hover:text-white transition-colors cursor-pointer">
-                  Daily Card
+                <button onClick={() => scrollToSection('daily-reflection')} className="hover:text-white transition-colors cursor-pointer">
+                  Daily Reflection
                 </button>
               </li>
             </ul>

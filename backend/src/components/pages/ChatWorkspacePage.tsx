@@ -600,15 +600,30 @@ export function ChatWorkspacePage() {
       </AnimatePresence>
 
       {/* ── MAIN CHAT WORKSPACE AREA ── */}
-      <div className="flex-1 flex flex-col min-w-0 bg-dharma-ink relative h-full">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#070709] relative h-full overflow-hidden">
         
+        {/* Background Atmospheric Video Layer */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
+          <video
+            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260314_131748_f2ca2a28-fed7-44c8-b9a9-bd9acdd5ec31.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover opacity-35 scale-105 filter saturate-125"
+          />
+          {/* Obsidian Glass Gradient Overlays for Crystal-Clear Text Contrast */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#070709]/85 via-[#070709]/55 to-[#070709]/90" />
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-cyan-500/8 blur-[160px] pointer-events-none rounded-full" />
+        </div>
+
         {/* Workspace Top Navigation Header */}
-        <div className="h-14 sm:h-16 px-3 sm:px-6 border-b border-dharma-line-dark bg-dharma-ink-2/80 backdrop-blur-xl flex items-center justify-between z-10 shrink-0">
+        <div className="h-14 sm:h-16 px-3 sm:px-6 border-b border-white/10 bg-[#070709]/80 backdrop-blur-2xl flex items-center justify-between z-10 shrink-0 relative">
           <div className="flex items-center gap-2 sm:gap-3 overflow-hidden min-w-0">
             {!isSidebarOpen && (
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="p-1.5 sm:p-2 rounded-xl border border-dharma-line-dark text-dharma-ivory-dim hover:text-dharma-ivory hover:bg-dharma-ink-3 transition-colors cursor-pointer shrink-0"
+                className="p-1.5 sm:p-2 rounded-xl border border-white/10 text-white/60 hover:text-white hover:bg-white/5 transition-colors cursor-pointer shrink-0"
                 title="Open Sidebar"
               >
                 <PanelLeft className="w-4 h-4" />
@@ -617,14 +632,14 @@ export function ChatWorkspacePage() {
 
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5 sm:gap-2 truncate">
-                <h2 className="font-serif font-semibold text-sm sm:text-lg text-dharma-ivory flex items-center gap-1.5 truncate">
-                  <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-dharma-flame shrink-0" />
+                <h2 className="font-serif font-semibold text-sm sm:text-lg text-white flex items-center gap-1.5 truncate">
+                  <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-300 shrink-0" />
                   <span className="truncate">{activeSession?.title || 'Chat Workspace'}</span>
                 </h2>
 
                 {/* Dynamic Bot Name Editor Badge */}
-                <div className="flex items-center gap-1.5 ml-1 sm:ml-2 bg-dharma-ink-3/90 border border-dharma-line-dark px-2 sm:px-2.5 py-1 rounded-full text-xs shadow-sm shrink-0">
-                  <Bot className="w-3.5 h-3.5 text-dharma-flame" />
+                <div className="flex items-center gap-1.5 ml-1 sm:ml-2 bg-white/[0.04] border border-white/10 px-2 sm:px-2.5 py-1 rounded-full text-xs shadow-sm shrink-0 backdrop-blur-md">
+                  <Bot className="w-3.5 h-3.5 text-cyan-300" />
                   {isEditingBotName ? (
                     <input
                       type="text"
@@ -634,7 +649,7 @@ export function ChatWorkspacePage() {
                       onKeyDown={(e) => { if (e.key === 'Enter') handleSaveBotName(); }}
                       autoFocus
                       placeholder="Name bot..."
-                      className="bg-dharma-ink border-b border-dharma-flame text-xs text-dharma-ivory px-1 py-0.5 focus:outline-none w-20 sm:w-24"
+                      className="bg-black/60 border-b border-cyan-400 text-xs text-white px-1 py-0.5 focus:outline-none w-20 sm:w-24 font-mono"
                     />
                   ) : (
                     <button
@@ -642,24 +657,24 @@ export function ChatWorkspacePage() {
                         setBotNameInput(activeSession?.botName || 'Noerax');
                         setIsEditingBotName(true);
                       }}
-                      className="text-dharma-ivory font-medium cursor-pointer hover:text-dharma-flame transition-colors flex items-center gap-1 text-[11px] sm:text-xs"
+                      className="text-white/80 font-medium cursor-pointer hover:text-cyan-300 transition-colors flex items-center gap-1 text-[11px] sm:text-xs"
                       title="Click to rewrite bot name for this chat"
                     >
                       <span className="truncate max-w-[80px] sm:max-w-none">{activeSession?.botName || 'Noerax'}</span>
-                      <Edit2 className="w-3 h-3 text-dharma-ivory-dim shrink-0" />
+                      <Edit2 className="w-3 h-3 text-white/40 shrink-0" />
                     </button>
                   )}
                 </div>
               </div>
-              <p className="text-[10px] sm:text-[11px] text-dharma-ivory-dim truncate">
-                Mentor: <span className="text-dharma-flame font-medium">{activeSession?.botName || 'Noerax'}</span> — Practical decision guide
+              <p className="text-[10px] sm:text-[11px] text-white/40 truncate font-mono">
+                Mentor: <span className="text-cyan-300 font-medium">{activeSession?.botName || 'Noerax'}</span> — Practical decision guide
               </p>
             </div>
           </div>
         </div>
 
         {/* Messages Stream Container — ref used for direct scrollTop (bypasses Lenis) */}
-        <div ref={containerRef} data-lenis-prevent className="flex-1 overflow-y-auto p-3 sm:p-6 md:p-10 space-y-4 sm:space-y-6 overscroll-contain">
+        <div ref={containerRef} data-lenis-prevent className="flex-1 overflow-y-auto p-3 sm:p-6 md:p-10 space-y-4 sm:space-y-6 overscroll-contain relative z-10">
           {activeSession?.messages.map((msg) => (
             <React.Fragment key={msg.id}>
               <motion.div
@@ -671,28 +686,30 @@ export function ChatWorkspacePage() {
                 {/* Avatar Icon */}
                 <div className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center border shrink-0 ${
                   msg.role === 'user'
-                    ? 'bg-dharma-flame/20 border-dharma-flame/40 text-dharma-flame'
-                    : 'bg-cyan-500/20 border-cyan-500/40 text-cyan-300'
+                    ? 'bg-cyan-500/20 border-cyan-400/40 text-cyan-300 shadow-md shadow-cyan-500/20'
+                    : 'bg-white/10 border-white/20 text-white shadow-md shadow-white/5'
                 }`}>
                   {msg.role === 'user' ? <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
                 </div>
 
                 {/* Message Bubble Content */}
-                <div className={`group relative p-3 sm:p-5 rounded-2xl sm:rounded-3xl text-xs sm:text-sm leading-relaxed border max-w-full overflow-hidden ${
+                <div className={`group relative p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl text-xs sm:text-sm leading-relaxed border max-w-full overflow-hidden backdrop-blur-xl ${
                   msg.role === 'user'
-                    ? 'bg-dharma-flame text-white border-dharma-flame/50 rounded-tr-none shadow-lg'
-                    : 'bg-dharma-ink-2 border-dharma-line-dark text-dharma-ivory rounded-tl-none shadow-md'
+                    ? 'bg-gradient-to-r from-sky-500/90 to-cyan-500/90 text-black font-medium border-cyan-300/40 rounded-tr-none shadow-xl shadow-cyan-500/15'
+                    : 'liquid-glass-strong border-white/15 text-white/90 rounded-tl-none shadow-2xl'
                 }`}>
                   <p className="whitespace-pre-wrap font-sans text-xs sm:text-base leading-relaxed tracking-normal break-words overflow-wrap-anywhere">
                     {msg.content ? formatMessage(msg.content) : '...'}
                   </p>
 
-                  <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-dharma-line-dark/40 text-[10px] text-dharma-ivory-dim">
+                  <div className={`flex justify-between items-center mt-2.5 pt-2 border-t text-[10px] ${
+                    msg.role === 'user' ? 'border-black/10 text-black/60 font-mono' : 'border-white/10 text-white/40 font-mono'
+                  }`}>
                     <span>{msg.timestamp}</span>
 
                     <button
                       onClick={() => copyToClipboard(msg.id, msg.content)}
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:text-dharma-ivory transition-opacity cursor-pointer"
+                      className="opacity-0 group-hover:opacity-100 p-1 hover:text-white transition-opacity cursor-pointer"
                       title="Copy Text"
                     >
                       {copiedId === msg.id ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
@@ -714,7 +731,7 @@ export function ChatWorkspacePage() {
                       key={idx}
                       onClick={() => handleSendMessage(suggestion)}
                       disabled={isLoading}
-                      className="px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-medium border border-dharma-flame/30 bg-dharma-flame/5 text-dharma-ivory-dim hover:text-dharma-ivory hover:bg-dharma-flame/15 hover:border-dharma-flame/60 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-medium border border-white/15 bg-white/[0.04] text-white/80 hover:text-white hover:bg-white/10 hover:border-cyan-400/50 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed backdrop-blur-md"
                     >
                       {suggestion}
                     </button>
@@ -725,27 +742,27 @@ export function ChatWorkspacePage() {
           ))}
 
           {isLoading && (
-            <div className="flex items-center gap-3 text-dharma-flame text-xs font-semibold py-3 px-2">
-              <Sparkles className="w-4 h-4 animate-spin" /> Noerax is reflecting on ancient wisdom...
+            <div className="flex items-center gap-3 text-cyan-300 text-xs font-mono py-3 px-2">
+              <Sparkles className="w-4 h-4 animate-spin" /> Noerax is contemplating timeless wisdom...
             </div>
           )}
         </div>
 
         {/* Suggestion Chips Bar Above Input Bar */}
         {activeSession?.messages && activeSession.messages.length <= 1 && !isLoading && (
-          <div className="px-3 sm:px-6 pt-3 pb-1 max-w-3xl mx-auto border-t border-dharma-line-dark/40">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-dharma-ivory-dim mb-2 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-dharma-flame" /> Suggestions
+          <div className="px-3 sm:px-6 pt-3 pb-1 max-w-3xl mx-auto border-t border-white/10 relative z-10 w-full">
+            <p className="text-[11px] font-mono uppercase tracking-wider text-white/40 mb-2 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-300" /> Guidance Starters
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {SUGGESTED_PROMPTS.map((prompt, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleSendMessage(prompt)}
-                  className="text-left px-3.5 py-2.5 rounded-xl border border-dharma-line-dark bg-dharma-ink-2/90 hover:bg-dharma-ink-3 hover:border-dharma-flame/50 text-dharma-ivory text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer flex items-center justify-between group shadow-sm"
+                  className="text-left px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:border-cyan-400/40 text-white/90 text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer flex items-center justify-between group shadow-sm backdrop-blur-md"
                 >
                   <span>{prompt}</span>
-                  <span className="text-dharma-flame opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                  <span className="text-cyan-300 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
                 </button>
               ))}
             </div>
@@ -753,8 +770,8 @@ export function ChatWorkspacePage() {
         )}
 
         {/* Input Bar Footer */}
-        <div className="p-2.5 sm:p-4 md:p-6 border-t border-dharma-line-dark bg-dharma-ink-2/90 backdrop-blur-xl shrink-0">
-          <div className="max-w-3xl mx-auto flex items-center gap-2 sm:gap-3 bg-dharma-ink border border-dharma-line-dark rounded-2xl sm:rounded-full px-3 py-2 sm:px-5 sm:py-3 shadow-xl focus-within:border-dharma-flame transition-colors">
+        <div className="p-2.5 sm:p-4 md:p-6 border-t border-white/10 bg-[#070709]/80 backdrop-blur-2xl shrink-0 relative z-10">
+          <div className="max-w-3xl mx-auto flex items-center gap-2 sm:gap-3 bg-white/[0.04] border border-white/15 rounded-2xl sm:rounded-full px-3 py-2 sm:px-5 sm:py-3 shadow-2xl focus-within:border-cyan-400/60 transition-colors backdrop-blur-xl">
             
             {/* Dictation Mic Button */}
             <button
@@ -763,11 +780,11 @@ export function ChatWorkspacePage() {
               className={`p-1.5 sm:p-2 rounded-full border transition-all cursor-pointer shrink-0 ${
                 isListening
                   ? 'bg-red-500/20 border-red-500/50 text-red-400 animate-pulse'
-                  : 'bg-dharma-ink-3 border-dharma-line-dark text-dharma-ivory-dim hover:text-dharma-ivory'
+                  : 'bg-white/[0.05] border-white/10 text-white/50 hover:text-white'
               }`}
               title={isListening ? 'Stop Listening' : 'Voice Dictate Prompt'}
             >
-              {isListening ? <MicOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400" /> : <Mic className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-dharma-flame" />}
+              {isListening ? <MicOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400" /> : <Mic className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-300" />}
             </button>
 
             <textarea
@@ -779,15 +796,15 @@ export function ChatWorkspacePage() {
                   handleSendMessage();
                 }
               }}
-              placeholder="Ask about a decision, situation, or skill..."
+              placeholder="Ask about a decision, situation, or feelings..."
               rows={1}
-              className="flex-1 bg-transparent border-none focus:outline-none text-dharma-ivory placeholder-dharma-ivory-dim/40 text-xs sm:text-sm font-serif resize-none py-1 min-w-0"
+              className="flex-1 bg-transparent border-none focus:outline-none text-white placeholder-white/40 text-xs sm:text-sm font-sans resize-none py-1 min-w-0"
             />
 
             <button
               onClick={() => handleSendMessage()}
               disabled={!input.trim() || isLoading}
-              className="p-2.5 sm:p-3 bg-dharma-flame text-white rounded-full hover:bg-dharma-saffron transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-lg shadow-dharma-flame/30 shrink-0"
+              className="p-2.5 sm:p-3 bg-gradient-to-r from-sky-400 to-cyan-400 text-black font-bold rounded-full hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-lg shadow-cyan-400/25 shrink-0"
               title="Send Message"
             >
               <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />

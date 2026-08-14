@@ -20,7 +20,6 @@ import { QuoteCardModal } from './components/ui/QuoteCardModal';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 
 // Lazy-loaded routes for ultra-fast initial bundle loading
-const DailyCardPage = lazy(() => import('./components/pages/DailyCardPage').then(m => ({ default: m.DailyCardPage })));
 const SettingsPage = lazy(() => import('./components/pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const AuthPage = lazy(() => import('./components/layout/AuthPage').then(m => ({ default: m.AuthPage })));
 const ChatWorkspacePage = lazy(() => import('./components/pages/ChatWorkspacePage').then(m => ({ default: m.ChatWorkspacePage })));
@@ -140,7 +139,6 @@ function AppLayout() {
             <Route path="/" element={<Home />} />
             <Route path="/ai-companion" element={<AiCompanionPage />} />
             <Route path="/chat" element={<ProtectedRoute><ChatWorkspacePage /></ProtectedRoute>} />
-            <Route path="/daily-card" element={<DailyCardPage />} />
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
             <Route path="/auth" element={<AuthPage />} />
           </Routes>

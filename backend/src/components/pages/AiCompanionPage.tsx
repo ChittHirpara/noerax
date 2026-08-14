@@ -272,9 +272,9 @@ export function AiCompanionPage() {
         </FadeIn>
 
         {/* Massive Hero Heading */}
-        <div className="w-full z-0 mt-6 sm:mt-4 md:-mt-5 text-center overflow-hidden">
+        <div className="w-full z-0 mt-6 sm:mt-4 md:-mt-5 text-center overflow-visible px-2 sm:px-4">
           <FadeIn delay={0.15} y={40} className="w-full flex justify-center">
-            <h1 className="hero-heading font-black uppercase tracking-tighter leading-none whitespace-nowrap text-[13.2vw] sm:text-[13.8vw] md:text-[14.2vw] lg:text-[14.6vw] w-full text-center">
+            <h1 className="hero-heading font-black uppercase tracking-tight leading-none whitespace-nowrap text-[9.2vw] sm:text-[9.8vw] md:text-[10.2vw] lg:text-[10.6vw] xl:text-[11vw] w-full text-center select-none">
               hi, i'm noerax
             </h1>
           </FadeIn>

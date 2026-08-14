@@ -33,7 +33,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setIsLoading(true);
     const res = await loginWithEmail(name, email, password, isSignUp);
     setIsLoading(false);
-    if (!res.success && res.error) {
+    if (res.success) {
+      onClose();
+    } else if (res.error) {
       setError(res.error);
     }
   };

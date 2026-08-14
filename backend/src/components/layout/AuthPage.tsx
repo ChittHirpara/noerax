@@ -24,7 +24,9 @@ export function AuthPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (user) navigate('/');
+    if (user) {
+      navigate('/', { replace: true });
+    }
   }, [user, navigate]);
 
   // Robust Google OAuth Flow (Works 100% across Edge, Chrome, Safari without blank transform popup)
@@ -45,7 +47,9 @@ export function AuthPage() {
         });
 
         setIsLoading(false);
-        if (!result.success && result.error) {
+        if (result.success) {
+          navigate('/', { replace: true });
+        } else if (result.error) {
           setError(result.error);
         }
       } catch (err) {
@@ -71,7 +75,9 @@ export function AuthPage() {
     const fullName = `${firstName} ${lastName}`.trim();
     const res = await loginWithEmail(fullName || firstName, email, password, mode === 'signup');
     setIsLoading(false);
-    if (!res.success && res.error) {
+    if (res.success) {
+      navigate('/', { replace: true });
+    } else if (res.error) {
       setError(res.error);
     }
   };

@@ -54,7 +54,6 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
     { label: 'Frameworks', path: '/#guides' },
     { label: 'Notes', path: '/#journal' },
     { label: 'Library', path: '/#library' },
-    { label: 'Daily Card', path: '/daily-card' },
   ];
 
   return (
