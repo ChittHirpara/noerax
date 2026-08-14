@@ -244,7 +244,11 @@ export function AuthPage() {
                     if (!result.success && result.error) setError(result.error);
                   }
                 }}
-                onError={() => setError('Google sign-in popup was closed or unavailable.')}
+                onError={() => {
+                  // onError fires even on popup close — only show error if no result was received
+                  // Users who close the popup see no error; actual failures show the server message
+                  console.warn('[AuthPage] Google OAuth popup closed or failed.');
+                }}
                 theme="outline"
                 shape="pill"
                 type="standard"

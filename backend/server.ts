@@ -133,13 +133,22 @@ async function startServer() {
     skip: (req) => req.path === '/api/health', // Don't count keep-alive pings
   });
 
-  // Auth routes: 10 attempts / 15 min per IP (brute-force protection)
+  // Auth routes (email login/register): 10 attempts / 15 min per IP (brute-force protection)
   const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: "Too many login attempts. Please wait 15 minutes before trying again." },
+  });
+
+  // Google OAuth: more generous — token is already verified by Google, so 30/15min is safe
+  const googleAuthLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many Google sign-in attempts. Please wait a few minutes and try again." },
   });
 
   // AI routes: 20 req / 15 min per IP (protect Gemini quotas)
@@ -167,7 +176,7 @@ async function startServer() {
   // Apply strict auth limiter
   app.use("/api/auth/login", authLimiter);
   app.use("/api/auth/register", authLimiter);
-  app.use("/api/auth/google", authLimiter);
+  app.use("/api/auth/google", googleAuthLimiter); // separate, more generous limit for OAuth
 
   // Apply AI limiter to AI-powered routes
   app.use("/api/chat", aiLimiter);
@@ -298,17 +307,22 @@ async function startServer() {
       if (!payload) {
         try {
           const gRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
-          if (gRes.ok) {
-            payload = await gRes.json();
+          const tokenInfo = await gRes.json();
+          if (gRes.ok && tokenInfo.email && !tokenInfo.error) {
+            payload = tokenInfo;
+            console.log("✅ Google tokeninfo API fallback succeeded.");
+          } else {
+            console.warn("⚠️ Google tokeninfo returned error:", tokenInfo?.error || 'unknown');
           }
         } catch (apiErr) {
           console.warn("⚠️ Google tokeninfo HTTP endpoint fetch failed:", apiErr);
         }
       }
 
-      // Layer 3: Final JWT decode fallback
+      // No unsafe JWT decode fallback — if both verification layers fail, reject the request
       if (!payload) {
-        payload = jwt.decode(credential);
+        console.error("❌ [Google OAuth] Both verification layers failed. Rejecting credential.");
+        return res.status(401).json({ error: "Could not verify Google credential. Please try signing in again." });
       }
 
       if (!payload || !payload.email) {
@@ -369,7 +383,10 @@ async function startServer() {
           id: user._id,
           name: user.name,
           email: user.email,
-          picture: user.avatar
+          picture: user.avatar,
+          provider: user.provider,   // ← was missing, caused provider to be lost on refresh
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt
         }
       });
     } catch (error) {

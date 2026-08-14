@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 
 export interface UserProfile {
   id: string;
@@ -31,7 +31,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   });
 
-  // Verify token on initial load
+  // Define logout first so useEffect below can safely reference it
+  const logout = useCallback(() => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem('noerax_token');
+    localStorage.removeItem('noerax_user');
+  }, []);
+
+  // Verify token on initial load — logout if token is invalid/expired
   useEffect(() => {
     if (token && !user) {
       fetch('/api/auth/me', {
@@ -43,12 +51,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(data.user);
             localStorage.setItem('noerax_user', JSON.stringify(data.user));
           } else {
+            console.warn('[AuthContext] Token invalid on /api/auth/me, logging out.');
             logout();
           }
         })
-        .catch(() => logout());
+        .catch(() => {
+          console.warn('[AuthContext] /api/auth/me fetch failed, logging out.');
+          logout();
+        });
     }
-  }, [token]);
+    // token is the only trigger — logout is stable (useCallback), user intentionally excluded
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, logout]);
 
   const loginWithEmail = async (name: string, email: string, password: string, isSignUp: boolean) => {
     try {
@@ -88,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const data = await res.json();
       if (!res.ok) {
-        return { success: false, error: data.error || 'Google Login failed' };
+        return { success: false, error: data.error || 'Google login failed. Please try again.' };
       }
 
       setToken(data.token);
@@ -99,15 +113,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { success: true };
     } catch (err) {
       console.error('Google Auth Error:', err);
-      return { success: false, error: 'Google sign-in connection failed.' };
+      return { success: false, error: 'Google sign-in connection failed. Check your internet and try again.' };
     }
-  };
-
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('noerax_token');
-    localStorage.removeItem('noerax_user');
   };
 
   return (
