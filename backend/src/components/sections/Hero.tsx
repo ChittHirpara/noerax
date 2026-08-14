@@ -1,8 +1,8 @@
+import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/AuthContext";
-import { FloatingParticles } from "../ui/FloatingParticles";
 import { MarqueeBar } from "../ui/MarqueeBar";
 
 const MARQUEE_WORDS = [
@@ -10,7 +10,27 @@ const MARQUEE_WORDS = [
   "Mindfulness", "Presence", "Equanimity", "Awakening", "Balance",
 ];
 
-// Word-by-word reveal for headline
+// 4 Fullscreen Background Videos
+const VIDEOS = [
+  {
+    id: 0,
+    url: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260702_081127_0992a171-d3c6-4978-8213-0ec5df8b6d63.mp4",
+  },
+  {
+    id: 1,
+    url: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260702_092026_dd05b805-ea0f-40b2-8c52-332b88502592.mp4",
+  },
+  {
+    id: 2,
+    url: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260702_081042_df7202bf-bd80-4b2b-bbc6-1f09ba2870e9.mp4",
+  },
+  {
+    id: 3,
+    url: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260702_080959_4cac5234-3573-464e-a5b7-76b94b8a7d61.mp4",
+  },
+];
+
+// Word-by-word reveal for headline (Original Typography)
 function AnimatedHeadline({ text, className, delay = 0 }: { text: string; className: string; delay?: number }) {
   const words = text.split(' ');
   return (
@@ -33,173 +53,180 @@ function AnimatedHeadline({ text, className, delay = 0 }: { text: string; classN
 export function Hero() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [activeVideo, setActiveVideo] = useState(0);
+
+  // Automatic continuous video cycling every 7 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveVideo((prev) => (prev + 1) % VIDEOS.length);
+    }, 7000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <section id="home" className="relative min-h-screen flex flex-col items-start overflow-hidden pt-32 pb-0">
-      {/* Floating ambient particles */}
-      <FloatingParticles count={28} />
+    <section id="home" className="relative w-full min-h-screen flex flex-col justify-between overflow-x-hidden bg-black font-sans selection:bg-[#38bdf8] selection:text-black">
+      
+      {/* ====================================================================
+          1. BACKGROUND VIDEO LAYER (Continuous Crossfade Cycling)
+         ==================================================================== */}
+      {VIDEOS.map((vid, idx) => (
+        <video
+          key={vid.id}
+          autoPlay
+          muted
+          loop
+          playsInline
+          src={vid.url}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
+            activeVideo === idx ? "opacity-100 z-0" : "opacity-0 -z-10"
+          }`}
+        />
+      ))}
 
-      {/* Deep background radial glow */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-dharma-flame/8 blur-[140px] rounded-full animate-breathe" />
-        <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] bg-dharma-gold/6 blur-[120px] rounded-full" style={{ animation: 'breathe 7s ease-in-out 2s infinite' }} />
+      {/* ====================================================================
+          2. TRANSPARENT PNG OVERLAY (Train-Bob Motion Animation) z-index 1
+         ==================================================================== */}
+      <div className="absolute inset-0 pointer-events-none z-[1] overflow-hidden">
+        <img
+          src="https://soft-zoom-63098134.figma.site/_assets/v11/0b4a435b2df2747593c43d7a1c9b4578f7d8d90c.png"
+          alt="Cinematic Overlay"
+          className="w-full h-full object-cover animate-train-bob"
+        />
       </div>
 
-      {/* Breathing Mandala Rings */}
-      <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
-        {[900, 680, 480, 300].map((size, i) => (
+      {/* Dark Vignette Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/80 z-[1] pointer-events-none" />
+
+      {/* ====================================================================
+          3. CONTENT LAYER (Flex Column Full Viewport Height) z-index 2
+         ==================================================================== */}
+      <div className="relative z-[2] w-full flex-1 flex flex-col justify-between px-4 sm:px-8 md:px-12 pt-20 sm:pt-24 pb-2">
+
+        {/* ------------------------------------------------------------------
+            HERO MAIN CONTENT (Centered)
+           ------------------------------------------------------------------ */}
+        <div className="flex-1 flex flex-col items-center justify-center text-center max-w-4xl mx-auto py-2 px-2">
+          
+          {/* Badge */}
           <motion.div
-            key={i}
-            animate={{ rotate: i % 2 === 0 ? 360 : -360 }}
-            transition={{ duration: 120 + i * 20, repeat: Infinity, ease: 'linear' }}
-            className="absolute rounded-full border"
-            style={{
-              width: size,
-              height: size,
-              borderColor: i === 0
-                ? 'rgba(56,189,248,0.08)'
-                : i === 1
-                ? 'rgba(6,182,212,0.1)'
-                : i === 2
-                ? 'rgba(56,189,248,0.06)'
-                : 'rgba(96,165,250,0.1)',
-              animation: `breathe ${5 + i * 2}s ease-in-out ${i * 1.5}s infinite, ${i % 2 === 0 ? 'none' : 'none'}`,
-            }}
-          />
-        ))}
-        {/* Centre dot glow */}
-        <div className="absolute w-4 h-4 rounded-full bg-dharma-flame/40 blur-sm animate-pulse" />
-      </div>
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="mb-4 sm:mb-6"
+          >
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-dharma-flame/30 bg-dharma-flame/10 text-dharma-flame text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase">
+              <span className="w-1.5 h-1.5 rounded-full bg-dharma-flame animate-pulse" />
+              The Digital Sanctuary
+            </span>
+          </motion.div>
 
-      {/* Main content */}
-      <div className="container mx-auto px-4 sm:px-8 md:px-16 relative z-10 flex flex-col items-start text-left h-full justify-center flex-1 pb-20">
+          {/* Headline (Original Animated Headline Typography) */}
+          <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl lg:text-7xl leading-tight tracking-tight mb-4 max-w-4xl">
+            <AnimatedHeadline
+              text="Learn how life actually works."
+              className="block text-dharma-ivory"
+              delay={0.1}
+            />
+            <AnimatedHeadline
+              text="The syllabus no one handed Gen Z."
+              className="block gradient-text italic text-2xl sm:text-4xl md:text-5xl lg:text-6xl mt-2"
+              delay={0.5}
+            />
+          </h1>
 
-        {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="flex items-center gap-3 mb-8 sm:mb-12"
-        >
-          <span className="flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full border border-dharma-flame/30 bg-dharma-flame/10 text-dharma-flame text-[10px] sm:text-xs font-semibold tracking-[0.15em] sm:tracking-[0.2em] uppercase">
-            <span className="w-1.5 h-1.5 rounded-full bg-dharma-flame animate-pulse" />
-            The Digital Sanctuary
-          </span>
-        </motion.div>
+          {/* Subtext */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.1 }}
+            className="text-base sm:text-lg md:text-xl text-dharma-ivory-dim max-w-2xl leading-relaxed mb-6 sm:mb-8 font-light"
+          >
+            Real frameworks for real decisions.<br />
+            <span className="text-dharma-flame font-medium">Not therapy. Not religion.</span>
+          </motion.p>
 
-        {/* Headline */}
-        <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl lg:text-8xl leading-tight tracking-tight mb-6 max-w-4xl">
-          <AnimatedHeadline
-            text="Learn how life actually works."
-            className="block text-dharma-ivory"
-            delay={0.1}
-          />
-          <AnimatedHeadline
-            text="The syllabus no one handed Gen Z."
-            className="block gradient-text italic text-2xl sm:text-4xl md:text-6xl lg:text-7xl mt-2"
-            delay={0.5}
-          />
-        </h1>
-
-        {/* Subtext */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.1 }}
-          className="text-base sm:text-xl md:text-2xl text-dharma-ivory-dim max-w-2xl font-light tracking-wide leading-relaxed mb-8 sm:mb-12"
-        >
-          Real frameworks for real decisions.<br />
-          <span className="text-dharma-flame font-medium">Not therapy. Not religion.</span>
-        </motion.p>
-
-        {/* CTA Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.4 }}
-          className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-16 sm:mb-20 w-full sm:w-auto"
-        >
-          <div className="relative w-full sm:w-auto">
-            {/* Pulsing rings */}
-            <span className="absolute inset-0 rounded-full bg-dharma-flame/30 animate-pulse-ring" />
-            <span className="absolute inset-0 rounded-full bg-dharma-flame/20 animate-pulse-ring" style={{ animationDelay: '0.5s' }} />
+          {/* CTA Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.4 }}
+            className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-6 sm:mb-8 w-full sm:w-auto justify-center"
+          >
+            {/* Primary Start Learning Button */}
             <motion.button
-              data-magnetic
-              data-cursor-label="GO"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate(user ? '/chat' : '/auth')}
-              className="relative w-full sm:w-auto inline-flex items-center justify-center gap-3 px-6 sm:px-8 py-3.5 sm:py-4 bg-dharma-flame text-white rounded-full text-base sm:text-lg font-semibold shadow-lg shadow-dharma-flame/30 transition-shadow hover:shadow-dharma-flame/50 hover:shadow-xl z-10 cursor-pointer"
+              className="relative w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-3.5 bg-dharma-flame text-white font-semibold text-base sm:text-lg rounded-full shadow-lg shadow-dharma-flame/30 hover:shadow-dharma-flame/50 hover:shadow-xl transition-all cursor-pointer group"
             >
               Start Learning <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
-          </div>
 
-          <motion.button
-            data-magnetic
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => navigate('/ai-companion')}
-            className="relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 hover:border-sky-400/50 text-dharma-ivory text-base sm:text-lg font-semibold transition-all cursor-pointer shadow-md group"
+            {/* Secondary Explore AI Companion Button */}
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => navigate('/ai-companion')}
+              className="relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 hover:border-sky-400/50 text-dharma-ivory text-base font-semibold transition-all cursor-pointer shadow-md group"
+            >
+              {/* Tilted NEW Tag */}
+              <span className="absolute -top-3 -left-2 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-black bg-gradient-to-r from-cyan-400 to-sky-300 rounded-md shadow-md -rotate-6 group-hover:rotate-0 transition-transform duration-300">
+                NEW
+              </span>
+
+              <span className="sleek-mvp-text">Explore AI Companion</span>
+
+              {/* Tilted COMING SOON Tag */}
+              <span className="absolute -top-3 -right-2 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 rounded-md shadow-md rotate-6 group-hover:rotate-0 transition-transform duration-300">
+                COMING SOON
+              </span>
+            </motion.button>
+          </motion.div>
+
+          {/* Social Proof Pill */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 1.8 }}
+            className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-4"
           >
-            {/* Tilted NEW Tag on Left Corner */}
-            <span className="absolute -top-3 -left-2 px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-black bg-gradient-to-r from-cyan-400 to-sky-300 rounded-md shadow-md -rotate-6 group-hover:rotate-0 transition-transform duration-300">
-              NEW
-            </span>
+            <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-dharma-ink-2 border border-dharma-line-dark shadow-md">
+              <div className="flex -space-x-1.5">
+                {['A', 'K', 'P', 'J', 'M'].map((l, i) => (
+                  <div key={i} className={`w-6 h-6 rounded-full border-2 border-dharma-ink-2 flex items-center justify-center text-[9px] font-bold text-white bg-gradient-to-br ${
+                    ['from-orange-500 to-amber-500', 'from-pink-500 to-rose-500', 'from-emerald-500 to-teal-500', 'from-blue-500 to-indigo-500', 'from-violet-500 to-purple-500'][i]
+                  }`}>{l}</div>
+                ))}
+              </div>
+              <span className="text-xs text-dharma-ivory-dim font-medium">
+                3,200+ using Noerax right now
+              </span>
+            </div>
 
-            <span className="sleek-mvp-text">Explore AI Companion</span>
+            <div className="hidden sm:flex items-center gap-1.5 text-xs text-dharma-ivory-dim/70">
+              <span className="text-dharma-flame">"</span>
+              <span>finally something that actually helps</span>
+              <span className="text-dharma-flame">"</span>
+              <span className="text-[11px] opacity-50">— Aryan, Mumbai</span>
+            </div>
+          </motion.div>
 
-            {/* Tilted COMING SOON Tag on Right Corner */}
-            <span className="absolute -top-3 -right-2 px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-white bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 rounded-md shadow-md rotate-6 group-hover:rotate-0 transition-transform duration-300">
-              COMING SOON
-            </span>
-          </motion.button>
-        </motion.div>
+        </div>
 
-        {/* Social proof */}
-        <motion.div
+        {/* ------------------------------------------------------------------
+            BOTTOM MARQUEE BAR
+           ------------------------------------------------------------------ */}
+        <motion.footer
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1.8 }}
-          className="flex flex-wrap items-center gap-4 sm:gap-6"
+          transition={{ duration: 1, delay: 2 }}
+          className="w-full border-t border-dharma-line-dark pt-3 pb-1 bg-dharma-ink/80 backdrop-blur-sm"
         >
-          {/* Real-feeling user pill */}
-          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-dharma-ink-2 border border-dharma-line-dark">
-            <div className="flex -space-x-1.5">
-              {['A', 'K', 'P', 'J', 'M'].map((l, i) => (
-                <div key={i} className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full border-2 border-dharma-ink-2 flex items-center justify-center text-[9px] font-bold text-white bg-gradient-to-br ${
-                  ['from-orange-500 to-amber-500', 'from-pink-500 to-rose-500', 'from-emerald-500 to-teal-500', 'from-blue-500 to-indigo-500', 'from-violet-500 to-purple-500'][i]
-                }`}>{l}</div>
-              ))}
-            </div>
-            <span className="text-[11px] sm:text-xs text-dharma-ivory-dim font-medium">
-              3,200+ using Noerax right now
-            </span>
-          </div>
+          <MarqueeBar items={MARQUEE_WORDS} speed={30} />
+        </motion.footer>
 
-          {/* Micro quote */}
-          <div className="hidden sm:flex items-center gap-2 text-[11px] text-dharma-ivory-dim/70">
-            <span className="text-dharma-flame">"</span>
-            <span>finally something that actually helps</span>
-            <span className="text-dharma-flame">"</span>
-            <span className="text-[10px] opacity-50">— Aryan, Mumbai</span>
-          </div>
-        </motion.div>
       </div>
 
-      {/* Bottom marquee bar */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1, delay: 2 }}
-        className="w-full border-t border-dharma-line-dark py-4 bg-dharma-ink/80 backdrop-blur-sm"
-      >
-        <MarqueeBar items={MARQUEE_WORDS} speed={30} />
-      </motion.div>
     </section>
   );
 }
-
-
-
-

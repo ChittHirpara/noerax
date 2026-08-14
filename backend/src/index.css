@@ -60,6 +60,99 @@ body {
   animation: shimmerGlow 6s linear infinite;
 }
 
+@keyframes trainBob {
+  0%, 100% { transform: translateY(0px) scale(1.03); }
+  50% { transform: translateY(-6px) scale(1.03); }
+}
+
+.animate-train-bob {
+  animation: trainBob 3s ease-in-out infinite;
+}
+
+.liquid-glass {
+  background: rgba(255, 255, 255, 0.01);
+  background-blend-mode: luminosity;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: none;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Dot Pulse Animation for Footer Availability */
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(1.45); }
+}
+.animate-dot-pulse {
+  animation: dotPulse 1.6s ease-in-out infinite;
+}
+
+/* Footer Fill-up Hover Button */
+.btn-fill-hover {
+  position: relative;
+  overflow: hidden;
+  transition: color 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-fill-hover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: #F598F2;
+  transform: translateY(101%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 0;
+}
+.btn-fill-hover:hover::before {
+  transform: translateY(0);
+}
+.btn-fill-hover:hover {
+  color: #000000;
+  border-color: #F598F2;
+}
+.btn-fill-hover * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Nav Link Slide Underline */
+.nav-link-underline {
+  position: relative;
+}
+.nav-link-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  right: 0;
+  width: 100%;
+  height: 1px;
+  background-color: #F598F2;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nav-link-underline:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.liquid-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.4px;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 20%,
+    rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%,
+    rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.45) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
 /* Lenis recommended styles */
 html.lenis, html.lenis body {
   height: auto;
@@ -81,13 +174,30 @@ html.lenis, html.lenis body {
    LIGHT BLUISH SHIMMER & ANIMATION UTILITIES
    ============================================ */
 
-/* Infinite horizontal marquee */
-@keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+/* Infinite vertical marquee */
+@keyframes marquee-vertical {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+@keyframes marquee-vertical-reverse {
+  0% { transform: translateY(-50%); }
+  100% { transform: translateY(0); }
+}
+.animate-marquee-vertical {
+  animation: marquee-vertical 30s linear infinite;
+}
+.animate-marquee-vertical-reverse {
+  animation: marquee-vertical-reverse 30s linear infinite;
 }
 .animate-marquee {
   animation: marquee 25s linear infinite;
+}
+@keyframes marquee-left-to-right {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+.animate-marquee-left-to-right {
+  animation: marquee-left-to-right 30s linear infinite;
 }
 
 /* Shimmer gradient text animation - Light Blue / Cyan Theme */

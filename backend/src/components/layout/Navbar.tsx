@@ -59,7 +59,7 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
         </Link>
 
         {/* Desktop Nav Links */}
-        <div className="hidden md:flex items-center gap-8 text-base font-medium text-dharma-ivory-dim">
+        <div className="hidden md:flex items-center gap-5 lg:gap-7 text-sm lg:text-base font-medium text-dharma-ivory-dim">
           {navItems.map(({ label, path }) => {
             const isMVP = label === 'AI Companion';
             if (isMVP) {
@@ -69,13 +69,13 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
                   to={path}
                   className="relative group inline-flex items-center hover:text-white transition-colors duration-200"
                 >
-                  <span className="relative -top-2.5 mr-1.5 px-1.5 py-0.5 text-[9px] font-black tracking-wider text-black bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-300 rounded-md shadow-md -rotate-6 group-hover:rotate-0 transition-transform duration-300">
+                  <span className="relative -top-2.5 mr-1 px-1 py-0.2 text-[8.5px] font-black tracking-wider text-black bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-300 rounded-md shadow-md -rotate-6 group-hover:rotate-0 transition-transform duration-300">
                     NEW
                   </span>
-                  <span className="font-semibold text-base tracking-wide sleek-mvp-text">
+                  <span className="font-semibold sleek-mvp-text">
                     AI Companion
                   </span>
-                  <span className="relative -top-2.5 ml-1.5 px-1.5 py-0.5 text-[9px] font-black tracking-wider text-white bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 rounded-md shadow-md rotate-6 group-hover:rotate-0 transition-transform duration-300">
+                  <span className="relative -top-2.5 ml-1 px-1 py-0.2 text-[8.5px] font-black tracking-wider text-white bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 rounded-md shadow-md rotate-6 group-hover:rotate-0 transition-transform duration-300">
                     COMING SOON
                   </span>
                   <span className="absolute -bottom-1 left-0 w-0 h-px bg-dharma-flame transition-all duration-300 group-hover:w-full" />
@@ -86,7 +86,7 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
               <Link
                 key={label}
                 to={path}
-                className="relative group hover:text-dharma-ivory transition-colors duration-200"
+                className="relative group hover:text-dharma-ivory transition-colors duration-200 whitespace-nowrap"
               >
                 {label}
                 <span className="absolute -bottom-1 left-0 w-0 h-px bg-dharma-flame transition-all duration-300 group-hover:w-full" />

@@ -19,7 +19,6 @@ import { Footer } from './components/layout/Footer';
 import { StreakProvider } from './lib/StreakContext';
 import { AuthProvider } from './lib/AuthContext';
 import { AuthPage } from './components/layout/AuthPage';
-import { AmbientSoundscape } from './components/ui/AmbientSoundscape';
 import { ProfileDrawer } from './components/layout/ProfileDrawer';
 import { CommandMenu } from './components/layout/CommandMenu';
 import { QuoteCardModal } from './components/ui/QuoteCardModal';
@@ -141,7 +140,6 @@ function AppLayout() {
         </Routes>
       </main>
       {!hideFooter && <Footer />}
-      {!hideFooter && <AmbientSoundscape />}
       <ProfileDrawer isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
       <CommandMenu isOpen={isCommandMenuOpen} onClose={() => setIsCommandMenuOpen(false)} />
       <QuoteCardModal
