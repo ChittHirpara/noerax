@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Lenis from 'lenis';
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -7,26 +7,32 @@ import { Hero } from './components/sections/Hero';
 import { Struggle } from './components/sections/Struggle';
 import { ChatPreview } from './components/sections/ChatPreview';
 import { Library } from './components/sections/Library';
-import { ReadingRoom } from './components/sections/ReadingRoom';
 import { Journal } from './components/sections/Journal';
-import { DailyCardPage } from './components/pages/DailyCardPage';
-import { SettingsPage } from './components/pages/SettingsPage';
 import { Features } from './components/sections/Features';
 import { DailyMantra } from './components/sections/DailyMantra';
-
 import { Testimonials } from './components/sections/Testimonials';
 import { Footer } from './components/layout/Footer';
 import { StreakProvider } from './lib/StreakContext';
 import { AuthProvider } from './lib/AuthContext';
-import { AuthPage } from './components/layout/AuthPage';
 import { ProfileDrawer } from './components/layout/ProfileDrawer';
 import { CommandMenu } from './components/layout/CommandMenu';
 import { QuoteCardModal } from './components/ui/QuoteCardModal';
-import { WisdomCardDraw } from './components/sections/WisdomCardDraw';
-import { ChatWorkspacePage } from './components/pages/ChatWorkspacePage';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 
-import { AiCompanionPage } from './components/pages/AiCompanionPage';
+// Lazy-loaded routes for ultra-fast initial bundle loading
+const DailyCardPage = lazy(() => import('./components/pages/DailyCardPage').then(m => ({ default: m.DailyCardPage })));
+const SettingsPage = lazy(() => import('./components/pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const AuthPage = lazy(() => import('./components/layout/AuthPage').then(m => ({ default: m.AuthPage })));
+const ChatWorkspacePage = lazy(() => import('./components/pages/ChatWorkspacePage').then(m => ({ default: m.ChatWorkspacePage })));
+const AiCompanionPage = lazy(() => import('./components/pages/AiCompanionPage').then(m => ({ default: m.AiCompanionPage })));
+
+function RouteFallback() {
+  return (
+    <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="w-8 h-8 rounded-full border-2 border-dharma-flame/20 border-t-dharma-flame animate-spin" />
+    </div>
+  );
+}
 
 function Home() {
   return (
@@ -38,7 +44,6 @@ function Home() {
       <Library />
       <Features />
       <DailyMantra />
-      <WisdomCardDraw />
       <Testimonials />
     </>
   );
@@ -130,14 +135,16 @@ function AppLayout() {
     <div className="bg-dharma-ink min-h-screen text-dharma-ivory font-sans relative">
       {!hideFooter && <Navbar onOpenProfile={() => setIsProfileOpen(true)} />}
       <main>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/ai-companion" element={<AiCompanionPage />} />
-          <Route path="/chat" element={<ProtectedRoute><ChatWorkspacePage /></ProtectedRoute>} />
-          <Route path="/daily-card" element={<DailyCardPage />} />
-          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-          <Route path="/auth" element={<AuthPage />} />
-        </Routes>
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/ai-companion" element={<AiCompanionPage />} />
+            <Route path="/chat" element={<ProtectedRoute><ChatWorkspacePage /></ProtectedRoute>} />
+            <Route path="/daily-card" element={<DailyCardPage />} />
+            <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+            <Route path="/auth" element={<AuthPage />} />
+          </Routes>
+        </Suspense>
       </main>
       {!hideFooter && <Footer />}
       <ProfileDrawer isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />

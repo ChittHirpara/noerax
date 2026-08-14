@@ -120,32 +120,27 @@ export function Testimonials() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Compute 3D Horizontal cylinder position & rotations at 60fps
+  // Compute 3D Horizontal cylinder position & rotations at silky-smooth 60fps
   const renderLoop = () => {
-    // Horizontal flow speed (increased for faster continuous 3D rotation)
-    progress.current += 0.0045;
+    // Constant smooth continuous rotation speed (no stutter / no artificial stops)
+    progress.current += 0.0032;
 
-    // Inertia damping logic
-    mouse.current.x += (mouse.current.targetX - mouse.current.x) * 0.08;
-    mouse.current.y += (mouse.current.targetY - mouse.current.y) * 0.08;
+    // Smooth inertia damping for mouse parallax tilt
+    mouse.current.x += (mouse.current.targetX - mouse.current.x) * 0.06;
+    mouse.current.y += (mouse.current.targetY - mouse.current.y) * 0.06;
 
     const cards = cardsRefs.current;
     const w = window.innerWidth;
     const { cardW } = metrics;
 
-    const continuousProgress = progress.current;
-    const roundedIndex = Math.round(continuousProgress);
-    const diffFromRound = continuousProgress - roundedIndex; // [-0.5, 0.5]
-    
-    // Non-linear magnetic step logic with brief center pause
-    const easedDiff = Math.sign(diffFromRound) * Math.pow(Math.abs(diffFromRound) * 2, 4.2) / 2;
-    const virtualActiveIndex = roundedIndex + easedDiff;
+    // 100% continuous linear flow for stutter-free liquid motion
+    const virtualActiveIndex = progress.current;
 
     for (let i = 0; i < cardCount; i++) {
       const card = cards[i];
       if (!card) continue;
 
-      let offset = i - virtualActiveIndex;
+      let offset = i - (virtualActiveIndex % cardCount);
       const halfCount = cardCount / 2;
       while (offset > halfCount) offset -= cardCount;
       while (offset < -halfCount) offset += cardCount;
@@ -153,16 +148,16 @@ export function Testimonials() {
       const absOffset = Math.abs(offset);
       const sign = Math.sign(offset);
 
-      if (absOffset > 3.0) {
+      if (absOffset > 2.8) {
         card.style.visibility = 'hidden';
         continue;
       } else {
         card.style.visibility = 'visible';
       }
 
-      const gap = 48;
-      const peekAmount = -60; // Push peeking edge past screen boundary
-      const D = 1350; // Perspective distance
+      const gap = 42;
+      const peekAmount = -50;
+      const D = 1200; // Perspective distance
 
       let x = 0;
       let z = 0;
@@ -175,19 +170,19 @@ export function Testimonials() {
 
         const targetX = cardW + gap;
         x = sign * (easedT * targetX);
-        z = 400 + easedT * (220 - 400);
-        rot = easedT * 128;
+        z = 360 + easedT * (200 - 360);
+        rot = easedT * 125;
       } else if (absOffset <= 2) {
         // Smoothstep 1 to 2 (Adjacent to peeking edge)
         const t = absOffset - 1;
         const easedT = t * t * (3 - 2 * t);
 
         const xStart = cardW + gap;
-        const zStart = 220;
-        const rotStart = 128;
+        const zStart = 200;
+        const rotStart = 125;
 
-        const zEnd = -60;
-        const rotEnd = 170;
+        const zEnd = -50;
+        const rotEnd = 168;
 
         const sEnd = D / (D - zEnd);
         const xEnd = (w / 2 - peekAmount) / sEnd - (cardW / 2);
@@ -202,16 +197,16 @@ export function Testimonials() {
         const t = Math.min(absOffset - 2, 1);
         const easedT = t * t * (3 - 2 * t);
 
-        const zStart = -60;
-        const rotStart = 170;
-        const zEnd3 = -250;
-        const rotEnd3 = 195;
+        const zStart = -50;
+        const rotStart = 168;
+        const zEnd3 = -220;
+        const rotEnd3 = 190;
 
         const sEnd2 = D / (D - zStart);
         const xEnd2 = (w / 2 - peekAmount) / sEnd2 - (cardW / 2);
 
         const sEnd3 = D / (D - zEnd3);
-        const xEnd3 = (w / 2 + 120) / sEnd3 + (cardW / 2);
+        const xEnd3 = (w / 2 + 100) / sEnd3 + (cardW / 2);
 
         const currentX = xEnd2 + easedT * (xEnd3 - xEnd2);
         x = sign * currentX;
@@ -223,8 +218,8 @@ export function Testimonials() {
       const localCardRotation = -sign * rot;
       const centerFactor = Math.max(0, 1 - absOffset);
 
-      const maxTiltY = 16;
-      const maxTiltX = 14;
+      const maxTiltY = 14;
+      const maxTiltX = 12;
 
       const activeTiltX = -mouse.current.y * maxTiltX * centerFactor;
       const activeTiltY = mouse.current.x * maxTiltY * centerFactor;
@@ -232,11 +227,10 @@ export function Testimonials() {
       const totalRotY = localCardRotation + activeTiltY;
       const totalRotX = activeTiltX;
 
-      card.style.zIndex = Math.round(z).toString();
-      card.style.opacity = '1';
+      card.style.zIndex = Math.round(z + 500).toString();
 
-      // Inject 3D translation matrix for horizontal cylinder rotation
-      card.style.transform = `translateX(${x.toFixed(2)}px) translateZ(${z.toFixed(2)}px) rotateY(${totalRotY.toFixed(2)}deg) rotateX(${totalRotX.toFixed(2)}deg)`;
+      // Hardware accelerated 3D transform string
+      card.style.transform = `translate3d(${x.toFixed(1)}px, 0px, ${z.toFixed(1)}px) rotateY(${totalRotY.toFixed(1)}deg) rotateX(${totalRotX.toFixed(1)}deg)`;
     }
   };
 
@@ -296,9 +290,10 @@ export function Testimonials() {
                   height: `${metrics.cardH}px`,
                   transformStyle: 'preserve-3d',
                   backfaceVisibility: 'visible',
+                  willChange: 'transform',
                 }}
               >
-                {/* Dense parallel volumetric thickness slicing */}
+                {/* Parallel volumetric thickness slicing */}
                 {thicknessLayers.map((zOffset, layerIdx) => {
                   const isFrontFace = layerIdx === thicknessLayers.length - 1;
                   const isBackFace = layerIdx === 0;
@@ -311,9 +306,9 @@ export function Testimonials() {
                     return (
                       <div
                         key={layerIdx}
-                        className="absolute inset-0 rounded-[20px] border border-[#808080] pointer-events-none overflow-hidden"
+                        className="absolute inset-0 rounded-[20px] border border-white/10 pointer-events-none overflow-hidden"
                         style={{
-                          backgroundColor: '#808080',
+                          backgroundColor: '#18181b',
                           transform: `translateZ(${zOffset}px)`,
                         }}
                       />
@@ -325,11 +320,11 @@ export function Testimonials() {
                     return (
                       <div
                         key={layerIdx}
-                        className="absolute inset-0 rounded-[20px] border border-white/20 pointer-events-none overflow-hidden bg-[#0a0a0c]"
+                        className="absolute inset-0 rounded-[20px] border border-white/25 pointer-events-none overflow-hidden bg-[#0a0a0c]"
                         style={{
                           transform: `translateZ(${zOffset}px)`,
                           backfaceVisibility: 'hidden',
-                          boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.2), 0 20px 50px rgba(0,0,0,0.85)',
+                          boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.25), 0 20px 50px rgba(0,0,0,0.85)',
                         }}
                       >
                         {/* Video Background */}
@@ -384,27 +379,15 @@ export function Testimonials() {
                     return (
                       <div
                         key={layerIdx}
-                        className="absolute inset-0 rounded-[20px] border border-white/20 pointer-events-none overflow-hidden bg-[#0a0a0c]"
+                        className="absolute inset-0 rounded-[20px] border border-white/20 pointer-events-none overflow-hidden bg-gradient-to-br from-[#18181b] via-[#09090b] to-[#1e1e24]"
                         style={{
                           transform: `translateZ(${zOffset}px) rotateY(180deg)`,
                           backfaceVisibility: 'hidden',
-                          boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.2)',
+                          boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.15)',
                         }}
                       >
-                        {/* Blurred Video Background */}
-                        <div className="absolute inset-0 pointer-events-none" style={{ filter: 'blur(16px)', transform: 'scale(1.15)' }}>
-                          <video
-                            src={videoSrc}
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                            className="absolute inset-0 w-full h-full object-cover"
-                          />
-                        </div>
-
                         {/* Top Glass Stripe */}
-                        <div className="absolute left-0 right-0 top-4 sm:top-5 h-7 sm:h-8 bg-black/80 backdrop-blur-md z-10 flex items-center justify-between px-4 sm:px-5">
+                        <div className="absolute left-0 right-0 top-4 sm:top-5 h-7 sm:h-8 bg-white/5 border-b border-white/10 backdrop-blur-md z-10 flex items-center justify-between px-4 sm:px-5">
                           <span className="text-[9px] font-mono tracking-widest text-sky-300 font-bold uppercase">
                             {details.brand}
                           </span>
@@ -412,6 +395,9 @@ export function Testimonials() {
                             {details.id}
                           </span>
                         </div>
+
+                        {/* Metallic Circuit Grid lines in background */}
+                        <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:16px_16px]" />
 
                         {/* Seeker Details */}
                         <div 

@@ -42,10 +42,10 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className={`fixed top-0 left-0 right-0 z-40 px-4 sm:px-6 md:px-12 py-4 flex items-center justify-between transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-40 px-4 sm:px-6 md:px-12 py-4 flex items-center justify-between transition-all duration-500 ${
           scrolled
-            ? 'bg-dharma-ink/90 backdrop-blur-xl border-b border-dharma-line-dark shadow-xl'
-            : 'bg-gradient-to-b from-dharma-ink/80 to-transparent'
+            ? 'bg-white/5 backdrop-blur-xl border-b border-white/8 shadow-[0_4px_30px_rgba(0,0,0,0.15)]'
+            : 'bg-transparent'
         }`}
       >
         {/* Logo */}
@@ -159,7 +159,7 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
               onClick={() => navigate(user ? '/chat' : '/auth')}
-              className="px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-white bg-dharma-flame rounded-full hover:bg-dharma-saffron transition-colors duration-300 shadow-md shadow-dharma-flame/30"
+              className="btn-liquid-primary !px-5 !py-2 !text-sm"
             >
               Start Learning
             </motion.button>

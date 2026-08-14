@@ -157,30 +157,32 @@ export function Hero() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate(user ? '/chat' : '/auth')}
-              className="relative w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-3.5 bg-dharma-flame text-white font-semibold text-base sm:text-lg rounded-full shadow-lg shadow-dharma-flame/30 hover:shadow-dharma-flame/50 hover:shadow-xl transition-all cursor-pointer group"
+              className="btn-liquid-primary w-full sm:w-auto"
             >
               Start Learning <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
 
-            {/* Secondary Explore AI Companion Button */}
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => navigate('/ai-companion')}
-              className="relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 hover:border-sky-400/50 text-dharma-ivory text-base font-semibold transition-all cursor-pointer shadow-md group"
-            >
-              {/* Tilted NEW Tag */}
-              <span className="absolute -top-3 -left-2 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-black bg-gradient-to-r from-cyan-400 to-sky-300 rounded-md shadow-md -rotate-6 group-hover:rotate-0 transition-transform duration-300">
+            {/* Secondary Explore AI Companion Button — wrapper handles overflow-visible for floating tags */}
+            <div className="relative group w-full sm:w-auto mt-3">
+              {/* Tilted NEW Tag — outside button so it's not clipped */}
+              <span className="absolute -top-3.5 -left-2 z-10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-black bg-gradient-to-r from-cyan-400 to-sky-300 rounded-md shadow-md -rotate-6 group-hover:rotate-0 transition-transform duration-300 pointer-events-none">
                 NEW
               </span>
 
-              <span className="sleek-mvp-text">Explore AI Companion</span>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => navigate('/ai-companion')}
+                className="btn-liquid-secondary w-full"
+              >
+                <span className="sleek-mvp-text">Explore AI Companion</span>
+              </motion.button>
 
-              {/* Tilted COMING SOON Tag */}
-              <span className="absolute -top-3 -right-2 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 rounded-md shadow-md rotate-6 group-hover:rotate-0 transition-transform duration-300">
+              {/* Tilted COMING SOON Tag — outside button so it's not clipped */}
+              <span className="absolute -top-3.5 -right-2 z-10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 rounded-md shadow-md rotate-6 group-hover:rotate-0 transition-transform duration-300 pointer-events-none">
                 COMING SOON
               </span>
-            </motion.button>
+            </div>
           </motion.div>
 
           {/* Social Proof Pill */}

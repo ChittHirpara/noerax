@@ -268,7 +268,7 @@ export function ChatPreview() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => navigate(user ? '/chat' : '/auth')}
-                    className="px-4 py-2 rounded-full border border-dharma-flame/40 bg-dharma-flame/20 text-dharma-flame hover:bg-dharma-flame hover:text-white transition-all flex items-center gap-1.5 text-xs font-semibold cursor-pointer shadow-md backdrop-blur-md"
+                    className="btn-liquid-primary !px-3.5 !py-1.5 !text-xs gap-1.5"
                     title="Open Fullscreen AI Workspace"
                   >
                     <Maximize2 className="w-3.5 h-3.5" />

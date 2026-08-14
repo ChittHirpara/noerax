@@ -14,6 +14,7 @@ import rateLimit from "express-rate-limit";
 import slowDown from "express-slow-down";
 import cors from "cors";
 import dotenv from "dotenv";
+import compression from "compression";
 import { OAuth2Client } from "google-auth-library";
 
 dotenv.config();
@@ -82,6 +83,9 @@ async function startServer() {
 
   const app = express();
   const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5555;
+
+  // Enable Gzip/Brotli response compression for blazing fast transfers
+  app.use(compression());
 
   // =============================================================
   // LAYER 1: HTTP Security Headers (Helmet)
@@ -839,8 +843,25 @@ Do not add any other text after the SUGGESTIONS line.`;
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
+    
+    // Cache static immutable assets (JS/CSS/images/fonts) for 1 year
+    app.use("/assets", express.static(path.join(distPath, "assets"), {
+      maxAge: "1y",
+      immutable: true,
+    }));
+
+    // Other static files (favicon, manifest, etc.)
+    app.use(express.static(distPath, {
+      maxAge: "1h",
+      setHeaders: (res, path) => {
+        if (path.endsWith("index.html")) {
+          res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        }
+      }
+    }));
+
     app.get("*", (req, res) => {
+      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
