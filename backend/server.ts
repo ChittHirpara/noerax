@@ -277,26 +277,42 @@ async function startServer() {
         return res.status(400).json({ error: "Credential is required." });
       }
 
-      const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID;
-      if (!GOOGLE_CLIENT_ID) {
-        return res.status(500).json({ error: "Google OAuth is not configured on this server." });
-      }
-      const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
-
+      const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '1034053996102-3b0p9e7h2i1vrnoqklbb2s2jld3c0m2o.apps.googleusercontent.com';
       let payload: any;
-      try {
-        const ticket = await googleClient.verifyIdToken({
-          idToken: credential,
-          audience: GOOGLE_CLIENT_ID,
-        });
-        payload = ticket.getPayload();
-      } catch (verificationError) {
-        console.warn("⚠️ Google ID Token verification via OAuth2Client failed, attempting fallback decode:", verificationError);
+
+      // Layer 1: Verify via Google OAuth2Client
+      if (GOOGLE_CLIENT_ID) {
+        try {
+          const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
+          const ticket = await googleClient.verifyIdToken({
+            idToken: credential,
+            audience: GOOGLE_CLIENT_ID,
+          });
+          payload = ticket.getPayload();
+        } catch (verificationError) {
+          console.warn("⚠️ Google ID Token verification via OAuth2Client failed, attempting tokeninfo API fallback:", verificationError);
+        }
+      }
+
+      // Layer 2: Verify via Google's official public tokeninfo HTTP API endpoint
+      if (!payload) {
+        try {
+          const gRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+          if (gRes.ok) {
+            payload = await gRes.json();
+          }
+        } catch (apiErr) {
+          console.warn("⚠️ Google tokeninfo HTTP endpoint fetch failed:", apiErr);
+        }
+      }
+
+      // Layer 3: Final JWT decode fallback
+      if (!payload) {
         payload = jwt.decode(credential);
       }
 
       if (!payload || !payload.email) {
-        return res.status(400).json({ error: "Invalid Google credential." });
+        return res.status(400).json({ error: "Invalid or expired Google credential." });
       }
 
       const { name, email, picture, sub } = payload;

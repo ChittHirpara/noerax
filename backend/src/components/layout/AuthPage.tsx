@@ -233,21 +233,24 @@ export function AuthPage() {
 
           {/* Google OAuth Button */}
           <div className="flex justify-center">
-            <div className="w-full rounded-full border border-gray-200 overflow-hidden hover:border-gray-300 transition-all flex justify-center py-0.5">
+            <div className="w-full rounded-full border border-gray-200 overflow-hidden hover:border-gray-300 transition-all flex justify-center py-0.5 shadow-sm">
               <GoogleLogin
                 onSuccess={async (res) => {
                   if (res.credential) {
+                    setIsLoading(true);
+                    setError('');
                     const result = await loginWithGoogle(res.credential);
+                    setIsLoading(false);
                     if (!result.success && result.error) setError(result.error);
                   }
                 }}
-                onError={() => setError('Google sign-in failed.')}
+                onError={() => setError('Google sign-in popup was closed or unavailable.')}
                 theme="outline"
                 shape="pill"
                 type="standard"
                 text={mode === 'signup' ? 'signup_with' : 'signin_with'}
                 size="large"
-                width="360"
+                width="320"
               />
             </div>
           </div>

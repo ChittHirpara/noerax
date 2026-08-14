@@ -153,8 +153,9 @@ function AppLayout() {
 }
 
 export default function App() {
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '1034053996102-3b0p9e7h2i1vrnoqklbb2s2jld3c0m2o.apps.googleusercontent.com';
   return (
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID'}>
+    <GoogleOAuthProvider clientId={googleClientId}>
       <BrowserRouter>
         <ScrollManager />
         <AuthProvider>
