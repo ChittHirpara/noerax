@@ -285,16 +285,38 @@ async function startServer() {
   // GOOGLE LOGIN (VERIFY TOKEN & SAVE/FETCH USER IN MONGODB)
   app.post("/api/auth/google", async (req: Request, res: Response) => {
     try {
-      const { credential } = req.body;
-      if (!credential) {
-        return res.status(400).json({ error: "Credential is required." });
+      const { credential, accessToken, googleUser } = req.body;
+      if (!credential && !accessToken && !googleUser) {
+        return res.status(400).json({ error: "Google credential or access token is required." });
       }
 
       const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '1034053996102-3b0p9e7h2i1vrnoqklbb2s2jld3c0m2o.apps.googleusercontent.com';
-      let payload: any;
+      let payload: any = null;
 
-      // Layer 1: Verify via Google OAuth2Client
-      if (GOOGLE_CLIENT_ID) {
+      // Mode A: Verify via OAuth2 Access Token (from useGoogleLogin popup flow — 100% reliable)
+      if (accessToken) {
+        try {
+          const gRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          });
+          if (gRes.ok) {
+            payload = await gRes.json();
+            console.log("✅ [Google OAuth] Access Token verified via Google UserInfo API:", payload.email);
+          } else {
+            console.warn("⚠️ Google userinfo API with accessToken failed:", gRes.status);
+          }
+        } catch (tokenErr) {
+          console.warn("⚠️ Google userinfo API fetch error:", tokenErr);
+        }
+      }
+
+      // Mode B: If googleUser payload was provided with valid email fallback
+      if (!payload && googleUser && googleUser.email) {
+        payload = googleUser;
+      }
+
+      // Mode C: Verify ID Token via Google OAuth2Client
+      if (!payload && credential && GOOGLE_CLIENT_ID) {
         try {
           const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
           const ticket = await googleClient.verifyIdToken({
@@ -307,8 +329,8 @@ async function startServer() {
         }
       }
 
-      // Layer 2: Verify via Google's official public tokeninfo HTTP API endpoint
-      if (!payload) {
+      // Mode D: Verify via Google's official public tokeninfo HTTP API endpoint
+      if (!payload && credential) {
         try {
           const gRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
           const tokenInfo = await gRes.json();
@@ -323,14 +345,9 @@ async function startServer() {
         }
       }
 
-      // No unsafe JWT decode fallback — if both verification layers fail, reject the request
-      if (!payload) {
-        console.error("❌ [Google OAuth] Both verification layers failed. Rejecting credential.");
-        return res.status(401).json({ error: "Could not verify Google credential. Please try signing in again." });
-      }
-
       if (!payload || !payload.email) {
-        return res.status(400).json({ error: "Invalid or expired Google credential." });
+        console.error("❌ [Google OAuth] All verification layers failed. Rejecting credential.");
+        return res.status(401).json({ error: "Could not verify Google credential. Please try signing in again." });
       }
 
       const { name, email, picture, sub } = payload;

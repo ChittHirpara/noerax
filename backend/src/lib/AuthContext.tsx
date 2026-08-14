@@ -14,7 +14,7 @@ interface AuthContextType {
   user: UserProfile | null;
   token: string | null;
   loginWithEmail: (name: string, email: string, password: string, isSignUp: boolean) => Promise<{ success: boolean; error?: string }>;
-  loginWithGoogle: (credential: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: (authData: string | { credential?: string; accessToken?: string; googleUser?: any }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
 }
 
@@ -60,8 +60,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           logout();
         });
     }
-    // token is the only trigger — logout is stable (useCallback), user intentionally excluded
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, logout]);
 
   const loginWithEmail = async (name: string, email: string, password: string, isSignUp: boolean) => {
@@ -92,12 +90,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loginWithGoogle = async (credential: string) => {
+  const loginWithGoogle = async (authData: string | { credential?: string; accessToken?: string; googleUser?: any }) => {
     try {
+      const body = typeof authData === 'string' ? { credential: authData } : authData;
+
       const res = await fetch('/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential })
+        body: JSON.stringify(body)
       });
 
       const data = await res.json();

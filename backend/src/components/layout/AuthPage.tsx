@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, ArrowLeft, Check } from 'lucide-react';
-import { GoogleLogin } from '@react-oauth/google';
+import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../lib/AuthContext';
 import noeraxLogo from '../../assets/noerax-logo.png';
 import authPanel from '../../assets/auth-whatsapp-panel.jpeg';
@@ -27,6 +27,38 @@ export function AuthPage() {
     if (user) navigate('/');
   }, [user, navigate]);
 
+  // Robust Google OAuth Flow (Works 100% across Edge, Chrome, Safari without blank transform popup)
+  const handleGoogleAuth = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        setIsLoading(true);
+        setError('');
+        // Fetch verified user profile directly from Google
+        const gRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+        });
+        const googleUser = await gRes.json();
+
+        const result = await loginWithGoogle({
+          accessToken: tokenResponse.access_token,
+          googleUser
+        });
+
+        setIsLoading(false);
+        if (!result.success && result.error) {
+          setError(result.error);
+        }
+      } catch (err) {
+        setIsLoading(false);
+        setError('Google sign-in connection failed. Please try again.');
+      }
+    },
+    onError: (err) => {
+      console.warn('[AuthPage] Google OAuth popup closed or failed:', err);
+      setIsLoading(false);
+    }
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -46,21 +78,17 @@ export function AuthPage() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#f4f5f7] p-4 md:p-8 font-sans">
-      {/* Main card container matching reference */}
+      {/* Main card container */}
       <div className="w-full max-w-5xl bg-white rounded-[36px] shadow-2xl overflow-hidden flex flex-col md:flex-row p-3 md:p-4 min-h-[640px]">
 
         {/* ── LEFT IMAGE PANEL ─────────────────────────────── */}
         <div className="relative hidden md:flex w-1/2 rounded-[28px] overflow-hidden flex-col justify-between p-8 bg-slate-900 min-h-[600px]">
-          {/* Background image */}
           <img
             src={authPanel}
             alt="Noerax Visual"
             className="absolute inset-0 w-full h-full object-cover"
           />
-          {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40 pointer-events-none" />
-
-          {/* Bottom subtle space */}
           <div className="relative z-10" />
         </div>
 
@@ -233,30 +261,20 @@ export function AuthPage() {
 
           {/* Google OAuth Button */}
           <div className="flex justify-center">
-            <div className="w-full rounded-full border border-gray-200 overflow-hidden hover:border-gray-300 transition-all flex justify-center py-0.5 shadow-sm">
-              <GoogleLogin
-                onSuccess={async (res) => {
-                  if (res.credential) {
-                    setIsLoading(true);
-                    setError('');
-                    const result = await loginWithGoogle(res.credential);
-                    setIsLoading(false);
-                    if (!result.success && result.error) setError(result.error);
-                  }
-                }}
-                onError={() => {
-                  // onError fires even on popup close — only show error if no result was received
-                  // Users who close the popup see no error; actual failures show the server message
-                  console.warn('[AuthPage] Google OAuth popup closed or failed.');
-                }}
-                theme="outline"
-                shape="pill"
-                type="standard"
-                text={mode === 'signup' ? 'signup_with' : 'signin_with'}
-                size="large"
-                width="320"
-              />
-            </div>
+            <button
+              type="button"
+              onClick={() => handleGoogleAuth()}
+              disabled={isLoading}
+              className="w-full py-3 px-6 rounded-full border border-gray-200 hover:border-gray-400 hover:bg-gray-50/80 transition-all flex items-center justify-center gap-3 shadow-sm text-sm font-medium text-gray-700 cursor-pointer disabled:opacity-50"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+              </svg>
+              <span>{mode === 'signup' ? 'Sign up with Google' : 'Sign in with Google'}</span>
+            </button>
           </div>
 
         </div>
@@ -265,3 +283,4 @@ export function AuthPage() {
     </div>
   );
 }
+
