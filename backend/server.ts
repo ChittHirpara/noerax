@@ -207,11 +207,20 @@ async function startServer() {
   const GOOGLE_CLIENT_ID_VAR = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '1034053996102-3b0p9e7h2i1vrnoqklbb2s2jld3c0m2o.apps.googleusercontent.com';
   const GOOGLE_CLIENT_SECRET_VAR = process.env.GOOGLE_CLIENT_SECRET || '';
 
+
   const getGoogleRedirectUri = (req: Request): string => {
+    // Use explicit env var on production (most reliable — avoids Render's onrender.com host)
+    if (process.env.GOOGLE_REDIRECT_URI) {
+      return process.env.GOOGLE_REDIRECT_URI;
+    }
+    // Fallback: detect from request (works on localhost dev)
     const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost:5555';
     const proto = req.headers['x-forwarded-proto'] || (String(host).includes('localhost') ? 'http' : 'https');
-    return `${proto}://${host}/api/auth/google/callback`;
+    const uri = `${proto}://${host}/api/auth/google/callback`;
+    console.log('🔍 [Google OAuth] Dynamic redirect URI computed:', uri);
+    return uri;
   };
+
 
   // ─── GET /api/auth/google ─────────────────────────────────────────
   // Step 1: Redirect user to Google's consent screen
