@@ -124,7 +124,31 @@ export function Footer() {
           
           {/* Column 1 & 2: Brand Logo, Tagline, Social Icons & CTA Button */}
           <div className="lg:col-span-2 flex flex-col items-start gap-4">
-            <img src={noeraxLogo} alt="Noerax Logo" className="h-12 sm:h-14 w-auto object-contain -ml-2" />
+            {/* Liquid-Glass Brandmark (Zero Black Box, Seamless Transparency) */}
+            <div className="flex items-center gap-3 group cursor-pointer" onClick={() => scrollToSection('home')}>
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-sky-400/25 to-pink-400/25 rounded-2xl blur-md opacity-40 group-hover:opacity-100 transition-all duration-300 pointer-events-none" />
+                <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/[0.06] border border-white/20 backdrop-blur-md flex items-center justify-center overflow-hidden shadow-xl group-hover:border-white/40 transition-all duration-300">
+                  <img
+                    src={noeraxLogo}
+                    alt="Noerax Emblem"
+                    className="w-8 h-8 sm:w-9 sm:h-9 object-contain mix-blend-screen brightness-125 contrast-125 transition-transform duration-300 group-hover:scale-110"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col text-left">
+                <span
+                  className="text-2xl sm:text-3xl font-serif italic text-white font-semibold tracking-tight leading-none"
+                  style={{ fontFamily: "'Instrument Serif', 'Playfair Display', serif" }}
+                >
+                  Noerax
+                </span>
+                <span className="text-[9px] font-mono tracking-[0.25em] uppercase text-white/50 mt-1 leading-none font-medium">
+                  Digital Sanctuary
+                </span>
+              </div>
+            </div>
+
             <p className="text-xs sm:text-sm text-dharma-ivory-dim max-w-sm leading-relaxed font-light">
               Ancient wisdom translated for the modern mind.<br />
               Find clarity in the chaos of the digital age.

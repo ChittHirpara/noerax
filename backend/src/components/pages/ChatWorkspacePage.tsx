@@ -475,12 +475,10 @@ export function ChatWorkspacePage() {
 
   const filteredSessions = sessions.filter((s) =>
     s.title.toLowerCase().includes(sessionSearch.toLowerCase())
-  );
+  );  return (
+    <div className="h-screen w-screen bg-[#09090b] font-sans text-[#ECECEC] flex overflow-hidden fixed inset-0 z-40 selection:bg-cyan-400 selection:text-black">
 
-  return (
-    <div className="h-screen w-screen bg-[#050508] font-sans text-[#E2E8F0] flex overflow-hidden fixed inset-0 z-40 selection:bg-cyan-400 selection:text-black">
-
-      {/* ── LEFT SIDEBAR (Past Chats History & New Chat) ── */}
+      {/* ── LEFT SIDEBAR (ChatGPT Style Dark Obsidian Drawer) ── */}
       <AnimatePresence mode="wait">
         {isSidebarOpen && (
           <>
@@ -494,63 +492,66 @@ export function ChatWorkspacePage() {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -280, opacity: 0 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed md:relative inset-y-0 left-0 w-72 sm:w-80 bg-[#08080c] border-r border-white/[0.07] flex flex-col flex-shrink-0 z-40 shadow-2xl md:shadow-none"
+              className="fixed md:relative inset-y-0 left-0 w-64 sm:w-72 bg-[#121215] border-r border-white/[0.06] flex flex-col flex-shrink-0 z-40 shadow-2xl md:shadow-none"
             >
-              {/* Sidebar Top Controls */}
-              <div className="p-4 border-b border-white/[0.07] flex flex-col gap-3.5">
+              {/* Sidebar Header */}
+              <div className="p-3.5 border-b border-white/[0.06] flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                   <button
                     onClick={() => navigate('/')}
-                    className="flex items-center gap-1.5 text-xs font-mono font-medium text-white/50 hover:text-white transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 text-xs font-medium text-white/50 hover:text-white transition-colors cursor-pointer px-1 py-1 rounded-lg hover:bg-white/[0.05]"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" /> Sanctuary
                   </button>
 
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] animate-pulse" />
-                    <span className="text-[11px] font-mono uppercase tracking-widest text-cyan-300 font-semibold">NOERAX AI</span>
+                    <span className="text-[11px] font-mono uppercase tracking-widest text-cyan-300 font-semibold">NOERAX</span>
                   </div>
 
                   <button
                     onClick={() => setIsSidebarOpen(false)}
-                    className="p-1.5 text-white/40 hover:text-white hover:bg-white/[0.05] rounded-lg transition-colors cursor-pointer"
+                    className="p-1 text-white/40 hover:text-white hover:bg-white/[0.05] rounded-lg transition-colors cursor-pointer"
                     title="Collapse Sidebar"
                   >
                     <PanelLeftClose className="w-4 h-4" />
                   </button>
                 </div>
 
-                {/* + New Chat Button with Luxury Gradient */}
+                {/* + New Chat Button (ChatGPT Style) */}
                 <button
                   onClick={createNewChat}
-                  className="w-full py-2.5 px-4 bg-gradient-to-r from-sky-400/10 via-cyan-400/15 to-transparent border border-cyan-400/30 text-white font-medium text-xs rounded-2xl hover:border-cyan-400/60 hover:bg-cyan-400/20 transition-all shadow-lg shadow-cyan-500/5 flex items-center justify-center gap-2 cursor-pointer group"
+                  className="w-full py-2.5 px-3.5 bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] text-white font-medium text-xs sm:text-sm rounded-xl transition-all flex items-center justify-between cursor-pointer group shadow-sm"
                 >
-                  <Plus className="w-4 h-4 text-cyan-300 group-hover:rotate-90 transition-transform duration-300" />
-                  <span>Start New Conversation</span>
+                  <div className="flex items-center gap-2">
+                    <Plus className="w-4 h-4 text-cyan-300 group-hover:scale-110 transition-transform" />
+                    <span>New chat</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-white/30 group-hover:text-white/60">⌘N</span>
                 </button>
 
-                {/* Search Past Chats */}
+                {/* Search Dialogues */}
                 <div className="relative">
-                  <Search className="w-3.5 h-3.5 text-white/30 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Search className="w-3.5 h-3.5 text-white/30 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
-                    placeholder="Search past dialogues..."
+                    placeholder="Search dialogues..."
                     value={sessionSearch}
                     onChange={(e) => setSessionSearch(e.target.value)}
-                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-cyan-400/50 transition-colors"
+                    className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors"
                   />
                 </div>
               </div>
 
               {/* Past Chats List */}
-              <div data-lenis-prevent className="flex-1 overflow-y-auto p-3 space-y-1 overscroll-contain">
-                <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-white/30 px-2 block mb-1">
-                  Recent Dialogues ({filteredSessions.length})
+              <div data-lenis-prevent className="flex-1 overflow-y-auto p-2 space-y-0.5 overscroll-contain">
+                <span className="text-[10px] font-medium text-white/30 px-2.5 py-1.5 block">
+                  Recent ({filteredSessions.length})
                 </span>
 
                 {filteredSessions.length === 0 ? (
-                  <div className="py-10 text-center text-xs text-white/30 font-mono">
-                    No matching chats found
+                  <div className="py-8 text-center text-xs text-white/30 font-mono">
+                    No matching chats
                   </div>
                 ) : (
                   filteredSessions.map((session) => {
@@ -562,34 +563,21 @@ export function ChatWorkspacePage() {
                           setActiveSessionId(session.id);
                           if (window.innerWidth < 768) setIsSidebarOpen(false);
                         }}
-                        className={`p-3 rounded-2xl flex items-center justify-between cursor-pointer transition-all group ${
+                        className={`group px-2.5 py-2 rounded-xl flex items-center justify-between cursor-pointer transition-all ${
                           isActive
-                            ? 'bg-cyan-500/10 border border-cyan-400/40 text-white shadow-sm'
-                            : 'hover:bg-white/[0.04] text-white/60 hover:text-white border border-transparent'
+                            ? 'bg-white/[0.08] text-white font-medium shadow-sm'
+                            : 'hover:bg-white/[0.04] text-white/60 hover:text-white'
                         }`}
                       >
-                        <div className="flex items-center gap-2.5 overflow-hidden flex-1 mr-2">
-                          <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-cyan-300' : 'text-white/40'}`} />
-                          <div className="truncate flex-1">
-                            <div className="flex items-center justify-between gap-1">
-                              <h4 className="text-xs font-medium truncate">{session.title}</h4>
-                              {session.botName && session.botName !== 'Noerax' && (
-                                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-cyan-400/20 text-cyan-300 border border-cyan-400/30 font-mono shrink-0">
-                                  {session.botName}
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-[10px] text-white/30 font-mono block mt-0.5">
-                              {new Date(session.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                              {session.botName && session.botName !== 'Noerax' ? ` • ${session.botName}` : ''}
-                            </span>
-                          </div>
+                        <div className="flex items-center gap-2 overflow-hidden flex-1 mr-1">
+                          <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-cyan-300' : 'text-white/30'}`} />
+                          <span className="text-xs truncate">{session.title}</span>
                         </div>
 
                         <button
                           onClick={(e) => deleteSession(session.id, e)}
-                          className="p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-all cursor-pointer shrink-0"
-                          title="Delete Conversation"
+                          className="p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-red-500/20 text-white/30 hover:text-red-400 transition-all cursor-pointer shrink-0"
+                          title="Delete"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -603,151 +591,153 @@ export function ChatWorkspacePage() {
         )}
       </AnimatePresence>
 
-      {/* ── MAIN CHAT WORKSPACE AREA ── */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#050508] relative h-full overflow-hidden">
-        
-        {/* Subtle Ambient Studio Aura Glows (Pure Black Canvas with Ethereal Depth) */}
-        <div className="absolute top-1/6 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-b from-cyan-500/8 via-purple-500/4 to-transparent blur-[160px] pointer-events-none rounded-full" />
-        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[250px] bg-blue-500/5 blur-[140px] pointer-events-none rounded-full" />
+      {/* ── MAIN CHAT WORKSPACE AREA (ChatGPT Style Clean Canvas) ── */}
+      <div className="flex-1 flex flex-col min-w-0 bg-[#09090b] relative h-full overflow-hidden">
 
-        {/* Micro-dot grid texture */}
-        <div className="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:28px_28px] pointer-events-none opacity-40" />
-
-        {/* Workspace Top Navigation Header */}
-        <div className="h-14 sm:h-16 px-3 sm:px-6 border-b border-white/[0.07] bg-[#08080c]/80 backdrop-blur-2xl flex items-center justify-between z-10 shrink-0 relative">
-          <div className="flex items-center gap-2 sm:gap-3 overflow-hidden min-w-0">
+        {/* Minimal Top Bar */}
+        <div className="h-13 px-4 sm:px-6 border-b border-white/[0.06] bg-[#09090b]/80 backdrop-blur-xl flex items-center justify-between z-10 shrink-0 relative">
+          <div className="flex items-center gap-3 overflow-hidden min-w-0">
             {!isSidebarOpen && (
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="p-1.5 sm:p-2 rounded-xl border border-white/10 text-white/60 hover:text-white hover:bg-white/5 transition-colors cursor-pointer shrink-0"
+                className="p-1.5 rounded-lg border border-white/10 text-white/60 hover:text-white hover:bg-white/5 transition-colors cursor-pointer shrink-0"
                 title="Open Sidebar"
               >
                 <PanelLeft className="w-4 h-4" />
               </button>
             )}
 
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5 sm:gap-2 truncate">
-                <h2 className="font-serif italic font-semibold text-sm sm:text-lg text-white flex items-center gap-1.5 truncate">
-                  <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-300 shrink-0" />
-                  <span className="truncate">{activeSession?.title || 'Chat Workspace'}</span>
-                </h2>
-
-                {/* Dynamic Bot Name Editor Badge */}
-                <div className="flex items-center gap-1.5 ml-1 sm:ml-2 bg-white/[0.04] border border-white/10 px-2.5 py-1 rounded-full text-xs shadow-sm shrink-0 backdrop-blur-md">
-                  <Bot className="w-3.5 h-3.5 text-cyan-300" />
-                  {isEditingBotName ? (
-                    <input
-                      type="text"
-                      value={botNameInput}
-                      onChange={(e) => setBotNameInput(e.target.value)}
-                      onBlur={() => handleSaveBotName()}
-                      onKeyDown={(e) => { if (e.key === 'Enter') handleSaveBotName(); }}
-                      autoFocus
-                      placeholder="Name bot..."
-                      className="bg-black/60 border-b border-cyan-400 text-xs text-white px-1 py-0.5 focus:outline-none w-20 sm:w-24 font-mono"
-                    />
-                  ) : (
-                    <button
-                      onClick={() => {
-                        setBotNameInput(activeSession?.botName || 'Noerax');
-                        setIsEditingBotName(true);
-                      }}
-                      className="text-white/80 font-medium cursor-pointer hover:text-cyan-300 transition-colors flex items-center gap-1 text-[11px] sm:text-xs"
-                      title="Click to rewrite bot name for this chat"
-                    >
-                      <span className="truncate max-w-[80px] sm:max-w-none">{activeSession?.botName || 'Noerax'}</span>
-                      <Edit2 className="w-3 h-3 text-white/40 shrink-0" />
-                    </button>
-                  )}
-                </div>
+            <div className="flex items-center gap-2 truncate">
+              {/* Bot Persona Selector / Name */}
+              <div className="flex items-center gap-1.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 px-2.5 py-1 rounded-lg text-xs transition-colors">
+                <Sparkles className="w-3.5 h-3.5 text-cyan-300 shrink-0" />
+                {isEditingBotName ? (
+                  <input
+                    type="text"
+                    value={botNameInput}
+                    onChange={(e) => setBotNameInput(e.target.value)}
+                    onBlur={() => handleSaveBotName()}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleSaveBotName(); }}
+                    autoFocus
+                    className="bg-transparent border-b border-cyan-400 text-xs text-white px-0.5 focus:outline-none w-20 font-mono"
+                  />
+                ) : (
+                  <button
+                    onClick={() => {
+                      setBotNameInput(activeSession?.botName || 'Noerax');
+                      setIsEditingBotName(true);
+                    }}
+                    className="text-white/90 font-medium cursor-pointer hover:text-white flex items-center gap-1 text-xs"
+                    title="Click to rename AI Mentor"
+                  >
+                    <span>{activeSession?.botName || 'Noerax'}</span>
+                    <span className="text-white/30 text-[10px]">▼</span>
+                  </button>
+                )}
               </div>
-              <p className="text-[10px] sm:text-[11px] text-white/40 truncate font-mono">
-                Mentor: <span className="text-cyan-300 font-medium">{activeSession?.botName || 'Noerax'}</span> · 432 Hz Mindful Neural Intelligence
-              </p>
+
+              <span className="text-xs text-white/30 hidden sm:inline">·</span>
+              <span className="text-xs text-white/40 truncate hidden sm:inline">
+                {activeSession?.title || 'New Conversation'}
+              </span>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={() => navigate('/settings')}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-white/60 hover:text-white hover:bg-white/[0.08] transition-all text-xs font-mono cursor-pointer"
+              className="px-3 py-1 rounded-lg border border-white/10 bg-white/[0.02] text-white/60 hover:text-white hover:bg-white/[0.06] transition-all text-xs cursor-pointer"
             >
               Settings
             </button>
           </div>
         </div>
 
-        {/* Messages Stream Container — ref used for direct scrollTop (bypasses Lenis) */}
-        <div ref={containerRef} data-lenis-prevent className="flex-1 overflow-y-auto p-3 sm:p-6 md:p-10 space-y-4 sm:space-y-6 overscroll-contain relative z-10">
-          <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6">
+        {/* Messages Stream Container (ChatGPT Perfect Spacing) */}
+        <div 
+          ref={containerRef} 
+          data-lenis-prevent 
+          className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8 sm:space-y-10 overscroll-contain relative z-10"
+        >
+          <div className="max-w-3xl mx-auto space-y-8 sm:space-y-10">
             {activeSession?.messages.map((msg) => (
               <React.Fragment key={msg.id}>
-                <motion.div
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className={`flex items-start gap-3 sm:gap-4 max-w-[95%] sm:max-w-3xl ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
-                >
-                  {/* Avatar Icon */}
-                  <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-2xl flex items-center justify-center border shrink-0 backdrop-blur-md ${
-                    msg.role === 'user'
-                      ? 'bg-gradient-to-b from-white/15 to-white/5 border-white/20 text-white shadow-md'
-                      : 'bg-gradient-to-b from-cyan-500/20 to-cyan-500/5 border-cyan-400/30 text-cyan-300 shadow-[0_0_15px_rgba(56,189,248,0.2)]'
-                  }`}>
-                    {msg.role === 'user' ? <User className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
-                  </div>
+                {msg.role === 'user' ? (
+                  /* ── USER MESSAGE (Right-Aligned Compact Pill) ── */
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex justify-end"
+                  >
+                    <div className="max-w-[85%] sm:max-w-[75%] bg-[#26262a] text-[#ECECEC] text-[14px] sm:text-[15px] leading-relaxed px-4 sm:px-5 py-2.5 sm:py-3 rounded-3xl rounded-tr-sm shadow-md border border-white/[0.06]">
+                      <p className="whitespace-pre-wrap break-words">{msg.content ? formatMessage(msg.content) : '...'}</p>
+                    </div>
+                  </motion.div>
+                ) : (
+                  /* ── AI MESSAGE (Left-Aligned Clean Reading Flow) ── */
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="flex items-start gap-3.5 sm:gap-4 max-w-full group"
+                  >
+                    {/* Minimalist AI Emblem */}
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-sky-400/20 to-cyan-400/20 border border-cyan-400/30 flex items-center justify-center text-cyan-300 shrink-0 mt-0.5 shadow-sm">
+                      <Sparkles className="w-3.5 h-3.5" />
+                    </div>
 
-                  {/* Message Bubble Content */}
-                  <div className={`group relative p-4 sm:p-6 rounded-3xl text-xs sm:text-sm leading-relaxed border max-w-full overflow-hidden backdrop-blur-2xl ${
-                    msg.role === 'user'
-                      ? 'bg-[#14141a] text-white font-normal border-white/15 rounded-tr-none shadow-xl shadow-black/50'
-                      : 'bg-[#0c0c11]/90 border-white/[0.08] text-white/90 rounded-tl-none shadow-[0_12px_40px_rgba(0,0,0,0.6)]'
-                  }`}>
-                    <p className="whitespace-pre-wrap font-sans text-xs sm:text-base leading-relaxed tracking-normal break-words overflow-wrap-anywhere">
-                      {msg.content ? formatMessage(msg.content) : '...'}
-                    </p>
+                    {/* AI Message Body & Action Toolbar */}
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="text-[14px] sm:text-[15.5px] leading-[1.7] text-[#E2E8F0] font-normal tracking-normal break-words">
+                        <p className="whitespace-pre-wrap">{msg.content ? formatMessage(msg.content) : '...'}</p>
+                      </div>
 
-                    <div className="flex justify-between items-center mt-3 pt-2.5 border-t border-white/[0.06] text-[10px] font-mono text-white/40">
-                      <span>{msg.timestamp}</span>
-
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {/* Audio Speak */}
-                        <button
-                          onClick={() => speakText(msg.content)}
-                          className="p-1 hover:text-cyan-300 transition-colors cursor-pointer"
-                          title="Read Aloud"
-                        >
-                          <Volume2 className="w-3.5 h-3.5" />
-                        </button>
-
-                        {/* Copy Button */}
+                      {/* Bottom Action Row (Copy, Read Aloud, Time) */}
+                      <div className="flex items-center gap-2 pt-1 text-white/30 text-xs">
                         <button
                           onClick={() => copyToClipboard(msg.id, msg.content)}
-                          className="p-1 hover:text-white transition-colors cursor-pointer"
-                          title="Copy Text"
+                          className="p-1 hover:text-white rounded transition-colors cursor-pointer flex items-center gap-1 text-[11px]"
+                          title="Copy response"
                         >
-                          {copiedId === msg.id ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          {copiedId === msg.id ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              <span className="text-emerald-400">Copied</span>
+                            </>
+                          ) : (
+                            <Copy className="w-3.5 h-3.5 opacity-60 hover:opacity-100" />
+                          )}
                         </button>
+
+                        <button
+                          onClick={() => speakText(msg.content)}
+                          className="p-1 hover:text-cyan-300 rounded transition-colors cursor-pointer"
+                          title="Read aloud"
+                        >
+                          <Volume2 className="w-3.5 h-3.5 opacity-60 hover:opacity-100" />
+                        </button>
+
+                        <span className="text-[10px] font-mono opacity-40 ml-1">{msg.timestamp}</span>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
+                  </motion.div>
+                )}
 
                 {/* Follow-up Suggestion Chips — shown after AI messages */}
                 {msg.role === 'ai' && msg.suggestions && msg.suggestions.length > 0 && !isLoading && (
                   <motion.div
-                    initial={{ opacity: 0, y: 8 }}
+                    initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.15 }}
-                    className="flex flex-wrap gap-2 max-w-[95%] sm:max-w-3xl pl-11 sm:pl-14 mt-1"
+                    transition={{ duration: 0.25, delay: 0.1 }}
+                    className="flex flex-wrap gap-2 pl-10 sm:pl-12 -mt-4"
                   >
                     {msg.suggestions.map((suggestion, idx) => (
                       <button
                         key={idx}
                         onClick={() => handleSendMessage(suggestion)}
                         disabled={isLoading}
-                        className="px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-medium border border-white/10 bg-white/[0.03] text-white/70 hover:text-white hover:bg-white/[0.08] hover:border-cyan-400/50 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed backdrop-blur-md shadow-sm"
+                        className="px-3 py-1.5 rounded-full text-xs font-normal border border-white/[0.08] bg-white/[0.03] text-white/70 hover:text-white hover:bg-white/[0.08] hover:border-cyan-400/40 transition-all cursor-pointer disabled:opacity-40 shadow-sm"
                       >
                         {suggestion}
                       </button>
@@ -758,80 +748,85 @@ export function ChatWorkspacePage() {
             ))}
 
             {isLoading && (
-              <div className="flex items-center gap-3 text-cyan-300 text-xs font-mono py-4 px-2 max-w-3xl">
+              <div className="flex items-center gap-3 text-cyan-300 text-xs font-mono py-2 pl-10 sm:pl-12">
                 <Sparkles className="w-4 h-4 animate-spin text-cyan-300" />
-                <span>Noerax is contemplating timeless wisdom...</span>
+                <span>Thinking...</span>
               </div>
             )}
           </div>
         </div>
 
-        {/* Suggestion Starters Bar (Initial state) */}
+        {/* Suggestion Starters (Only on Empty/Initial Chat) */}
         {activeSession?.messages && activeSession.messages.length <= 1 && !isLoading && (
-          <div className="px-3 sm:px-6 pt-3 pb-1 max-w-3xl mx-auto border-t border-white/[0.06] relative z-10 w-full">
-            <p className="text-[11px] font-mono uppercase tracking-wider text-white/40 mb-2 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-cyan-300" /> Clarity Starters
-            </p>
+          <div className="px-4 sm:px-6 pb-2 max-w-3xl mx-auto w-full z-10">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {SUGGESTED_PROMPTS.map((prompt, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleSendMessage(prompt)}
-                  className="text-left px-3.5 py-2.5 rounded-2xl border border-white/[0.08] bg-[#0c0c11]/80 hover:bg-white/[0.06] hover:border-cyan-400/40 text-white/90 text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer flex items-center justify-between group shadow-sm backdrop-blur-md"
+                  className="text-left p-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/20 text-white/80 hover:text-white text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-between group shadow-sm"
                 >
-                  <span>{prompt}</span>
-                  <span className="text-cyan-300 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                  <span className="truncate">{prompt}</span>
+                  <span className="text-cyan-300 opacity-0 group-hover:opacity-100 transition-opacity ml-2">→</span>
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Input Bar Footer (Floating Studio Console) */}
-        <div className="p-2.5 sm:p-4 md:p-6 border-t border-white/[0.06] bg-[#08080c]/80 backdrop-blur-2xl shrink-0 relative z-10">
-          <div className="max-w-3xl mx-auto flex items-center gap-2 sm:gap-3 bg-[#0c0c11]/90 border border-white/15 rounded-2xl sm:rounded-3xl px-3 py-2 sm:px-5 sm:py-3.5 shadow-[0_20px_60px_rgba(0,0,0,0.9)] focus-within:border-cyan-400/60 focus-within:ring-1 focus-within:ring-cyan-400/25 transition-all backdrop-blur-2xl">
-            
-            {/* Dictation Mic Button */}
-            <button
-              type="button"
-              onClick={toggleListening}
-              className={`p-2 rounded-xl border transition-all cursor-pointer shrink-0 ${
-                isListening
-                  ? 'bg-red-500/20 border-red-500/50 text-red-400 animate-pulse'
-                  : 'bg-white/[0.04] border-white/10 text-white/40 hover:text-white hover:bg-white/[0.08]'
-              }`}
-              title={isListening ? 'Stop Listening' : 'Voice Dictate Prompt'}
-            >
-              {isListening ? <MicOff className="w-3.5 h-3.5 text-red-400" /> : <Mic className="w-3.5 h-3.5 text-cyan-300" />}
-            </button>
+        {/* Input Bar Footer (ChatGPT Style Floating Pill) */}
+        <div className="p-3 sm:p-4 md:p-6 bg-gradient-to-t from-[#09090b] via-[#09090b]/95 to-transparent shrink-0 relative z-10">
+          <div className="max-w-3xl mx-auto">
+            <div className="flex items-center gap-2 bg-[#1b1b1e] border border-white/[0.1] focus-within:border-white/25 rounded-3xl p-2 sm:p-3 shadow-2xl transition-all">
+              
+              {/* Dictation Mic Button */}
+              <button
+                type="button"
+                onClick={toggleListening}
+                className={`p-2 rounded-full transition-all cursor-pointer shrink-0 ${
+                  isListening
+                    ? 'bg-red-500/20 text-red-400 animate-pulse'
+                    : 'text-white/40 hover:text-white hover:bg-white/[0.05]'
+                }`}
+                title={isListening ? 'Stop Listening' : 'Voice Dictate Prompt'}
+              >
+                {isListening ? <MicOff className="w-4 h-4 text-red-400" /> : <Mic className="w-4 h-4" />}
+              </button>
 
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-              placeholder="Ask about a decision, situation, or feelings..."
-              rows={1}
-              className="flex-1 bg-transparent border-none focus:outline-none text-white placeholder-white/30 text-xs sm:text-sm font-sans resize-none py-1 min-w-0"
-            />
+              {/* Text Input */}
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                placeholder="Message Noerax..."
+                rows={1}
+                className="flex-1 bg-transparent border-none focus:outline-none text-white placeholder-white/40 text-sm sm:text-[15px] font-sans resize-none py-1 min-w-0"
+              />
 
-            <button
-              onClick={() => handleSendMessage()}
-              disabled={!input.trim() || isLoading}
-              className="p-2.5 sm:p-3 bg-gradient-to-r from-sky-400 to-cyan-400 text-black font-bold rounded-2xl hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-lg shadow-cyan-400/25 shrink-0"
-              title="Send Message"
-            >
-              <Send className="w-3.5 h-3.5" />
-            </button>
+              {/* Send Button */}
+              <button
+                onClick={() => handleSendMessage()}
+                disabled={!input.trim() || isLoading}
+                className={`p-2 rounded-full transition-all shrink-0 cursor-pointer ${
+                  input.trim() && !isLoading
+                    ? 'bg-white text-black hover:bg-cyan-200'
+                    : 'bg-white/10 text-white/30 cursor-not-allowed'
+                }`}
+                title="Send message"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-[11px] text-center text-white/30 font-sans mt-2.5 select-none">
+              Noerax can make mistakes. Consider checking important information.
+            </p>
           </div>
-
-          <p className="text-[10px] text-center text-white/30 font-mono mt-2 select-none">
-            Noerax AI Guide · Rooted in timeless human perspective & decision models
-          </p>
         </div>
 
       </div>

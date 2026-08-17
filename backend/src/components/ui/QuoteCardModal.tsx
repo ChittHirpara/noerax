@@ -16,7 +16,7 @@ export function QuoteCardModal({ isOpen, onClose, quote, source }: QuoteCardModa
   const cardRef = useRef<HTMLDivElement | null>(null);
 
   const handleDownloadCard = () => {
-    // Generate text canvas export file
+    // Generate text canvas export file (1080x1080 high-res Instagram square)
     const canvas = document.createElement('canvas');
     canvas.width = 1080;
     canvas.height = 1080;
@@ -24,63 +24,86 @@ export function QuoteCardModal({ isOpen, onClose, quote, source }: QuoteCardModa
 
     if (!ctx) return;
 
-    // Background gradient
-    const grad = ctx.createLinearGradient(0, 0, 1080, 1080);
-    if (theme === 'cyan') {
-      grad.addColorStop(0, '#09090b');
-      grad.addColorStop(0.5, '#0c4a6e');
-      grad.addColorStop(1, '#09090b');
-    } else if (theme === 'gold') {
-      grad.addColorStop(0, '#1c1917');
-      grad.addColorStop(0.5, '#451a03');
-      grad.addColorStop(1, '#09090b');
-    } else {
-      grad.addColorStop(0, '#020617');
-      grad.addColorStop(0.5, '#1e1b4b');
-      grad.addColorStop(1, '#020617');
-    }
-
-    ctx.fillStyle = grad;
+    // 1. Deep Obsidian Base Background
+    ctx.fillStyle = '#09090b';
     ctx.fillRect(0, 0, 1080, 1080);
 
-    // Decorative circle glow
-    ctx.beginPath();
-    ctx.arc(540, 540, 380, 0, Math.PI * 2);
-    ctx.strokeStyle = theme === 'cyan' ? 'rgba(56, 189, 248, 0.15)' : 'rgba(251, 191, 36, 0.15)';
-    ctx.lineWidth = 4;
-    ctx.stroke();
+    // 2. Soft Ambient Radial Glow (Smooth without any stroked circle lines)
+    const radialGlow = ctx.createRadialGradient(540, 540, 0, 540, 540, 540);
+    if (theme === 'cyan') {
+      radialGlow.addColorStop(0, 'rgba(56, 189, 248, 0.22)');
+      radialGlow.addColorStop(0.5, 'rgba(14, 116, 144, 0.12)');
+      radialGlow.addColorStop(1, 'rgba(9, 9, 11, 0)');
+    } else if (theme === 'gold') {
+      radialGlow.addColorStop(0, 'rgba(245, 158, 11, 0.22)');
+      radialGlow.addColorStop(0.5, 'rgba(180, 83, 9, 0.12)');
+      radialGlow.addColorStop(1, 'rgba(9, 9, 11, 0)');
+    } else {
+      radialGlow.addColorStop(0, 'rgba(99, 102, 241, 0.22)');
+      radialGlow.addColorStop(0.5, 'rgba(67, 56, 202, 0.12)');
+      radialGlow.addColorStop(1, 'rgba(9, 9, 11, 0)');
+    }
+    ctx.fillStyle = radialGlow;
+    ctx.fillRect(0, 0, 1080, 1080);
 
-    // Source Title
-    ctx.fillStyle = theme === 'cyan' ? '#38bdf8' : '#fbbf24';
-    ctx.font = 'bold 28px sans-serif';
+    // 3. Elegant Subtle Frame Border
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(60, 60, 960, 960);
+
+    // 4. Category / Tag Header
+    const accentColor = theme === 'cyan' ? '#38bdf8' : theme === 'gold' ? '#fbbf24' : '#818cf8';
+    ctx.fillStyle = accentColor;
+    ctx.font = '600 18px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(source.toUpperCase(), 540, 300);
+    ctx.fillText('DAILY REFLECTION', 540, 150);
 
-    // Quote text (word wrap)
-    ctx.fillStyle = '#fafafa';
-    ctx.font = 'italic 44px Georgia, serif';
+    // 5. Source Title
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.font = '500 24px sans-serif';
+    ctx.fillText(source.toUpperCase(), 540, 200);
+
+    // 6. Quote Text (Multi-line word wrap with optical vertical centering)
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'italic 42px Georgia, serif';
     
     const words = `"${quote}"`.split(' ');
-    let line = '';
-    let y = 440;
+    const lines: string[] = [];
+    let currentLine = '';
 
     for (let n = 0; n < words.length; n++) {
-      const testLine = line + words[n] + ' ';
+      const testLine = currentLine ? `${currentLine} ${words[n]}` : words[n];
       const metrics = ctx.measureText(testLine);
-      if (metrics.width > 820 && n > 0) {
-        ctx.fillText(line, 540, y);
-        line = words[n] + ' ';
-        y += 65;
+      if (metrics.width > 800 && n > 0) {
+        lines.push(currentLine);
+        currentLine = words[n];
       } else {
-        line = testLine;
+        currentLine = testLine;
       }
     }
-    ctx.fillText(line, 540, y);
+    if (currentLine) lines.push(currentLine);
 
-    // Noerax Branding Footer
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.font = 'bold 22px sans-serif';
-    ctx.fillText('NOERAX SANCTUARY · WWW.NOERAX.COM', 540, 920);
+    const lineHeight = 64;
+    const totalTextHeight = lines.length * lineHeight;
+    let startY = 540 - totalTextHeight / 2 + 20;
+
+    for (const l of lines) {
+      ctx.fillText(l, 540, startY);
+      startY += lineHeight;
+    }
+
+    // 7. Divider Line
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(440, 890);
+    ctx.lineTo(640, 890);
+    ctx.stroke();
+
+    // 8. Noerax Branding Footer
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.font = '500 18px sans-serif';
+    ctx.fillText('NOERAX · DIGITAL SANCTUARY', 540, 930);
 
     const link = document.createElement('a');
     link.download = `Noerax-QuoteCard-${Date.now()}.png`;
