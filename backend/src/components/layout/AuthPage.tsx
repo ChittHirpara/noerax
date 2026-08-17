@@ -7,11 +7,9 @@ import authPanel from '../../assets/auth-whatsapp-panel.jpeg';
 
 type Mode = 'signup' | 'signin';
 
-const GOOGLE_CLIENT_ID = '1034053996102-3b0p9e7h2i1vrnoqklbb2s2jld3c0m2o.apps.googleusercontent.com';
-
 export function AuthPage() {
   const navigate = useNavigate();
-  const { user, loginWithGoogle, loginWithEmail } = useAuth();
+  const { user, loginWithEmail } = useAuth();
 
   const [mode, setMode] = useState<Mode>('signup');
   const [firstName, setFirstName] = useState('');
@@ -31,62 +29,63 @@ export function AuthPage() {
     }
   }, [user]);
 
-  // ── Handle Google OAuth redirect callback ────────────────────────
-  // After Google redirects back to /auth, the URL contains the access_token in the fragment hash.
-  // We parse it here, send it to our server, store the JWT, then redirect to /chat.
+  // ── Handle Google OAuth server-side callback ─────────────────────
+  // After /api/auth/google/callback runs, it redirects here with ?google_token=JWT
   useEffect(() => {
-    const hash = window.location.hash;
     const params = new URLSearchParams(window.location.search);
-
-    // Check for error from Google
+    const googleToken = params.get('google_token');
     const oauthError = params.get('error');
+
     if (oauthError) {
-      setError('Google sign-in was cancelled or denied. Please try again.');
+      const messages: Record<string, string> = {
+        google_cancelled: 'Google sign-in was cancelled. Please try again.',
+        google_failed: 'Google authentication failed. Please try again.',
+        google_userinfo_failed: 'Could not load your Google profile. Please try again.',
+        no_email: 'Your Google account has no email. Please use a different account.',
+        google_init_failed: 'Could not connect to Google. Please try again.',
+      };
+      setError(messages[oauthError] || 'Google sign-in failed. Please try again.');
       window.history.replaceState(null, '', '/auth');
       return;
     }
 
-    // Parse access_token from hash fragment (#access_token=xxx&token_type=Bearer...)
-    if (hash && hash.includes('access_token')) {
-      const hashParams = new URLSearchParams(hash.substring(1));
-      const accessToken = hashParams.get('access_token');
+    if (googleToken) {
+      // Immediately clean URL so token isn't visible
+      window.history.replaceState(null, '', '/auth');
+      setGoogleLoading(true);
 
-      if (accessToken) {
-        // Clean URL immediately so user doesn't see the raw token
-        window.history.replaceState(null, '', '/auth');
+      // Store token in localStorage
+      localStorage.setItem('noerax_token', googleToken);
 
-        setGoogleLoading(true);
-        setError('');
-
-        loginWithGoogle({ accessToken })
-          .then((result) => {
+      // Fetch user profile with the new token
+      fetch('/api/auth/me', {
+        headers: { Authorization: `Bearer ${googleToken}` }
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.user) {
+            localStorage.setItem('noerax_user', JSON.stringify(data.user));
+            window.location.href = '/chat';
+          } else {
+            localStorage.removeItem('noerax_token');
             setGoogleLoading(false);
-            if (!result.success && result.error) {
-              setError(result.error);
-            }
-            // On success, AuthContext itself redirects to /chat
-          })
-          .catch(() => {
-            setGoogleLoading(false);
-            setError('Google sign-in failed. Please try again.');
-          });
-      }
+            setError('Google sign-in verification failed. Please try again.');
+          }
+        })
+        .catch(() => {
+          localStorage.removeItem('noerax_token');
+          setGoogleLoading(false);
+          setError('Google sign-in failed. Check your connection and try again.');
+        });
     }
   }, []);
 
-  // ── Trigger Google OAuth Redirect Flow ───────────────────────────
-  // This is 100% reliable: no popups, no cross-origin issues, works on all browsers.
-  // Google redirects back to /auth with the access_token in the URL fragment.
+  // ── Trigger Google OAuth Server-Side Redirect Flow ───────────────
+  // Server at /api/auth/google generates the Google consent URL and redirects.
+  // Google then redirects to /api/auth/google/callback which creates the user
+  // and sends back a JWT to /auth?google_token=...
   const handleGoogleAuth = () => {
-    const redirectUri = `${window.location.origin}/auth`;
-    const oauthParams = new URLSearchParams({
-      client_id: GOOGLE_CLIENT_ID,
-      redirect_uri: redirectUri,
-      response_type: 'token',
-      scope: 'openid email profile',
-      prompt: 'select_account',
-    });
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${oauthParams.toString()}`;
+    window.location.href = '/api/auth/google';
   };
 
   // ── Email / Password Submit ───────────────────────────────────────

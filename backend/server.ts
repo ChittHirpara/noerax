@@ -203,6 +203,108 @@ async function startServer() {
   // AUTHENTICATION ROUTES (Custom & Google OAuth)
   // -------------------------------------------------------------
 
+  // ─── Google OAuth Helpers ────────────────────────────────────────
+  const GOOGLE_CLIENT_ID_VAR = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '1034053996102-3b0p9e7h2i1vrnoqklbb2s2jld3c0m2o.apps.googleusercontent.com';
+  const GOOGLE_CLIENT_SECRET_VAR = process.env.GOOGLE_CLIENT_SECRET || '';
+
+  const getGoogleRedirectUri = (req: Request): string => {
+    const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost:5555';
+    const proto = req.headers['x-forwarded-proto'] || (String(host).includes('localhost') ? 'http' : 'https');
+    return `${proto}://${host}/api/auth/google/callback`;
+  };
+
+  // ─── GET /api/auth/google ─────────────────────────────────────────
+  // Step 1: Redirect user to Google's consent screen
+  app.get('/api/auth/google', (req: Request, res: Response) => {
+    try {
+      const redirectUri = getGoogleRedirectUri(req);
+      const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID_VAR, GOOGLE_CLIENT_SECRET_VAR, redirectUri);
+      const authUrl = googleClient.generateAuthUrl({
+        access_type: 'offline',
+        scope: ['openid', 'email', 'profile'],
+        prompt: 'select_account',
+      });
+      console.log('🔀 [Google OAuth] Redirecting to Google auth URL. Redirect URI:', redirectUri);
+      res.redirect(authUrl);
+    } catch (err) {
+      console.error('❌ [Google OAuth] Failed to generate auth URL:', err);
+      res.redirect('/auth?error=google_init_failed');
+    }
+  });
+
+  // ─── GET /api/auth/google/callback ───────────────────────────────
+  // Step 2: Google redirects here with ?code=... after user consents
+  app.get('/api/auth/google/callback', async (req: Request, res: Response) => {
+    const { code, error: oauthError } = req.query;
+
+    if (oauthError || !code) {
+      console.warn('⚠️ [Google OAuth Callback] No code or error received:', oauthError);
+      return res.redirect('/auth?error=google_cancelled');
+    }
+
+    try {
+      const redirectUri = getGoogleRedirectUri(req);
+      const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID_VAR, GOOGLE_CLIENT_SECRET_VAR, redirectUri);
+
+      // Exchange authorization code for tokens
+      const { tokens } = await googleClient.getToken(code as string);
+      googleClient.setCredentials(tokens);
+      console.log('✅ [Google OAuth Callback] Code exchanged for tokens successfully.');
+
+      // Fetch user profile from Google
+      const gRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${tokens.access_token}` }
+      });
+
+      if (!gRes.ok) {
+        console.warn('⚠️ [Google OAuth Callback] UserInfo API failed:', gRes.status);
+        return res.redirect('/auth?error=google_userinfo_failed');
+      }
+
+      const googleUser = await gRes.json();
+      const { name, email, picture, sub } = googleUser;
+
+      if (!email) {
+        console.error('❌ [Google OAuth Callback] No email in Google user profile.');
+        return res.redirect('/auth?error=no_email');
+      }
+
+      // Find or create user in MongoDB
+      let user = await User.findOne({ email: email.toLowerCase() });
+      if (!user) {
+        console.log('➕ [Google OAuth Callback] Creating new user:', email);
+        user = await User.create({
+          name: name || 'User',
+          email: email.toLowerCase(),
+          googleId: sub,
+          avatar: picture,
+          provider: 'google',
+        });
+      } else {
+        console.log('🔄 [Google OAuth Callback] Existing user found:', email);
+        let updated = false;
+        if (!user.googleId) { user.googleId = sub; updated = true; }
+        if (!user.avatar && picture) { user.avatar = picture; updated = true; }
+        if (user.provider !== 'google' && !user.passwordHash) { user.provider = 'google'; updated = true; }
+        if (updated) await user.save();
+      }
+
+      // Generate JWT and redirect to frontend with token
+      const jwtToken = jwt.sign(
+        { userId: user._id, email: user.email, provider: user.provider },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      console.log('✅ [Google OAuth Callback] JWT generated. Redirecting to /auth with token.');
+      res.redirect(`/auth?google_token=${encodeURIComponent(jwtToken)}`);
+
+    } catch (err) {
+      console.error('❌ [Google OAuth Callback] Server error:', err);
+      res.redirect('/auth?error=google_failed');
+    }
+  });
+
   // REGISTER
   app.post("/api/auth/register", async (req: Request, res: Response) => {
     try {
