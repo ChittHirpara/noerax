@@ -9,5 +9,6 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
     return <Navigate to="/auth" replace />;
   }
 
+
   return <>{children}</>;
 }

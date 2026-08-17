@@ -25,7 +25,7 @@ export function AuthPage() {
 
   useEffect(() => {
     if (user) {
-      window.location.href = '/';
+      window.location.href = '/chat';
     }
   }, [user]);
 
@@ -54,7 +54,7 @@ export function AuthPage() {
 
         setIsLoading(false);
         if (result.success) {
-          window.location.href = '/';
+          window.location.href = '/chat';
         } else if (result.error) {
           setError(result.error);
         }
@@ -82,7 +82,7 @@ export function AuthPage() {
     const res = await loginWithEmail(fullName || firstName, email, password, mode === 'signup');
     setIsLoading(false);
     if (res.success) {
-      window.location.href = '/';
+      window.location.href = '/chat';
     } else if (res.error) {
       setError(res.error);
     }
@@ -298,11 +298,11 @@ export function AuthPage() {
                 const res = await loginWithEmail('Sanctuary Explorer', guestEmail, guestPass, true);
                 setIsLoading(false);
                 if (res.success) {
-                  window.location.href = '/';
+                  window.location.href = '/chat';
                 } else {
                   // If already registered, sign in
                   const loginRes = await loginWithEmail('Sanctuary Explorer', guestEmail, guestPass, false);
-                  if (loginRes.success) window.location.href = '/';
+                  if (loginRes.success) window.location.href = '/chat';
                 }
               }}
               disabled={isLoading}

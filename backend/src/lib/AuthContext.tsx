@@ -83,6 +83,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('noerax_token', data.token);
       localStorage.setItem('noerax_user', JSON.stringify(data.user));
 
+      // Hard redirect to /chat so the page re-mounts with the token already in localStorage
+      setTimeout(() => { window.location.href = '/chat'; }, 50);
       return { success: true };
     } catch (err) {
       console.error('Auth error:', err);
@@ -110,6 +112,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('noerax_token', data.token);
       localStorage.setItem('noerax_user', JSON.stringify(data.user));
 
+      // Hard redirect ensures page re-mounts with token in localStorage — prevents auth-loop
+      setTimeout(() => { window.location.href = '/chat'; }, 50);
       return { success: true };
     } catch (err) {
       console.error('Google Auth Error:', err);
