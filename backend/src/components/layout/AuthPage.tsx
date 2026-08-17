@@ -25,7 +25,9 @@ export function AuthPage() {
   // ── If already logged in, redirect to chat ──────────────────────
   useEffect(() => {
     if (user) {
-      window.location.href = '/chat';
+      const params = new URLSearchParams(window.location.search);
+      const target = params.get('redirect') || '/';
+      window.location.href = target;
     }
   }, [user]);
 
@@ -65,7 +67,8 @@ export function AuthPage() {
         .then((data) => {
           if (data?.user) {
             localStorage.setItem('noerax_user', JSON.stringify(data.user));
-            window.location.href = '/chat';
+            const target = params.get('redirect') || '/';
+            window.location.href = target;
           } else {
             localStorage.removeItem('noerax_token');
             setGoogleLoading(false);
@@ -85,7 +88,9 @@ export function AuthPage() {
   // Google then redirects to /api/auth/google/callback which creates the user
   // and sends back a JWT to /auth?google_token=...
   const handleGoogleAuth = () => {
-    window.location.href = '/api/auth/google';
+    const params = new URLSearchParams(window.location.search);
+    const redirect = params.get('redirect');
+    window.location.href = '/api/auth/google' + (redirect ? '?redirect=' + encodeURIComponent(redirect) : '');
   };
 
   // ── Email / Password Submit ───────────────────────────────────────
@@ -101,10 +106,13 @@ export function AuthPage() {
     const fullName = `${firstName} ${lastName}`.trim();
     const res = await loginWithEmail(fullName || firstName, email, password, mode === 'signup');
     setIsLoading(false);
-    if (!res.success && res.error) {
+    if (res.success) {
+      const params = new URLSearchParams(window.location.search);
+      const target = params.get('redirect') || '/';
+      window.location.href = target;
+    } else if (res.error) {
       setError(res.error);
     }
-    // On success, AuthContext itself redirects to /chat
   };
 
   return (
@@ -325,7 +333,11 @@ export function AuthPage() {
                       res = await loginWithEmail('Sanctuary Explorer', guestEmail, guestPass, false);
                     }
                     setIsLoading(false);
-                    // AuthContext handles redirect on success
+                    if (res.success) {
+                      const params = new URLSearchParams(window.location.search);
+                      const target = params.get('redirect') || '/';
+                      window.location.href = target;
+                    }
                   }}
                   disabled={isLoading}
                   className="w-full py-2.5 px-6 rounded-full bg-gray-50 hover:bg-gray-100 border border-gray-200 text-xs font-medium text-gray-600 transition-all text-center cursor-pointer disabled:opacity-50"

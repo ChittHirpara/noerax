@@ -267,7 +267,7 @@ export function ChatPreview() {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate(user ? '/chat' : '/auth')}
+                    onClick={() => navigate(user ? '/chat' : '/auth?redirect=/chat')}
                     className="btn-liquid-primary !px-3.5 !py-1.5 !text-xs gap-1.5"
                     title="Open Fullscreen AI Workspace"
                   >

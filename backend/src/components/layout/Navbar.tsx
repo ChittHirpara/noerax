@@ -50,6 +50,7 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
 
   const navItems = [
     { label: 'Home', path: '/' },
+    { label: 'Chat', path: '/chat' },
     { label: 'AI Companion', path: '/ai-companion' },
     { label: 'Frameworks', path: '/#guides' },
     { label: 'Notes', path: '/#journal' },
@@ -197,10 +198,10 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
             <motion.button
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
-              onClick={() => navigate(user ? '/chat' : '/auth')}
+              onClick={() => navigate('/auth')}
               className="btn-liquid-primary !px-5 !py-2 !text-sm"
             >
-              Start Learning
+              Sign In
             </motion.button>
           )}
 

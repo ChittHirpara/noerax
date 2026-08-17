@@ -227,13 +227,15 @@ async function startServer() {
   app.get('/api/auth/google', (req: Request, res: Response) => {
     try {
       const redirectUri = getGoogleRedirectUri(req);
+      const redirectTarget = (req.query.redirect as string) || '';
       const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID_VAR, GOOGLE_CLIENT_SECRET_VAR, redirectUri);
       const authUrl = googleClient.generateAuthUrl({
         access_type: 'offline',
         scope: ['openid', 'email', 'profile'],
         prompt: 'select_account',
+        state: redirectTarget,
       });
-      console.log('🔀 [Google OAuth] Redirecting to Google auth URL. Redirect URI:', redirectUri);
+      console.log('🔀 [Google OAuth] Redirecting to Google auth URL. Redirect URI:', redirectUri, 'State:', redirectTarget);
       res.redirect(authUrl);
     } catch (err) {
       console.error('❌ [Google OAuth] Failed to generate auth URL:', err);
@@ -244,7 +246,7 @@ async function startServer() {
   // ─── GET /api/auth/google/callback ───────────────────────────────
   // Step 2: Google redirects here with ?code=... after user consents
   app.get('/api/auth/google/callback', async (req: Request, res: Response) => {
-    const { code, error: oauthError } = req.query;
+    const { code, state, error: oauthError } = req.query;
 
     if (oauthError || !code) {
       console.warn('⚠️ [Google OAuth Callback] No code or error received:', oauthError);
@@ -298,15 +300,18 @@ async function startServer() {
         if (updated) await user.save();
       }
 
-      // Generate JWT and redirect to frontend with token
+      // Generate JWT and redirect to frontend with token + preserved redirect destination
       const jwtToken = jwt.sign(
         { userId: user._id, email: user.email, provider: user.provider },
         JWT_SECRET,
         { expiresIn: '7d' }
       );
 
-      console.log('✅ [Google OAuth Callback] JWT generated. Redirecting to /auth with token.');
-      res.redirect(`/auth?google_token=${encodeURIComponent(jwtToken)}`);
+      const redirectPath = (typeof state === 'string' && state.startsWith('/')) ? state : '';
+      const finalRedirectUrl = `/auth?google_token=${encodeURIComponent(jwtToken)}${redirectPath ? `&redirect=${encodeURIComponent(redirectPath)}` : ''}`;
+
+      console.log('✅ [Google OAuth Callback] JWT generated. Redirecting to:', finalRedirectUrl);
+      res.redirect(finalRedirectUrl);
 
     } catch (err) {
       console.error('❌ [Google OAuth Callback] Server error:', err);
