@@ -1,7 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Lenis from 'lenis';
-import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Navbar } from './components/layout/Navbar';
 import { Hero } from './components/sections/Hero';
 import { Struggle } from './components/sections/Struggle';
@@ -158,17 +157,14 @@ function AppLayout() {
 }
 
 export default function App() {
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '1034053996102-3b0p9e7h2i1vrnoqklbb2s2jld3c0m2o.apps.googleusercontent.com';
   return (
-    <GoogleOAuthProvider clientId={googleClientId}>
-      <BrowserRouter>
-        <ScrollManager />
-        <AuthProvider>
-          <StreakProvider>
-            <AppLayout />
-          </StreakProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </GoogleOAuthProvider>
+    <BrowserRouter>
+      <ScrollManager />
+      <AuthProvider>
+        <StreakProvider>
+          <AppLayout />
+        </StreakProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
