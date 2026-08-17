@@ -71,6 +71,11 @@ async function startServer() {
   try {
     await mongoose.connect(MONGODB_URI);
     console.log(`🟢 Worker ${process.pid}: Connected to MongoDB Atlas`);
+    // Cleanup anonymous guest accounts older than 14 days to prevent DB bloat
+    try {
+      const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+      User.deleteMany({ email: { $regex: /^guest_.*@noerax\.internal$/i }, createdAt: { $lt: fourteenDaysAgo } }).catch(() => {});
+    } catch {}
     try {
       await mongoose.connection.collection('users').dropIndex('id_1');
     } catch {
@@ -92,7 +97,17 @@ async function startServer() {
   // Prevents XSS, clickjacking, MIME sniffing, and more
   // =============================================================
   app.use(helmet({
-    contentSecurityPolicy: false, // Allow Vite dev tools to work
+    contentSecurityPolicy: process.env.NODE_ENV === "production" ? {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://accounts.google.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+        imgSrc: ["'self'", "data:", "https:", "https://*.googleusercontent.com", "https://api.dicebear.com", "https://ui-avatars.com"],
+        connectSrc: ["'self'", "https://accounts.google.com", "https://*.googleapis.com", "https://api.groq.com"],
+        frameSrc: ["https://accounts.google.com"],
+      }
+    } : false,
     crossOriginEmbedderPolicy: false,
   }));
 
@@ -426,10 +441,7 @@ async function startServer() {
         }
       }
 
-      // Mode B: If googleUser payload was provided with valid email fallback
-      if (!payload && googleUser && googleUser.email) {
-        payload = googleUser;
-      }
+      // Mode B removed for security: All tokens must be cryptographically verified by Google.
 
       // Mode C: Verify ID Token via Google OAuth2Client
       if (!payload && credential && GOOGLE_CLIENT_ID) {
@@ -538,14 +550,19 @@ async function startServer() {
   app.post("/api/explain-scripture", async (req: Request, res: Response) => {
     try {
       const { text, source } = req.body;
+      if (!text || typeof text !== "string" || !text.trim()) {
+        return res.status(400).json({ error: "Scripture text is required." });
+      }
+      const cleanText = text.trim().slice(0, 4000);
+      const cleanSource = (source && typeof source === "string") ? source.trim().slice(0, 200) : "Ancient Wisdom";
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) return res.status(500).json({ error: "GEMINI_API_KEY is not configured." });
 
       const ai = new GoogleGenAI({ apiKey });
       const prompt = `You are an insightful, modern spiritual guide for a Gen Z audience. 
 Explain the following scripture snippet in a highly relatable, easy-to-understand way. Keep it profound and actionable.
-Source: ${source}
-Scripture: "${text}"
+Source: ${cleanSource}
+Scripture: "${cleanText}"
 Provide a concise, 2-3 paragraph explanation.`;
 
       const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash"];
@@ -570,6 +587,11 @@ Provide a concise, 2-3 paragraph explanation.`;
   app.post("/api/analyze-journal", async (req: Request, res: Response) => {
     try {
       const { title, entry, token } = req.body;
+      if (!entry || typeof entry !== "string" || !entry.trim()) {
+        return res.status(400).json({ error: "Journal entry is required." });
+      }
+      const cleanEntry = entry.trim().slice(0, 8000);
+      const cleanTitle = (title && typeof title === "string") ? title.trim().slice(0, 150) : "Daily Reflection";
       const apiKey = process.env.GEMINI_API_KEY;
 
       let analysisResult = null;
@@ -584,7 +606,7 @@ Analyze the following journal entry and provide a JSON response with exactly the
 - "actions": 1-2 practical, actionable next steps for them.
 - "tone": A short summary of their emotional tone (e.g., "Seeking Clarity", "Reflective", "Grateful").
 
-Journal entry: "${entry}"`;
+Journal entry: "${cleanEntry}"`;
 
           // Try gemini models in order
           const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
@@ -625,8 +647,8 @@ Journal entry: "${entry}"`;
           if (decoded && decoded.userId) {
             await Journal.create({
               userId: decoded.userId,
-              title: title || 'Daily Reflection',
-              entryText: entry,
+              title: cleanTitle,
+              entryText: cleanEntry,
               insights: analysisResult.insights,
               wisdom: analysisResult.wisdom,
               actions: Array.isArray(analysisResult.actions) ? analysisResult.actions : [analysisResult.actions],
@@ -659,6 +681,10 @@ Journal entry: "${entry}"`;
 
   app.post("/api/chat", async (req: Request, res: Response) => {
     const { message, history, botName } = req.body;
+    if (!message || typeof message !== "string" || !message.trim()) {
+      return res.status(400).json({ error: "Message is required." });
+    }
+    const cleanMessage = message.trim().slice(0, 3000);
     const currentBotName = botName && botName.trim() ? botName.trim() : "Noerax";
     const isCustomName = currentBotName.toLowerCase() !== "noerax";
 
@@ -757,7 +783,7 @@ Do not add any other text after the SUGGESTIONS line.`;
             });
           }
         }
-        messages.push({ role: 'user', content: message });
+        messages.push({ role: 'user', content: cleanMessage });
 
         const https = await import('https');
         const body = JSON.stringify({
@@ -837,7 +863,7 @@ Do not add any other text after the SUGGESTIONS line.`;
             conversationPrompt += `${msg.role === 'ai' ? 'Noerax' : 'User'}: ${msg.content}\n`;
           }
         }
-        conversationPrompt += `User: ${message}\nNoerax:`;
+        conversationPrompt += `User: ${cleanMessage}\nNoerax:`;
 
         const modelsToTry = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.0-flash"];
         let geminiStream = null;
