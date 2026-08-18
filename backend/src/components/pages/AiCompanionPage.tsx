@@ -267,7 +267,7 @@ export function AiCompanionPage() {
           <nav className="w-full flex items-center justify-between pt-6 md:pt-8 px-2 sm:px-6 md:px-10 text-[#D7E2EA] font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem]">
             <a onClick={() => scrollToSection('about')} className="cursor-pointer hover:opacity-70 transition-opacity duration-200">About</a>
             <a onClick={() => scrollToSection('services')} className="cursor-pointer hover:opacity-70 transition-opacity duration-200">Services</a>
-            <a onClick={() => scrollToSection('about')} className="cursor-pointer hover:opacity-70 transition-opacity duration-200">Contact</a>
+            <a href="https://chat.whatsapp.com/CVCvK4znqHA5ZYvwABdv43" target="_blank" rel="noopener noreferrer" className="cursor-pointer hover:text-emerald-400 transition-colors duration-200 flex items-center gap-1">Community ↗</a>
           </nav>
         </FadeIn>
 
@@ -295,16 +295,29 @@ export function AiCompanionPage() {
 
         {/* Bottom Bar */}
         <div className="w-full flex justify-between items-end pb-7 sm:pb-8 md:pb-10 z-20 relative px-2 sm:px-4">
-          {/* Left Text */}
+          {/* Left Community Link for Early Access */}
           <FadeIn delay={0.35} y={20}>
-            <p className="text-[#D7E2EA] font-light uppercase tracking-wide leading-snug text-[clamp(0.75rem,1.4vw,1.5rem)] max-w-[160px] sm:max-w-[220px] md:max-w-[260px]">
-              a 3d creator driven by crafting striking and unforgettable projects
-            </p>
+            <a
+              href="https://chat.whatsapp.com/CVCvK4znqHA5ZYvwABdv43"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group block text-[#D7E2EA] font-light uppercase tracking-wide leading-snug text-[clamp(0.75rem,1.4vw,1.5rem)] max-w-[180px] sm:max-w-[240px] md:max-w-[280px] hover:text-white transition-colors cursor-pointer"
+            >
+              <span className="block text-emerald-400 font-semibold text-[10px] sm:text-xs tracking-widest mb-1 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse inline-block" />
+                WhatsApp Community
+              </span>
+              <span>Join community for early access</span>
+              <span className="inline-block ml-1 text-white/80 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform">↗</span>
+            </a>
           </FadeIn>
 
-          {/* Right Contact Button */}
+          {/* Right Community Button */}
           <FadeIn delay={0.5} y={20}>
-            <ContactButton label="Contact Me" onClick={() => scrollToSection('about')} />
+            <ContactButton
+              label="Join Community"
+              onClick={() => window.open('https://chat.whatsapp.com/CVCvK4znqHA5ZYvwABdv43', '_blank', 'noopener,noreferrer')}
+            />
           </FadeIn>
         </div>
       </section>
@@ -407,7 +420,18 @@ export function AiCompanionPage() {
             />
 
             <FadeIn delay={0.2} y={20}>
-              <ContactButton label="Talk to Noerax" onClick={() => window.location.href = '/chat'} />
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <ContactButton label="Talk to Noerax" onClick={() => window.location.href = '/chat'} />
+                <a
+                  href="https://chat.whatsapp.com/CVCvK4znqHA5ZYvwABdv43"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full px-8 py-3 sm:px-10 sm:py-3.5 md:px-12 md:py-4 border border-emerald-400/60 bg-emerald-500/10 text-emerald-300 font-medium uppercase tracking-widest text-xs sm:text-sm md:text-base hover:bg-emerald-500/25 transition-all duration-300 transform active:scale-95 shadow-lg flex items-center gap-2 cursor-pointer"
+                >
+                  <span>Join Community</span>
+                  <ArrowUpRight className="w-4 h-4" />
+                </a>
+              </div>
             </FadeIn>
           </div>
         </div>

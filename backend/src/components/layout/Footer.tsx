@@ -231,6 +231,17 @@ export function Footer() {
                 </button>
               </li>
               <li>
+                <a
+                  href="https://chat.whatsapp.com/CVCvK4znqHA5ZYvwABdv43"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-emerald-300 text-emerald-400 font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>WhatsApp Community</span>
+                  <span className="text-[10px]">↗</span>
+                </a>
+              </li>
+              <li>
                 <button onClick={() => scrollToSection('daily-reflection')} className="hover:text-white transition-colors cursor-pointer">
                   Daily Reflection
                 </button>
