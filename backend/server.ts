@@ -592,7 +592,7 @@ Source: ${cleanSource}
 Scripture: "${cleanText}"
 Provide a concise, 2-3 paragraph explanation.`;
 
-      const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash"];
+      const modelsToTry = ["gemini-3.6-flash", "gemini-2.5-flash"];
       let responseText = "";
       for (const m of modelsToTry) {
         try {
@@ -636,7 +636,7 @@ Analyze the following journal entry and provide a JSON response with exactly the
 Journal entry: "${cleanEntry}"`;
 
           // Try gemini models in order
-          const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+          const modelsToTry = ["gemini-3.6-flash", "gemini-2.5-flash"];
           for (const modelName of modelsToTry) {
             try {
               const response = await ai.models.generateContent({
@@ -795,87 +795,93 @@ Do not add any other text after the SUGGESTIONS line.`;
       res.end();
     };
 
-    // 1. TRY GROQ STREAMING (Fast, 10-Key Rotation, Best Friend Persona)
+    // 1. TRY GROQ STREAMING (Fast, 10-Key Rotation, Active Models: openai/gpt-oss-120b, openai/gpt-oss-20b, qwen/qwen3.6-27b)
     const groqKey = getNextGroqKey();
     if (groqKey) {
-      try {
-        const messages: Array<{ role: string; content: string }> = [
-          { role: 'system', content: systemPrompt }
-        ];
-        if (history && Array.isArray(history)) {
-          for (const msg of history) {
-            messages.push({
-              role: msg.role === 'ai' ? 'assistant' : 'user',
-              content: msg.content
-            });
-          }
+      const groqModels = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.6-27b'];
+      const messages: Array<{ role: string; content: string }> = [
+        { role: 'system', content: systemPrompt }
+      ];
+      if (history && Array.isArray(history)) {
+        for (const msg of history) {
+          messages.push({
+            role: msg.role === 'ai' ? 'assistant' : 'user',
+            content: msg.content
+          });
         }
-        messages.push({ role: 'user', content: cleanMessage });
+      }
+      messages.push({ role: 'user', content: cleanMessage });
 
-        const https = await import('https');
-        const body = JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages,
-          stream: true,
-          max_tokens: 512,
-          temperature: 0.7,
-        });
+      const https = await import('https');
 
-        let groqSuccess = false;
-        await new Promise<void>((resolve, reject) => {
-          const reqOptions = {
-            hostname: 'api.groq.com',
-            path: '/openai/v1/chat/completions',
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${groqKey}`,
-              'Content-Length': Buffer.byteLength(body),
-            },
-          };
-
-          const groqReq = https.default.request(reqOptions, (groqRes) => {
-            if (groqRes.statusCode && groqRes.statusCode >= 400) {
-              groqRes.resume();
-              return reject(new Error(`Groq HTTP ${groqRes.statusCode}`));
-            }
-
-            let buffer = '';
-            groqRes.on('data', (chunk: Buffer) => {
-              groqSuccess = true;
-              buffer += chunk.toString();
-              const lines = buffer.split('\n');
-              buffer = lines.pop() || '';
-
-              for (const line of lines) {
-                const trimmed = line.trim();
-                if (!trimmed || !trimmed.startsWith('data: ')) continue;
-                const data = trimmed.slice(6).trim();
-                if (data === '[DONE]') continue;
-                try {
-                  const parsed = JSON.parse(data);
-                  const text = parsed?.choices?.[0]?.delta?.content;
-                  if (text) streamText(text);
-                } catch {}
-              }
-            });
-
-            groqRes.on('end', () => {
-              finishStream();
-              resolve();
-            });
-
-            groqRes.on('error', reject);
+      for (const modelName of groqModels) {
+        try {
+          const body = JSON.stringify({
+            model: modelName,
+            messages,
+            stream: true,
+            max_tokens: 512,
+            temperature: 0.7,
           });
 
-          groqReq.on('error', reject);
-          groqReq.write(body);
-          groqReq.end();
-        });
+          let groqSuccess = false;
+          await new Promise<void>((resolve, reject) => {
+            const reqOptions = {
+              hostname: 'api.groq.com',
+              path: '/openai/v1/chat/completions',
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${groqKey}`,
+                'Content-Length': Buffer.byteLength(body),
+              },
+            };
 
-        if (groqSuccess) return;
-      } catch (err: any) {
-        console.warn("Groq streaming failed, trying fallback:", err?.message || err);
+            const groqReq = https.default.request(reqOptions, (groqRes) => {
+              if (groqRes.statusCode && groqRes.statusCode >= 400) {
+                groqRes.resume();
+                return reject(new Error(`Groq ${modelName} HTTP ${groqRes.statusCode}`));
+              }
+
+              let buffer = '';
+              groqRes.on('data', (chunk: Buffer) => {
+                buffer += chunk.toString();
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                  const trimmed = line.trim();
+                  if (!trimmed || !trimmed.startsWith('data: ')) continue;
+                  const data = trimmed.slice(6).trim();
+                  if (data === '[DONE]') continue;
+                  try {
+                    const parsed = JSON.parse(data);
+                    const text = parsed?.choices?.[0]?.delta?.content;
+                    if (text) {
+                      groqSuccess = true;
+                      streamText(text);
+                    }
+                  } catch {}
+                }
+              });
+
+              groqRes.on('end', () => {
+                if (groqSuccess) finishStream();
+                resolve();
+              });
+
+              groqRes.on('error', reject);
+            });
+
+            groqReq.on('error', reject);
+            groqReq.write(body);
+            groqReq.end();
+          });
+
+          if (groqSuccess) return;
+        } catch (err: any) {
+          console.warn(`Groq model ${modelName} failed, trying next:`, err?.message || err);
+        }
       }
     }
 
@@ -892,7 +898,7 @@ Do not add any other text after the SUGGESTIONS line.`;
         }
         conversationPrompt += `User: ${cleanMessage}\nNoerax:`;
 
-        const modelsToTry = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.0-flash"];
+        const modelsToTry = ["gemini-3.6-flash", "gemini-2.5-flash"];
         let geminiStream = null;
 
         for (const m of modelsToTry) {
@@ -917,13 +923,14 @@ Do not add any other text after the SUGGESTIONS line.`;
       }
     }
 
-    // 3. OFFLINE WISDOM FALLBACK (Guarantees zero silent failures)
-    const fallbackResponses = [
-      "There's an old idea in the Gita. You get to control the effort, not what comes back from it. Doesn't make it hurt less right now, but it changes what you're actually responsible for.",
-      "Aa, batao na kya hua. Kuch hua ya bas mood off hai?",
-      "That sounds heavy. Take a breath. What's the main thing bothering you right now?"
-    ];
-    const responseText = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+    // 3. OFFLINE WISDOM FALLBACK (Guarantees intelligent fallback if all external AI networks are unreachable)
+    const isGreeting = /^(hi|hello|hey|hola|namaste|sup|yo|good\s*(morning|afternoon|evening))\b/i.test(cleanMessage.trim());
+    let responseText = "";
+    if (isGreeting) {
+      responseText = "Hey! What's on your mind today? Tell me whatever decision, situation, or thoughts you're working through — I'm right here with you.";
+    } else {
+      responseText = "Take a breath. Let's look at this clearly together. What's the main decision or feeling you want clarity on right now?";
+    }
     streamText(responseText);
     finishStream();
   });
