@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, ArrowLeft, Check, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
 import authPanel from '../../assets/auth-whatsapp-panel.jpeg';
 
@@ -259,11 +259,39 @@ export function AuthPage() {
                   </div>
                 </div>
 
-                {/* Error */}
+                {/* Error / Account Exists Notice */}
                 {error && (
-                  <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs font-medium">
-                    {error}
-                  </div>
+                  <motion.div
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`p-3.5 rounded-2xl text-xs font-medium flex flex-col gap-2.5 ${
+                      error.toLowerCase().includes('already exists') || error.toLowerCase().includes('log in')
+                        ? 'bg-amber-50 border border-amber-200 text-amber-900'
+                        : 'bg-red-50 border border-red-200 text-red-600'
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <span className="text-sm shrink-0 mt-0.5">
+                        {error.toLowerCase().includes('already exists') || error.toLowerCase().includes('log in') ? '⚠️' : '❌'}
+                      </span>
+                      <span className="leading-relaxed">{error}</span>
+                    </div>
+
+                    {/* Direct CTA button to switch to Log In if account already exists */}
+                    {(mode === 'signup' && (error.toLowerCase().includes('already exists') || error.toLowerCase().includes('log in'))) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMode('signin');
+                          setError('');
+                        }}
+                        className="self-start px-3.5 py-1.5 bg-black hover:bg-gray-800 text-white font-semibold text-xs rounded-full transition-all shadow-sm flex items-center gap-1.5 cursor-pointer mt-0.5"
+                      >
+                        <span>Click here to Log In</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    )}
+                  </motion.div>
                 )}
 
                 {/* Submit */}

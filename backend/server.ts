@@ -371,7 +371,10 @@ async function startServer() {
 
       const existingUser = await User.findOne({ email: email.toLowerCase() });
       if (existingUser) {
-        return res.status(400).json({ error: "An account with this email already exists." });
+        return res.status(409).json({ 
+          error: "An account with this email already exists. Please log in instead.",
+          code: "ACCOUNT_EXISTS"
+        });
       }
 
       const salt = await bcrypt.genSalt(10);

@@ -13,7 +13,7 @@ export interface UserProfile {
 interface AuthContextType {
   user: UserProfile | null;
   token: string | null;
-  loginWithEmail: (name: string, email: string, password: string, isSignUp: boolean) => Promise<{ success: boolean; error?: string }>;
+  loginWithEmail: (name: string, email: string, password: string, isSignUp: boolean) => Promise<{ success: boolean; error?: string; code?: string }>;
   loginWithGoogle: (authData: string | { credential?: string; accessToken?: string; googleUser?: any }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
 }
@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const data = await res.json();
       if (!res.ok) {
-        return { success: false, error: data.error || 'Authentication failed' };
+        return { success: false, error: data.error || 'Authentication failed', code: data.code };
       }
 
       setToken(data.token);
