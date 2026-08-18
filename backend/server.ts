@@ -103,9 +103,36 @@ async function startServer() {
         scriptSrc: ["'self'", "'unsafe-inline'", "https://accounts.google.com"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
-        imgSrc: ["'self'", "data:", "https:", "https://*.googleusercontent.com", "https://api.dicebear.com", "https://ui-avatars.com"],
-        connectSrc: ["'self'", "https://accounts.google.com", "https://*.googleapis.com", "https://api.groq.com"],
+        // Allow all images including CDN avatars, R2, DiceBear, Figma
+        imgSrc: [
+          "'self'", "data:", "blob:", "https:",
+          "https://*.googleusercontent.com",
+          "https://api.dicebear.com",
+          "https://ui-avatars.com",
+          "https://pub-f170a2592d2c4a1485466404c36807be.r2.dev",
+          "https://soft-zoom-63098134.figma.site",
+          "https://lh3.googleusercontent.com",
+        ],
+        // ✅ Critical: Allow background videos from CloudFront, Mux, and R2
+        mediaSrc: [
+          "'self'",
+          "https://d8j0ntlcm91z4.cloudfront.net",
+          "https://stream.mux.com",
+          "https://*.mux.com",
+          "https://pub-f170a2592d2c4a1485466404c36807be.r2.dev",
+          "blob:",
+        ],
+        connectSrc: [
+          "'self'",
+          "https://accounts.google.com",
+          "https://*.googleapis.com",
+          "https://api.groq.com",
+          "https://stream.mux.com",
+          "https://*.mux.com",
+          "https://d8j0ntlcm91z4.cloudfront.net",
+        ],
         frameSrc: ["https://accounts.google.com"],
+        workerSrc: ["'self'", "blob:"],
       }
     } : false,
     crossOriginEmbedderPolicy: false,
