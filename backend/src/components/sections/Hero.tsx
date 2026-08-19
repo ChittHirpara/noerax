@@ -67,18 +67,20 @@ export function Hero() {
     <section id="home" className="relative w-full min-h-screen flex flex-col justify-between overflow-x-hidden bg-black font-sans selection:bg-[#38bdf8] selection:text-black">
       
       {/* ====================================================================
-          1. BACKGROUND VIDEO LAYER (Continuous Crossfade Cycling)
+          1. BACKGROUND VIDEO LAYER (Optimized Cycling)
          ==================================================================== */}
       {VIDEOS.map((vid, idx) => (
         <video
           key={vid.id}
-          autoPlay
+          autoPlay={activeVideo === idx}
           muted
           loop
           playsInline
+          preload={activeVideo === idx || (activeVideo + 1) % VIDEOS.length === idx ? "metadata" : "none"}
           src={vid.url}
+          style={{ willChange: 'opacity, transform' }}
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
-            activeVideo === idx ? "opacity-100 z-0" : "opacity-0 -z-10"
+            activeVideo === idx ? "opacity-100 z-0" : "opacity-0 -z-10 pointer-events-none"
           }`}
         />
       ))}

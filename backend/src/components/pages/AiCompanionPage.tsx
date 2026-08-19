@@ -176,30 +176,17 @@ function CharacterKey({ char, range, progress }: { char: string; range: [number,
 }
 
 // ============================================================================
-// MARQUEE GIF DATA (21 Motion Sites Images)
+// MARQUEE VIDEO DATA (Local /media Folder Videos)
 // ============================================================================
-const MARQUEE_IMAGES = [
-  "https://motionsites.ai/assets/hero-space-voyage-preview-eECLH3Yc.gif",
-  "https://motionsites.ai/assets/hero-codenest-preview-Cgppc2qV.gif",
-  "https://motionsites.ai/assets/hero-vex-ventures-preview-BczMFIiw.gif",
-  "https://motionsites.ai/assets/hero-stellar-ai-v2-preview-DjvxjG3C.gif",
-  "https://motionsites.ai/assets/hero-asme-preview-B_nGDnTP.gif",
-  "https://motionsites.ai/assets/hero-transform-data-preview-Cx5OU29N.gif",
-  "https://motionsites.ai/assets/hero-vitara-preview-Cjz2QYyU.gif",
-  "https://motionsites.ai/assets/hero-terra-preview-BFjrCr7T.gif",
-  "https://motionsites.ai/assets/hero-skyelite-preview-DHaZIgUv.gif",
-  "https://motionsites.ai/assets/hero-aethera-preview-DknSlcTa.gif",
-  "https://motionsites.ai/assets/hero-designpro-preview-D8c5_een.gif",
-  "https://motionsites.ai/assets/hero-stellar-ai-preview-D3HL6bw1.gif",
-  "https://motionsites.ai/assets/hero-xportfolio-preview-D4A8maiC.gif",
-  "https://motionsites.ai/assets/hero-orbit-web3-preview-BXt4OttD.gif",
-  "https://motionsites.ai/assets/hero-nexora-preview-cx5HmUgo.gif",
-  "https://motionsites.ai/assets/hero-evr-ventures-preview-DZxeVFEX.gif",
-  "https://motionsites.ai/assets/hero-planet-orbit-preview-DWAP8Z1P.gif",
-  "https://motionsites.ai/assets/hero-new-era-preview-CocuDUm9.gif",
-  "https://motionsites.ai/assets/hero-wealth-preview-B70idl_u.gif",
-  "https://motionsites.ai/assets/hero-luminex-preview-CxOP7ce6.gif",
-  "https://motionsites.ai/assets/hero-celestia-preview-0yO3jXO8.gif",
+const MARQUEE_VIDEOS = [
+  "/media/video-1.mp4",
+  "/media/video-2.mp4",
+  "/media/video-3.mp4",
+  "/media/video-4.mp4",
+  "/media/video-5.mp4",
+  "/media/video-6.mp4",
+  "/media/video-7.mp4",
+  "/media/video-8.mp4",
 ];
 
 // ============================================================================
@@ -325,39 +312,50 @@ export function AiCompanionPage() {
       {/* ====================================================================
           2. MARQUEE SECTION
          ==================================================================== */}
-      <section ref={marqueeRef} className="bg-[#0C0C0C] pt-24 sm:pt-32 md:pt-40 pb-10 overflow-hidden relative">
-        {/* Row 1: First 11 Images (Moves Right on Scroll) */}
-        <div className="flex gap-3 mb-3 overflow-hidden" style={{ willChange: 'transform' }}>
+      {/* ====================================================================
+          2. MARQUEE SECTION (Local /media Folder Videos)
+         ==================================================================== */}
+      <section ref={marqueeRef} className="bg-[#0C0C0C] pt-24 sm:pt-32 md:pt-40 pb-10 overflow-hidden relative hardware-accelerated">
+        {/* Row 1: First 4 Videos (Moves Right on Scroll) */}
+        <div className="flex gap-4 mb-4 overflow-hidden" style={{ willChange: 'transform' }}>
           <div
-            className="flex gap-3 shrink-0 transition-transform ease-out duration-75"
+            className="flex gap-4 shrink-0 transition-transform ease-out duration-75"
             style={{ transform: `translateX(${scrollOffset - 200}px)` }}
           >
-            {[...MARQUEE_IMAGES.slice(0, 11), ...MARQUEE_IMAGES.slice(0, 11), ...MARQUEE_IMAGES.slice(0, 11)].map((url, idx) => (
-              <img
-                key={idx}
-                src={url}
-                alt={`3D Work Preview ${idx}`}
-                loading="lazy"
-                className="w-[280px] h-[180px] sm:w-[420px] sm:h-[270px] rounded-2xl object-cover shrink-0 shadow-lg border border-white/5"
-              />
+            {[...MARQUEE_VIDEOS.slice(0, 4), ...MARQUEE_VIDEOS.slice(0, 4)].map((url, idx) => (
+              <div key={idx} className="w-[280px] h-[180px] sm:w-[420px] sm:h-[270px] rounded-2xl overflow-hidden shrink-0 shadow-2xl border border-white/10 bg-[#18181b] relative">
+                <video
+                  src={url}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                  className="w-full h-full object-cover"
+                />
+              </div>
             ))}
           </div>
         </div>
 
-        {/* Row 2: Remaining 10 Images (Moves Left on Scroll) */}
-        <div className="flex gap-3 overflow-hidden" style={{ willChange: 'transform' }}>
+        {/* Row 2: Remaining 4 Videos (Moves Left on Scroll) */}
+        <div className="flex gap-4 overflow-hidden" style={{ willChange: 'transform' }}>
           <div
-            className="flex gap-3 shrink-0 transition-transform ease-out duration-75"
+            className="flex gap-4 shrink-0 transition-transform ease-out duration-75"
             style={{ transform: `translateX(${-(scrollOffset - 200)}px)` }}
           >
-            {[...MARQUEE_IMAGES.slice(11), ...MARQUEE_IMAGES.slice(11), ...MARQUEE_IMAGES.slice(11)].map((url, idx) => (
-              <img
-                key={idx}
-                src={url}
-                alt={`3D Work Preview Row 2 ${idx}`}
-                loading="lazy"
-                className="w-[280px] h-[180px] sm:w-[420px] sm:h-[270px] rounded-2xl object-cover shrink-0 shadow-lg border border-white/5"
-              />
+            {[...MARQUEE_VIDEOS.slice(4), ...MARQUEE_VIDEOS.slice(4)].map((url, idx) => (
+              <div key={idx} className="w-[280px] h-[180px] sm:w-[420px] sm:h-[270px] rounded-2xl overflow-hidden shrink-0 shadow-2xl border border-white/10 bg-[#18181b] relative">
+                <video
+                  src={url}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                  className="w-full h-full object-cover"
+                />
+              </div>
             ))}
           </div>
         </div>

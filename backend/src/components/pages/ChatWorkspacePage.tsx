@@ -16,29 +16,136 @@ interface Message {
   suggestions?: string[];
 }
 
-// Strip markdown symbols and return clean plain text
-const formatMessage = (text: string): string => {
-  return text
-    .replace(/\*\*\*(.+?)\*\*\*/g, '$1')  // bold-italic
-    .replace(/\*\*(.+?)\*\*/g, '$1')      // bold
-    .replace(/\*(.+?)\*/g, '$1')          // italic
-    .replace(/^#{1,6}\s+/gm, '')          // headings
-    .replace(/^[-–—]\s+/gm, '')           // dash bullets
-    .replace(/`([^`]+)`/g, '$1')          // inline code
-    .trim();
+// Clean raw message without suggestions block
+const stripSuggestions = (raw: string): string => {
+  const index = raw.indexOf('SUGGESTIONS:');
+  if (index !== -1) {
+    return raw.slice(0, index).trim();
+  }
+  return raw.trim();
 };
 
 // Extract SUGGESTIONS: [...] block from AI text, return cleaned text + parsed suggestions
 const parseSuggestions = (raw: string): { text: string; suggestions: string[] } => {
   const match = raw.match(/SUGGESTIONS:\s*(\[.*?\])/s);
-  if (!match) return { text: formatMessage(raw), suggestions: [] };
+  if (!match) return { text: stripSuggestions(raw), suggestions: [] };
   let suggestions: string[] = [];
   try {
     const parsed = JSON.parse(match[1]);
     if (Array.isArray(parsed)) suggestions = parsed.slice(0, 3).map(String);
   } catch {}
-  const cleanText = formatMessage(raw.slice(0, raw.indexOf('SUGGESTIONS:')).trim());
+  const cleanText = stripSuggestions(raw);
   return { text: cleanText, suggestions };
+};
+
+// Helper function to format inline markdown (bold, italic, code)
+const renderInlineFormatted = (text: string) => {
+  const parts = text.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`)/g);
+  return parts.map((part, idx) => {
+    if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+      const content = part.slice(2, -2);
+      const isScripture = /source|geeta|gita|upanishad|ramayana|sutra|veda/i.test(content);
+      return (
+        <strong
+          key={idx}
+          className={isScripture ? 'text-amber-300 font-semibold tracking-wide' : 'text-white font-semibold'}
+        >
+          {content}
+        </strong>
+      );
+    }
+    if (part.startsWith('*') && part.endsWith('*') && part.length >= 2) {
+      return (
+        <em key={idx} className="text-amber-100/90 italic font-serif">
+          {part.slice(1, -1)}
+        </em>
+      );
+    }
+    if (part.startsWith('`') && part.endsWith('`') && part.length >= 2) {
+      return (
+        <code key={idx} className="bg-white/10 text-cyan-300 px-1.5 py-0.5 rounded text-[13px] font-mono">
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    return part;
+  });
+};
+
+// Rich Message Content Renderer for Scripture & Wisdom
+const MessageContent: React.FC<{ content: string }> = ({ content }) => {
+  if (!content) return <span>...</span>;
+
+  const cleaned = stripSuggestions(content);
+  const blocks = cleaned.split(/\n\n+/);
+
+  return (
+    <div className="space-y-3.5 text-[14px] sm:text-[15px] leading-[1.75] text-[#ECECEC]">
+      {blocks.map((block, blockIdx) => {
+        const trimmed = block.trim();
+        if (!trimmed) return null;
+
+        // Blockquote / Scripture Callout (starts with > or 📜 or 📖 or Source:)
+        if (trimmed.startsWith('>') || trimmed.startsWith('📜') || trimmed.startsWith('📖') || /^source:/i.test(trimmed)) {
+          const quoteLines = trimmed.replace(/^>\s*/gm, '').split('\n');
+          return (
+            <div
+              key={blockIdx}
+              className="my-3 pl-4 pr-3 py-2.5 rounded-r-xl border-l-3 border-amber-400/90 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent text-amber-100/95 font-sans shadow-sm"
+            >
+              {quoteLines.map((line, lIdx) => (
+                <p key={lIdx} className={lIdx > 0 ? 'mt-1 text-sm text-amber-200/80' : 'font-medium text-amber-300'}>
+                  {renderInlineFormatted(line)}
+                </p>
+              ))}
+            </div>
+          );
+        }
+
+        // Bullet list (starts with • or - or *)
+        const lines = trimmed.split('\n');
+        const isList = lines.length > 1 && lines.every((line) => /^[\s]*[•\-\*]\s+/.test(line));
+
+        if (isList) {
+          return (
+            <ul key={blockIdx} className="space-y-2 my-2 pl-1">
+              {lines.map((line, lIdx) => {
+                const bulletText = line.replace(/^[\s]*[•\-\*]\s+/, '');
+                return (
+                  <li key={lIdx} className="flex items-start gap-2.5 text-slate-200">
+                    <span className="text-amber-400 mt-1 text-xs shrink-0 select-none">✦</span>
+                    <span className="flex-1 leading-relaxed">{renderInlineFormatted(bulletText)}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          );
+        }
+
+        // Regular paragraph with potential single bullet or lines
+        return (
+          <div key={blockIdx} className="space-y-1.5">
+            {lines.map((line, lIdx) => {
+              if (/^[\s]*[•\-\*]\s+/.test(line)) {
+                const bulletText = line.replace(/^[\s]*[•\-\*]\s+/, '');
+                return (
+                  <div key={lIdx} className="flex items-start gap-2.5 my-1 pl-1 text-slate-200">
+                    <span className="text-amber-400 mt-1 text-xs shrink-0 select-none">✦</span>
+                    <span className="flex-1 leading-relaxed">{renderInlineFormatted(bulletText)}</span>
+                  </div>
+                );
+              }
+              return (
+                <p key={lIdx} className="break-words">
+                  {renderInlineFormatted(line)}
+                </p>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
 };
 
 interface ChatSession {
@@ -671,7 +778,7 @@ export function ChatWorkspacePage() {
                     className="flex justify-end"
                   >
                     <div className="max-w-[85%] sm:max-w-[75%] bg-[#26262a] text-[#ECECEC] text-[14px] sm:text-[15px] leading-relaxed px-4 sm:px-5 py-2.5 sm:py-3 rounded-3xl rounded-tr-sm shadow-md border border-white/[0.06]">
-                      <p className="whitespace-pre-wrap break-words">{msg.content ? formatMessage(msg.content) : '...'}</p>
+                      <p className="whitespace-pre-wrap break-words">{msg.content || '...'}</p>
                     </div>
                   </motion.div>
                 ) : (
@@ -690,7 +797,7 @@ export function ChatWorkspacePage() {
                     {/* AI Message Body & Action Toolbar */}
                     <div className="flex-1 min-w-0 space-y-2">
                       <div className="text-[14px] sm:text-[15.5px] leading-[1.7] text-[#E2E8F0] font-normal tracking-normal break-words">
-                        <p className="whitespace-pre-wrap">{msg.content ? formatMessage(msg.content) : '...'}</p>
+                        <MessageContent content={msg.content} />
                       </div>
 
                       {/* Bottom Action Row (Copy, Read Aloud, Time) */}

@@ -317,8 +317,40 @@ export function ChatPreview() {
                           ? 'bg-black/60 text-white rounded-tl-sm border border-white/15 shadow-inner backdrop-blur-md'
                           : 'bg-dharma-flame text-white rounded-tr-sm shadow-lg shadow-dharma-flame/20 font-medium'
                       }`}>
-                        {msg.content || (
-                          <span className="text-white/50 italic text-xs">Reflecting...</span>
+                        {msg.role === 'ai' ? (
+                          msg.content ? (
+                            (() => {
+                              const clean = msg.content.split(/SUGGESTIONS:/)[0].trim();
+                              const parts = clean.split(/(\*\*.*?\*\*|\*.*?\*)/g);
+                              return (
+                                <span>
+                                  {parts.map((part, idx) => {
+                                    if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+                                      const inner = part.slice(2, -2);
+                                      const isScripture = /source|geeta|gita|upanishad|ramayana|sutra|veda/i.test(inner);
+                                      return (
+                                        <strong key={idx} className={isScripture ? 'text-amber-300 font-semibold' : 'text-white font-semibold'}>
+                                          {inner}
+                                        </strong>
+                                      );
+                                    }
+                                    if (part.startsWith('*') && part.endsWith('*') && part.length >= 2) {
+                                      return (
+                                        <em key={idx} className="text-amber-100/90 italic font-serif">
+                                          {part.slice(1, -1)}
+                                        </em>
+                                      );
+                                    }
+                                    return part;
+                                  })}
+                                </span>
+                              );
+                            })()
+                          ) : (
+                            <span className="text-white/50 italic text-xs">Reflecting...</span>
+                          )
+                        ) : (
+                          msg.content
                         )}
                       </div>
                     </motion.div>

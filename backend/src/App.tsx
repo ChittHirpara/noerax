@@ -36,13 +36,27 @@ function Home() {
   return (
     <>
       <Hero />
-      <Struggle />
-      <ChatPreview />
-      <Journal />
-      <Library />
-      <Features />
-      <DailyMantra />
-      <Testimonials />
+      <div className="content-auto">
+        <Struggle />
+      </div>
+      <div className="content-auto">
+        <ChatPreview />
+      </div>
+      <div className="content-auto">
+        <Journal />
+      </div>
+      <div className="content-auto">
+        <Library />
+      </div>
+      <div className="content-auto">
+        <Features />
+      </div>
+      <div className="content-auto">
+        <DailyMantra />
+      </div>
+      <div className="content-auto">
+        <Testimonials />
+      </div>
     </>
   );
 }

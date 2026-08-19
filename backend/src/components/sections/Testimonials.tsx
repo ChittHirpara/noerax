@@ -234,21 +234,54 @@ export function Testimonials() {
     }
   };
 
+  const sectionRef = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
+    let isVisible = true;
+    let animId = 0;
+
     const tick = () => {
       renderLoop();
-      frameId.current = requestAnimationFrame(tick);
+      if (isVisible) {
+        animId = requestAnimationFrame(tick);
+        frameId.current = animId;
+      }
     };
 
-    frameId.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frameId.current);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        if (isVisible) {
+          cancelAnimationFrame(animId);
+          animId = requestAnimationFrame(tick);
+          frameId.current = animId;
+        } else {
+          cancelAnimationFrame(animId);
+          animId = 0;
+          frameId.current = 0;
+        }
+      },
+      { rootMargin: '100px', threshold: 0.01 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    } else {
+      animId = requestAnimationFrame(tick);
+      frameId.current = animId;
+    }
+
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(animId);
+    };
   }, [metrics]);
 
   // Slices for 3D volumetric depth layer stacking
   const thicknessLayers = [-1.47, -0.73, 0, 0.73, 1.47];
 
   return (
-    <section id="testimonials" className="relative w-full bg-[#000000] text-white py-24 sm:py-32 overflow-hidden border-t border-white/10 select-none">
+    <section ref={sectionRef} id="testimonials" className="relative w-full bg-[#000000] text-white py-24 sm:py-32 overflow-hidden border-t border-white/10 select-none hardware-accelerated">
       
       {/* Centered Header Block */}
       <div className="max-w-[1100px] mx-auto px-4 sm:px-6 text-center mb-12 sm:mb-16 relative z-30">
@@ -334,6 +367,7 @@ export function Testimonials() {
                           loop
                           muted
                           playsInline
+                          preload="none"
                           className="absolute inset-0 w-full h-full object-cover rounded-[20px]"
                         />
 

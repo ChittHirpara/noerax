@@ -79,6 +79,17 @@ button, a, input, select, textarea {
   will-change: transform;
 }
 
+/* Content visibility optimization for smooth 60fps scrolling */
+.content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 750px;
+}
+
+/* Fast hardware-accelerated video rendering */
+video {
+  transform: translateZ(0);
+}
+
 
 .font-kanit {
   font-family: 'Kanit', sans-serif;
