@@ -761,24 +761,30 @@ CRITICAL RULES (MUST FOLLOW STRICTLY):
       res.end();
     };
 
-    // 1. TRY GROQ STREAMING (Fast, 10-Key Rotation, Active Models: openai/gpt-oss-120b, openai/gpt-oss-20b, qwen/qwen3.6-27b)
-    const groqKey = getNextGroqKey();
-    if (groqKey) {
-      const groqModels = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.6-27b'];
-      const messages: Array<{ role: string; content: string }> = [
-        { role: 'system', content: systemPrompt }
-      ];
-      if (history && Array.isArray(history)) {
-        for (const msg of history) {
-          messages.push({
-            role: msg.role === 'ai' ? 'assistant' : 'user',
-            content: msg.content
-          });
-        }
+    // 1. TRY GROQ STREAMING (Rotates across all configured Groq keys & models)
+    dotenv.config();
+    const allGroqKeys = (process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || '').split(',').map((k) => k.trim()).filter(Boolean);
+    const groqModels = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.6-27b'];
+    const messages: Array<{ role: string; content: string }> = [
+      { role: 'system', content: systemPrompt }
+    ];
+    if (history && Array.isArray(history)) {
+      for (const msg of history) {
+        messages.push({
+          role: msg.role === 'ai' ? 'assistant' : 'user',
+          content: msg.content
+        });
       }
-      messages.push({ role: 'user', content: cleanMessage });
+    }
+    messages.push({ role: 'user', content: cleanMessage });
 
-      const https = await import('https');
+    const https = await import('https');
+    let aiHandled = false;
+
+    // Try Groq keys & models
+    for (let k = 0; k < Math.min(allGroqKeys.length, 5); k++) {
+      const currentKey = allGroqKeys[(groqKeyIndex + k) % allGroqKeys.length];
+      if (!currentKey) continue;
 
       for (const modelName of groqModels) {
         try {
@@ -798,7 +804,7 @@ CRITICAL RULES (MUST FOLLOW STRICTLY):
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${groqKey}`,
+                'Authorization': `Bearer ${currentKey}`,
                 'Content-Length': Buffer.byteLength(body),
               },
             };
@@ -844,16 +850,20 @@ CRITICAL RULES (MUST FOLLOW STRICTLY):
             groqReq.end();
           });
 
-          if (groqSuccess) return;
+          if (groqSuccess) {
+            groqKeyIndex = (groqKeyIndex + k + 1) % (allGroqKeys.length || 1);
+            aiHandled = true;
+            return;
+          }
         } catch (err: any) {
-          console.warn(`Groq model ${modelName} failed, trying next:`, err?.message || err);
+          // Try next model or key
         }
       }
     }
 
-    // 2. FALLBACK TO GOOGLE GEMINI API
+    // 2. FALLBACK TO GOOGLE GEMINI API (Live AI model)
     const geminiKey = process.env.GEMINI_API_KEY;
-    if (geminiKey) {
+    if (geminiKey && !aiHandled) {
       try {
         const ai = new GoogleGenAI({ apiKey: geminiKey });
         let conversationPrompt = `${systemPrompt}\n\n`;
@@ -889,15 +899,8 @@ CRITICAL RULES (MUST FOLLOW STRICTLY):
       }
     }
 
-    // 3. OFFLINE WISDOM FALLBACK (Guarantees intelligent fallback if all external AI networks are unreachable)
-    const isGreeting = /^(hi|hello|hey|hola|namaste|sup|yo|good\s*(morning|afternoon|evening))\b/i.test(cleanMessage.trim());
-    let responseText = "";
-    if (isGreeting) {
-      responseText = "Hey! What's on your mind today? Tell me whatever decision, situation, or thoughts you're working through — I'm right here with you.";
-    } else {
-      responseText = "Take a breath. Let's look at this clearly together. What's the main decision or feeling you want clarity on right now?";
-    }
-    streamText(responseText);
+    // 3. NO PRE-WRITTEN RESPONSES — Return genuine connection status if AI providers are unreachable
+    streamText("I'm unable to reach the AI engine right now. Please check your internet connection and try again.");
     finishStream();
   });
 

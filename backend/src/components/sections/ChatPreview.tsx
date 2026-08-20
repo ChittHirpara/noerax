@@ -102,7 +102,7 @@ export function ChatPreview() {
     } catch (err) {
       setMessages(prev => [
         ...prev,
-        { role: 'ai', content: "Here is a gentle perspective to center yourself: ✨\n\n1. Take a slow, deep breath. 🌿\n2. Ask what you'd say to a close friend facing this exact moment.\n3. Remember you don't have to solve everything today — just focus on one small next step. 🤍" }
+        { role: 'ai', content: "Unable to reach the AI guide right now. Please check your connection and try again." }
       ]);
     } finally {
       setIsLoading(false);
