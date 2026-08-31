@@ -1080,7 +1080,9 @@ CRITICAL RULES (MUST FOLLOW STRICTLY):
 // =============================================================
 const numCPUs = Math.min(os.cpus().length, 2); // Cap at 2 workers max on Render free tier
 
-if (cluster.isPrimary) {
+const isClusterEnabled = process.env.NODE_ENV === 'production';
+
+if (cluster.isPrimary && isClusterEnabled) {
   console.log(`\n  🔄 NOERAX LOAD BALANCER — Spawning ${numCPUs} worker(s)`);
 
   // Track worker crash frequency to prevent restart loops

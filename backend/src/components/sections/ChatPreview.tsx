@@ -10,10 +10,10 @@ interface Message {
 }
 
 const SUGGESTED = [
-  "Why do I overthink every small thing?",
-  "What if I make the wrong decision?",
-  "What if nothing works out?",
-  "How do I make the first move?",
+  "What does the Gita say about overthinking & focus?",
+  "How do I practice Nishkama Karma (detached action)?",
+  "What do ancient scriptures teach about finding your purpose?",
+  "How to master emotional discipline & mental stillness?",
 ];
 
 function TypingDots() {
@@ -35,7 +35,7 @@ export function ChatPreview() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'ai', content: "Hey there! ✨ What are you trying to figure out today?\n\nTell me whatever decision, situation, or feelings are on your mind — I'm right here with you. 🤍" }
+    { role: 'ai', content: "Namaste. I am your guide through timeless wisdom and modern clarity.\n\nExplore concepts from the Bhagavad Gita, Upanishads, and Yoga Sutras, or ask about navigating today's decisions and struggles. 🌿" }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);

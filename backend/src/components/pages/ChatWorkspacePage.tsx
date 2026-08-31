@@ -159,15 +159,15 @@ interface ChatSession {
 const DEFAULT_WELCOME: Message = {
   id: 'msg-welcome',
   role: 'ai',
-  content: "Hey. What's on your mind today?\n\nTell me whatever decision, situation, or feelings you're carrying right now. I'm here to listen and help you think clearly.",
+  content: "Namaste. I am your wisdom and learning guide.\n\nAsk me about timeless teachings from the Bhagavad Gita, Upanishads, and Yoga Sutras, or explore how to apply ancient philosophy to today's decisions and struggles.",
   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 };
 
 const SUGGESTED_PROMPTS = [
-  "Why do I overthink every small thing?",
-  "What if I make the wrong decision?",
-  "What if nothing works out?",
-  "How do I make the first move?",
+  "What does the Gita say about overthinking & focus?",
+  "How do I practice Nishkama Karma (detached action)?",
+  "What do ancient scriptures teach about finding your purpose?",
+  "How to master emotional discipline & mental stillness?",
 ];
 
 export function ChatWorkspacePage() {
