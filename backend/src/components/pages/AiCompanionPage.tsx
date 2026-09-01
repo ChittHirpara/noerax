@@ -206,9 +206,9 @@ export function AiCompanionPage() {
       </div>
 
       {/* ====================================================================
-          1. HERO SECTION
+          1. HERO SECTION (z-30 to ensure 3D portrait layers above ribbon)
          ==================================================================== */}
-      <section className="h-screen flex flex-col justify-between overflow-x-clip relative px-4 sm:px-6 md:px-10 pb-6 md:pb-10 pt-4">
+      <section className="h-screen flex flex-col justify-between overflow-x-clip relative px-4 sm:px-6 md:px-10 pb-6 md:pb-10 pt-4 z-30">
         
         {/* Navbar */}
         <FadeIn delay={0} y={-20} className="w-full">
@@ -228,14 +228,14 @@ export function AiCompanionPage() {
           </FadeIn>
         </div>
 
-        {/* Centered Absolute Hero Portrait with Magnet Mouse Tracker */}
-        <div className="absolute left-1/2 -translate-x-1/2 z-10 w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px] top-1/2 -translate-y-1/2 sm:top-auto sm:translate-y-0 sm:bottom-0 pointer-events-auto">
+        {/* Centered Absolute Hero Portrait with Magnet Mouse Tracker (z-40 front layer) */}
+        <div className="absolute left-1/2 -translate-x-1/2 z-40 w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px] top-1/2 -translate-y-1/2 sm:top-auto sm:translate-y-0 sm:bottom-0 pointer-events-auto">
           <FadeIn delay={0.6} y={30} className="w-full flex justify-center">
             <Magnet padding={150} strength={3} className="w-full">
               <img
                 src="https://shrug-person-78902957.figma.site/_components/v2/d24c01ad3a56fc65e942a1f501eb73db42d7cf9a/Rectangle_40443.81459862.png"
                 alt="Jack 3D Creator Portrait"
-                className="w-full h-auto object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
+                className="w-full h-auto object-contain drop-shadow-[0_25px_50px_rgba(0,0,0,0.9)]"
               />
             </Magnet>
           </FadeIn>
@@ -270,7 +270,55 @@ export function AiCompanionPage() {
         </div>
       </section>
 
+      {/* ====================================================================
+          2. SLIM ANIMATED WHITE RIBBON (z-10 layer behind character face)
+         ==================================================================== */}
+      <div className="relative z-10 w-full overflow-hidden -mt-6 sm:-mt-10 mb-3 sm:mb-5 py-1 select-none pointer-events-none">
+        <div className="w-[106%] -ml-[3%] -rotate-[0.6deg] bg-white text-[#0A0A0C] py-2 sm:py-2.5 shadow-[0_0_25px_rgba(255,255,255,0.12)] border-y border-white/50 hardware-accelerated relative overflow-hidden">
+          
+          {/* Subtle animated gloss light sweep */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/[0.04] to-transparent pointer-events-none" />
 
+          <div className="flex whitespace-nowrap animate-marquee">
+            <div className="flex items-center gap-6 sm:gap-8 text-xs sm:text-[13px] font-extrabold uppercase tracking-[0.25em] px-4 font-kanit">
+              <span>THINK BEFORE RESPONDING</span>
+              <span className="text-[#B600A8] animate-pulse">✦</span>
+              <span>UNDERSTAND EMOTIONS</span>
+              <span className="text-[#38BDF8] animate-pulse">✦</span>
+              <span>TIMELESS CLARITY</span>
+              <span className="text-[#B600A8] animate-pulse">✦</span>
+              <span>EXPRESS EMOTIONS</span>
+              <span className="text-[#38BDF8] animate-pulse">✦</span>
+              <span>NO JUDGEMENT</span>
+              <span className="text-[#B600A8] animate-pulse">✦</span>
+              <span>NEVER WALK ALONE</span>
+              <span className="text-[#38BDF8] animate-pulse">✦</span>
+              <span>DEEP WISDOM</span>
+              <span className="text-[#B600A8] animate-pulse">✦</span>
+              <span>MODERN INTELLIGENCE</span>
+              <span className="text-[#38BDF8] animate-pulse">✦</span>
+            </div>
+            <div className="flex items-center gap-6 sm:gap-8 text-xs sm:text-[13px] font-extrabold uppercase tracking-[0.25em] px-4 font-kanit" aria-hidden="true">
+              <span>THINK BEFORE RESPONDING</span>
+              <span className="text-[#B600A8] animate-pulse">✦</span>
+              <span>UNDERSTAND EMOTIONS</span>
+              <span className="text-[#38BDF8] animate-pulse">✦</span>
+              <span>TIMELESS CLARITY</span>
+              <span className="text-[#B600A8] animate-pulse">✦</span>
+              <span>EXPRESS EMOTIONS</span>
+              <span className="text-[#38BDF8] animate-pulse">✦</span>
+              <span>NO JUDGEMENT</span>
+              <span className="text-[#B600A8] animate-pulse">✦</span>
+              <span>NEVER WALK ALONE</span>
+              <span className="text-[#38BDF8] animate-pulse">✦</span>
+              <span>DEEP WISDOM</span>
+              <span className="text-[#B600A8] animate-pulse">✦</span>
+              <span>MODERN INTELLIGENCE</span>
+              <span className="text-[#38BDF8] animate-pulse">✦</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* ====================================================================
           3. ABOUT SECTION
