@@ -176,54 +176,15 @@ function CharacterKey({ char, range, progress }: { char: string; range: [number,
 }
 
 // ============================================================================
-// MARQUEE VIDEO DATA (Local /media Folder Videos)
-// ============================================================================
-const MARQUEE_VIDEOS = [
-  "/media/video-1.mp4",
-  "/media/video-2.mp4",
-  "/media/video-3.mp4",
-  "/media/video-4.mp4",
-  "/media/video-5.mp4",
-  "/media/video-6.mp4",
-  "/media/video-7.mp4",
-  "/media/video-8.mp4",
-];
-
-// ============================================================================
 // MAIN AI COMPANION (3D CREATOR JACK PORTFOLIO) PAGE
 // ============================================================================
 export function AiCompanionPage() {
-  const [scrollOffset, setScrollOffset] = useState(0);
-  const marqueeRef = useRef<HTMLDivElement>(null);
-
   // Set Document Title
   useEffect(() => {
     document.title = "Noerax — AI Companion";
     return () => {
       document.title = "Noerax — Daily AI Guidance | Wisdom & Clarity";
     };
-  }, []);
-
-  // Optimized Scroll Listener using requestAnimationFrame
-  useEffect(() => {
-    let ticking = false;
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          if (marqueeRef.current) {
-            const rect = marqueeRef.current.getBoundingClientRect();
-            const offset = (window.scrollY - (window.scrollY + rect.top) + window.innerHeight) * 0.3;
-            setScrollOffset(offset);
-          }
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const scrollToSection = (id: string) => {
@@ -309,57 +270,7 @@ export function AiCompanionPage() {
         </div>
       </section>
 
-      {/* ====================================================================
-          2. MARQUEE SECTION
-         ==================================================================== */}
-      {/* ====================================================================
-          2. MARQUEE SECTION (Local /media Folder Videos)
-         ==================================================================== */}
-      <section ref={marqueeRef} className="bg-[#0C0C0C] pt-24 sm:pt-32 md:pt-40 pb-10 overflow-hidden relative hardware-accelerated">
-        {/* Row 1: First 4 Videos (Moves Right on Scroll) */}
-        <div className="flex gap-4 mb-4 overflow-hidden" style={{ willChange: 'transform' }}>
-          <div
-            className="flex gap-4 shrink-0 transition-transform ease-out duration-75"
-            style={{ transform: `translateX(${scrollOffset - 200}px)` }}
-          >
-            {[...MARQUEE_VIDEOS.slice(0, 4), ...MARQUEE_VIDEOS.slice(0, 4)].map((url, idx) => (
-              <div key={idx} className="w-[280px] h-[180px] sm:w-[420px] sm:h-[270px] rounded-2xl overflow-hidden shrink-0 shadow-2xl border border-white/10 bg-[#18181b] relative">
-                <video
-                  src={url}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  preload="metadata"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Row 2: Remaining 4 Videos (Moves Left on Scroll) */}
-        <div className="flex gap-4 overflow-hidden" style={{ willChange: 'transform' }}>
-          <div
-            className="flex gap-4 shrink-0 transition-transform ease-out duration-75"
-            style={{ transform: `translateX(${-(scrollOffset - 200)}px)` }}
-          >
-            {[...MARQUEE_VIDEOS.slice(4), ...MARQUEE_VIDEOS.slice(4)].map((url, idx) => (
-              <div key={idx} className="w-[280px] h-[180px] sm:w-[420px] sm:h-[270px] rounded-2xl overflow-hidden shrink-0 shadow-2xl border border-white/10 bg-[#18181b] relative">
-                <video
-                  src={url}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  preload="metadata"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ====================================================================
           3. ABOUT SECTION
