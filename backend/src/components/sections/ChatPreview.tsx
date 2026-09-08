@@ -7,7 +7,61 @@ import { useAuth } from "../../lib/AuthContext";
 interface Message {
   role: 'user' | 'ai';
   content: string;
+  suggestions?: string[];
 }
+
+const DEFAULT_FOLLOWUPS = [
+  "How can I apply this today?",
+  "Tell me more about this wisdom",
+  "Guide me through a 1-minute reflection"
+];
+
+// Clean and extract suggestions from AI streaming responses
+const parseSuggestions = (raw: string, fallbackToDefaults = true): { text: string; suggestions: string[] } => {
+  if (!raw) return { text: '', suggestions: fallbackToDefaults ? DEFAULT_FOLLOWUPS : [] };
+  const matchIndex = raw.search(/SUGGESTIONS\s*:/i);
+  const cleanText = matchIndex !== -1 ? raw.slice(0, matchIndex).trim() : raw.trim();
+
+  let suggestions: string[] = [];
+
+  if (matchIndex !== -1) {
+    const block = raw.slice(matchIndex).replace(/SUGGESTIONS\s*:/i, '').trim();
+
+    try {
+      const jsonMatch = block.match(/\[(.*?)\]/s);
+      if (jsonMatch) {
+        const sanitized = jsonMatch[0].replace(/'([^']*)'/g, '"$1"');
+        const parsed = JSON.parse(sanitized);
+        if (Array.isArray(parsed)) {
+          suggestions = parsed.map((s) => String(s).trim()).filter(Boolean);
+        }
+      }
+    } catch {}
+
+    if (suggestions.length === 0) {
+      const quoted = block.match(/["']([^"']+)["']/g);
+      if (quoted) {
+        suggestions = quoted.map((m) => m.slice(1, -1).trim()).filter(Boolean);
+      }
+    }
+
+    if (suggestions.length === 0) {
+      const lines = block
+        .split('\n')
+        .map((l) => l.replace(/^[\d\.\-\*•]+\s*/, '').replace(/^[\[\],"]+|[\[\],"]+$/g, '').trim())
+        .filter((l) => l.length > 2);
+      if (lines.length > 0) {
+        suggestions = lines.slice(0, 3);
+      }
+    }
+  }
+
+  if (suggestions.length === 0 && fallbackToDefaults && cleanText.length > 15) {
+    suggestions = DEFAULT_FOLLOWUPS;
+  }
+
+  return { text: cleanText, suggestions: suggestions.slice(0, 3) };
+};
 
 const SUGGESTED = [
   "What does the Gita say about overthinking & focus?",
@@ -35,7 +89,15 @@ export function ChatPreview() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'ai', content: "Namaste. I am your guide through timeless wisdom and modern clarity.\n\nExplore concepts from the Bhagavad Gita, Upanishads, and Yoga Sutras, or ask about navigating today's decisions and struggles. 🌿" }
+    {
+      role: 'ai',
+      content: "Namaste. I am your guide through timeless wisdom and modern clarity.\n\nExplore concepts from the Bhagavad Gita, Upanishads, and Yoga Sutras, or ask about navigating today's decisions and struggles. 🌿",
+      suggestions: [
+        "What does the Gita say about overthinking & focus?",
+        "How do I practice Nishkama Karma (detached action)?",
+        "How to master emotional discipline & mental stillness?"
+      ]
+    }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -89,9 +151,10 @@ export function ChatPreview() {
               const data = JSON.parse(dataStr);
               if (data.text) {
                 aiContent += data.text;
+                const { text: cleanText } = parseSuggestions(aiContent);
                 setMessages(prev => {
                   const updated = [...prev];
-                  updated[updated.length - 1] = { role: 'ai', content: aiContent };
+                  updated[updated.length - 1] = { role: 'ai', content: cleanText };
                   return updated;
                 });
               }
@@ -99,6 +162,14 @@ export function ChatPreview() {
           }
         }
       }
+
+      // Final pass to extract clean text and suggestions
+      const { text: finalText, suggestions: finalSuggestions } = parseSuggestions(aiContent);
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = { role: 'ai', content: finalText, suggestions: finalSuggestions };
+        return updated;
+      });
     } catch (err) {
       setMessages(prev => [
         ...prev,
@@ -289,71 +360,93 @@ export function ChatPreview() {
               </div>
 
               {/* Messages Feed */}
-              <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-5 space-y-5">
+              <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-5 space-y-4">
                 <AnimatePresence initial={false}>
                   {messages.map((msg, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, y: 12, scale: 0.96 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ duration: 0.35, ease: "easeOut" }}
-                      className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
-                    >
-                      {/* Avatar */}
-                      <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center mt-1 shadow-md ${
-                        msg.role === 'ai'
-                          ? 'bg-dharma-flame/20 border border-dharma-flame/40'
-                          : 'bg-white/10 border border-white/20'
-                      }`}>
-                        {msg.role === 'ai'
-                          ? <Sparkles className="w-4 h-4 text-dharma-flame" />
-                          : <User className="w-4 h-4 text-white/80" />
-                        }
-                      </div>
+                    <React.Fragment key={i}>
+                      <motion.div
+                        initial={{ opacity: 0, y: 12, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ duration: 0.35, ease: "easeOut" }}
+                        className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
+                      >
+                        {/* Avatar */}
+                        <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center mt-1 shadow-md ${
+                          msg.role === 'ai'
+                            ? 'bg-dharma-flame/20 border border-dharma-flame/40'
+                            : 'bg-white/10 border border-white/20'
+                        }`}>
+                          {msg.role === 'ai'
+                            ? <Sparkles className="w-4 h-4 text-dharma-flame" />
+                            : <User className="w-4 h-4 text-white/80" />
+                          }
+                        </div>
 
-                      {/* Bubble */}
-                      <div className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
-                        msg.role === 'ai'
-                          ? 'bg-black/60 text-white rounded-tl-sm border border-white/15 shadow-inner backdrop-blur-md'
-                          : 'bg-dharma-flame text-white rounded-tr-sm shadow-lg shadow-dharma-flame/20 font-medium'
-                      }`}>
-                        {msg.role === 'ai' ? (
-                          msg.content ? (
-                            (() => {
-                              const clean = msg.content.split(/SUGGESTIONS:/)[0].trim();
-                              const parts = clean.split(/(\*\*.*?\*\*|\*.*?\*)/g);
-                              return (
-                                <span>
-                                  {parts.map((part, idx) => {
-                                    if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
-                                      const inner = part.slice(2, -2);
-                                      const isScripture = /source|geeta|gita|upanishad|ramayana|sutra|veda/i.test(inner);
-                                      return (
-                                        <strong key={idx} className={isScripture ? 'text-amber-300 font-semibold' : 'text-white font-semibold'}>
-                                          {inner}
-                                        </strong>
-                                      );
-                                    }
-                                    if (part.startsWith('*') && part.endsWith('*') && part.length >= 2) {
-                                      return (
-                                        <em key={idx} className="text-amber-100/90 italic font-serif">
-                                          {part.slice(1, -1)}
-                                        </em>
-                                      );
-                                    }
-                                    return part;
-                                  })}
-                                </span>
-                              );
-                            })()
+                        {/* Bubble */}
+                        <div className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                          msg.role === 'ai'
+                            ? 'bg-black/60 text-white rounded-tl-sm border border-white/15 shadow-inner backdrop-blur-md'
+                            : 'bg-dharma-flame text-white rounded-tr-sm shadow-lg shadow-dharma-flame/20 font-medium'
+                        }`}>
+                          {msg.role === 'ai' ? (
+                            msg.content ? (
+                              (() => {
+                                const clean = msg.content.split(/SUGGESTIONS:/)[0].trim();
+                                const parts = clean.split(/(\*\*.*?\*\*|\*.*?\*)/g);
+                                return (
+                                  <span>
+                                    {parts.map((part, idx) => {
+                                      if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+                                        const inner = part.slice(2, -2);
+                                        const isScripture = /source|geeta|gita|upanishad|ramayana|sutra|veda/i.test(inner);
+                                        return (
+                                          <strong key={idx} className={isScripture ? 'text-amber-300 font-semibold' : 'text-white font-semibold'}>
+                                            {inner}
+                                          </strong>
+                                        );
+                                      }
+                                      if (part.startsWith('*') && part.endsWith('*') && part.length >= 2) {
+                                        return (
+                                          <em key={idx} className="text-amber-100/90 italic font-serif">
+                                            {part.slice(1, -1)}
+                                          </em>
+                                        );
+                                      }
+                                      return part;
+                                    })}
+                                  </span>
+                                );
+                              })()
+                            ) : (
+                              <span className="text-white/50 italic text-xs">Reflecting...</span>
+                            )
                           ) : (
-                            <span className="text-white/50 italic text-xs">Reflecting...</span>
-                          )
-                        ) : (
-                          msg.content
-                        )}
-                      </div>
-                    </motion.div>
+                            msg.content
+                          )}
+                        </div>
+                      </motion.div>
+
+                      {/* Follow-up Suggestion Chips for AI message once conversation begins */}
+                      {msg.role === 'ai' && msg.suggestions && msg.suggestions.length > 0 && !isLoading && (messages.length > 1 || i > 0) && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.25, delay: 0.1 }}
+                          className="flex flex-wrap gap-1.5 pl-11 -mt-2 mb-2"
+                        >
+                          {msg.suggestions.map((sug, sIdx) => (
+                            <button
+                              key={sIdx}
+                              onClick={() => sendMessage(sug)}
+                              disabled={isLoading}
+                              className="text-[11px] px-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 hover:border-dharma-flame/40 text-white/70 hover:text-white transition-all cursor-pointer text-left shadow-sm"
+                            >
+                              {sug}
+                            </button>
+                          ))}
+                        </motion.div>
+                      )}
+                    </React.Fragment>
                   ))}
 
                   {isLoading && (

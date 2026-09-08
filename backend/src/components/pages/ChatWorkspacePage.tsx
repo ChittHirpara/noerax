@@ -18,24 +18,69 @@ interface Message {
 
 // Clean raw message without suggestions block
 const stripSuggestions = (raw: string): string => {
-  const index = raw.indexOf('SUGGESTIONS:');
+  if (!raw) return '';
+  const index = raw.search(/SUGGESTIONS\s*:/i);
   if (index !== -1) {
     return raw.slice(0, index).trim();
   }
   return raw.trim();
 };
 
+const DEFAULT_FOLLOWUPS = [
+  "How can I apply this today?",
+  "Tell me more about this wisdom",
+  "Guide me through a 1-minute reflection"
+];
+
 // Extract SUGGESTIONS: [...] block from AI text, return cleaned text + parsed suggestions
-const parseSuggestions = (raw: string): { text: string; suggestions: string[] } => {
-  const match = raw.match(/SUGGESTIONS:\s*(\[.*?\])/s);
-  if (!match) return { text: stripSuggestions(raw), suggestions: [] };
-  let suggestions: string[] = [];
-  try {
-    const parsed = JSON.parse(match[1]);
-    if (Array.isArray(parsed)) suggestions = parsed.slice(0, 3).map(String);
-  } catch {}
+const parseSuggestions = (raw: string, fallbackToDefaults = true): { text: string; suggestions: string[] } => {
+  if (!raw) return { text: '', suggestions: fallbackToDefaults ? DEFAULT_FOLLOWUPS : [] };
   const cleanText = stripSuggestions(raw);
-  return { text: cleanText, suggestions };
+  const matchIndex = raw.search(/SUGGESTIONS\s*:/i);
+  
+  let suggestions: string[] = [];
+
+  if (matchIndex !== -1) {
+    const block = raw.slice(matchIndex).replace(/SUGGESTIONS\s*:/i, '').trim();
+
+    // Try parsing JSON array directly or with single quote correction
+    try {
+      const jsonMatch = block.match(/\[(.*?)\]/s);
+      if (jsonMatch) {
+        const sanitized = jsonMatch[0].replace(/'([^']*)'/g, '"$1"');
+        const parsed = JSON.parse(sanitized);
+        if (Array.isArray(parsed)) {
+          suggestions = parsed.map((s) => String(s).trim()).filter(Boolean);
+        }
+      }
+    } catch {}
+
+    // Fallback 1: Extract quoted strings
+    if (suggestions.length === 0) {
+      const quoted = block.match(/["']([^"']+)["']/g);
+      if (quoted) {
+        suggestions = quoted.map((m) => m.slice(1, -1).trim()).filter(Boolean);
+      }
+    }
+
+    // Fallback 2: Extract numbered/bulleted lines
+    if (suggestions.length === 0) {
+      const lines = block
+        .split('\n')
+        .map((l) => l.replace(/^[\d\.\-\*•]+\s*/, '').replace(/^[\[\],"]+|[\[\],"]+$/g, '').trim())
+        .filter((l) => l.length > 2);
+      if (lines.length > 0) {
+        suggestions = lines.slice(0, 3);
+      }
+    }
+  }
+
+  // Ensure 3 suggestions are always present if AI finished answering
+  if (suggestions.length === 0 && fallbackToDefaults && cleanText.length > 15) {
+    suggestions = DEFAULT_FOLLOWUPS;
+  }
+
+  return { text: cleanText, suggestions: suggestions.slice(0, 3) };
 };
 
 // Helper function to format inline markdown (bold, italic, code)
@@ -160,7 +205,12 @@ const DEFAULT_WELCOME: Message = {
   id: 'msg-welcome',
   role: 'ai',
   content: "Namaste. I am your wisdom and learning guide.\n\nAsk me about timeless teachings from the Bhagavad Gita, Upanishads, and Yoga Sutras, or explore how to apply ancient philosophy to today's decisions and struggles.",
-  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  suggestions: [
+    "What does the Gita say about overthinking & focus?",
+    "How do I practice Nishkama Karma (detached action)?",
+    "How to master emotional discipline & mental stillness?"
+  ]
 };
 
 const SUGGESTED_PROMPTS = [
@@ -212,8 +262,21 @@ export function ChatWorkspacePage() {
       if (stored) {
         const parsed: ChatSession[] = JSON.parse(stored);
         if (parsed.length > 0) {
-          setSessions(parsed);
-          setActiveSessionId(parsed[0].id);
+          const sanitized = parsed.map((s) => ({
+            ...s,
+            messages: s.messages.map((m) => {
+              if (m.id === 'msg-welcome' && (!m.suggestions || m.suggestions.length === 0)) {
+                return { ...m, suggestions: DEFAULT_WELCOME.suggestions };
+              }
+              if (m.role === 'ai' && m.content.includes('SUGGESTIONS:') && (!m.suggestions || m.suggestions.length === 0)) {
+                const { text, suggestions } = parseSuggestions(m.content);
+                return { ...m, content: text, suggestions };
+              }
+              return m;
+            })
+          }));
+          setSessions(sanitized);
+          setActiveSessionId(sanitized[0].id);
           return;
         }
       }
@@ -831,8 +894,8 @@ export function ChatWorkspacePage() {
                   </motion.div>
                 )}
 
-                {/* Follow-up Suggestion Chips — shown after AI messages */}
-                {msg.role === 'ai' && msg.suggestions && msg.suggestions.length > 0 && !isLoading && (
+                {/* Follow-up Suggestion Chips — shown after AI messages once conversation starts */}
+                {msg.role === 'ai' && msg.suggestions && msg.suggestions.length > 0 && !isLoading && (activeSession?.messages?.length > 1 || msg.id !== 'msg-welcome') && (
                   <motion.div
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
