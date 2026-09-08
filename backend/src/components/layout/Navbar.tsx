@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { Settings, Flame, LogOut, Search, Menu, X } from "lucide-react";
@@ -14,7 +14,7 @@ interface NavbarProps {
 }
 
 export function Navbar({ onOpenProfile }: NavbarProps) {
-  const { streak, hasCheckedInToday, checkIn } = useStreak();
+  const { streak, hasCheckedInToday, setIsModalOpen, checkIn } = useStreak();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -141,7 +141,7 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
           <motion.div 
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={checkIn}
+            onClick={() => setIsModalOpen(true)}
             className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border cursor-pointer transition-colors group ${
               hasCheckedInToday 
                 ? 'bg-dharma-flame/10 border-dharma-flame/30' 
