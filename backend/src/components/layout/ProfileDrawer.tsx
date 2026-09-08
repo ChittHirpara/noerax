@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, User, BookOpen, Bookmark, LogOut, Calendar, Sparkles, Loader2, Flame, Award, Clock, ShieldCheck, Zap, Download, Settings, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/AuthContext';
 import { useStreak } from '../../lib/StreakContext';
+import { ActivityHeatmap } from '../ui/ActivityHeatmap';
 
 interface ProfileDrawerProps {
   isOpen: boolean;
@@ -23,7 +24,7 @@ interface SavedJournal {
 export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
   const navigate = useNavigate();
   const { user, token, logout } = useAuth();
-  const { streak, history } = useStreak();
+  const { streak, maxStreak, totalActiveDays, history } = useStreak();
 
   const [activeTab, setActiveTab] = useState<'journals' | 'badges'>('journals');
   const [journals, setJournals] = useState<SavedJournal[]>([]);
@@ -167,25 +168,8 @@ export function ProfileDrawer({ isOpen, onClose }: ProfileDrawerProps) {
                 </div>
               </div>
 
-              {/* 30-Day Activity Matrix */}
-              <div className="mt-4 pt-3 border-t border-white/5">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-white/40 block mb-2">
-                  30-Day Activity Matrix
-                </span>
-                <div className="grid grid-cols-10 gap-1.5">
-                  {last30Days.map((day, idx) => (
-                    <div
-                      key={idx}
-                      title={`Date: ${day.dateStr}`}
-                      className={`h-2.5 rounded-sm transition-colors ${
-                        day.active
-                          ? 'bg-gradient-to-br from-sky-400 to-cyan-500 shadow-sm shadow-sky-500/50'
-                          : 'bg-white/[0.04]'
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
+              {/* LeetCode Activity Matrix */}
+              <ActivityHeatmap showStats={false} showLegend={false} title="Annual Activity Matrix" className="p-3.5 mt-3 rounded-2xl" />
             </div>
 
             {/* Navigation Tabs */}

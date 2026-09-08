@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { User, Bell, Shield, Sliders, Upload, Trash2, Check, ArrowLeft, Clock, Sparkles, Flame, Award, BookOpen, ShieldCheck, LogOut, Download, Key, Activity, Heart, Eye, EyeOff, Lock, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
 import { useStreak } from '../../lib/StreakContext';
+import { ActivityHeatmap } from '../ui/ActivityHeatmap';
 
 interface SavedJournal {
   _id: string;
@@ -45,7 +46,7 @@ const AI_PERSONAS = [
 export function SettingsPage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { streak, history } = useStreak();
+  const { streak, maxStreak, totalActiveDays, history } = useStreak();
 
   const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'persona' | 'preferences' | 'security'>('profile');
 

@@ -1,4 +1,4 @@
-import cluster from "cluster";
+﻿import cluster from "cluster";
 import os from "os";
 import express, { Request, Response, NextFunction } from "express";
 import path from "path";
@@ -909,46 +909,180 @@ SUGGESTIONS: ["First relevant follow-up question?", "Second relevant follow-up q
     }
   });
 
-  app.post("/api/streak/checkin", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  // -------------------------------------------------------------
+  // LEETCODE-STYLE STREAK & ACTIVITY HEATMAP APIS (MONGODB)
+  // -------------------------------------------------------------
+
+  app.get("/api/streak", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
       const userId = req.user?.userId;
-      const todayStr = new Date().toISOString().split("T")[0];
-
       let streakRecord = await Streak.findOne({ userId });
+      const today = new Date();
+      const todayStr = today.toISOString().split("T")[0];
+
       if (!streakRecord) {
-        streakRecord = await Streak.create({
-          userId,
-          currentStreak: 1,
-          lastCheckIn: new Date(),
-          history: [todayStr]
+        return res.json({
+          currentStreak: 0,
+          maxStreak: 0,
+          totalActiveDays: 0,
+          freezeTokens: 2,
+          hasCheckedInToday: false,
+          history: [],
+          activityCounts: {}
         });
-      } else {
-        const lastDateStr = streakRecord.lastCheckIn ? new Date(streakRecord.lastCheckIn).toISOString().split("T")[0] : "";
-        if (lastDateStr !== todayStr) {
-          streakRecord.currentStreak += 1;
-          streakRecord.lastCheckIn = new Date();
-          if (!streakRecord.history.includes(todayStr)) {
-            streakRecord.history.push(todayStr);
-          }
+      }
+
+      // Validate streak continuation or gap
+      let currentStreak = streakRecord.currentStreak || 0;
+      let freezeTokens = typeof streakRecord.freezeTokens === 'number' ? streakRecord.freezeTokens : 2;
+      let hasCheckedInToday = false;
+
+      if (streakRecord.lastCheckIn) {
+        const lastDate = new Date(streakRecord.lastCheckIn);
+        lastDate.setHours(0, 0, 0, 0);
+        const todayZero = new Date(today);
+        todayZero.setHours(0, 0, 0, 0);
+
+        const diffDays = Math.round((todayZero.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) {
+          hasCheckedInToday = true;
+        } else if (diffDays === 1) {
+          hasCheckedInToday = false;
+        } else if (diffDays === 2 && freezeTokens > 0) {
+          // Auto-apply 1 streak freeze protection
+          freezeTokens -= 1;
+          streakRecord.freezeTokens = freezeTokens;
+          hasCheckedInToday = false;
+          await streakRecord.save();
+        } else if (diffDays > 1) {
+          // Streak broken
+          currentStreak = 0;
+          streakRecord.currentStreak = 0;
+          hasCheckedInToday = false;
           await streakRecord.save();
         }
       }
 
-      res.json({ streak: streakRecord.currentStreak, history: streakRecord.history });
+      const history = streakRecord.history || [];
+      const maxStreak = Math.max(streakRecord.maxStreak || 0, currentStreak);
+      const totalActiveDays = history.length;
+      const rawMap: any = streakRecord.activityCounts; const activityCounts: Record<string, number> = rawMap instanceof Map ? Object.fromEntries(rawMap) : (rawMap && typeof rawMap === 'object' ? { ...rawMap } : {});
+
+      res.json({
+        currentStreak,
+        maxStreak,
+        totalActiveDays,
+        freezeTokens,
+        hasCheckedInToday,
+        history,
+        activityCounts
+      });
     } catch (error) {
-      res.status(500).json({ error: "Failed to update streak." });
+      res.status(500).json({ error: "Failed to fetch streak data." });
     }
   });
 
-  app.get("/api/streak", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  app.post("/api/streak/checkin", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const streakRecord = await Streak.findOne({ userId: req.user?.userId });
+      const userId = req.user?.userId;
+      const today = new Date();
+      const todayStr = today.toISOString().split("T")[0];
+
+      let streakRecord = await Streak.findOne({ userId });
+
+      if (!streakRecord) {
+        streakRecord = new Streak({
+          userId,
+          currentStreak: 1,
+          maxStreak: 1,
+          totalActiveDays: 1,
+          freezeTokens: 2,
+          lastCheckIn: today,
+          history: [todayStr],
+          activityCounts: { [todayStr]: 1 }
+        });
+        await streakRecord.save();
+      } else {
+        const history = streakRecord.history || [];
+        const isAlreadyCheckedIn = history.includes(todayStr);
+
+        if (!isAlreadyCheckedIn) {
+          let newStreak = streakRecord.currentStreak || 0;
+          if (streakRecord.lastCheckIn) {
+            const lastDate = new Date(streakRecord.lastCheckIn);
+            lastDate.setHours(0, 0, 0, 0);
+            const todayZero = new Date(today);
+            todayZero.setHours(0, 0, 0, 0);
+            const diffDays = Math.round((todayZero.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+
+            if (diffDays <= 1) {
+              newStreak += 1;
+            } else if (diffDays === 2 && (streakRecord.freezeTokens || 0) > 0) {
+              streakRecord.freezeTokens = (streakRecord.freezeTokens || 1) - 1;
+              newStreak += 1;
+            } else {
+              newStreak = 1;
+            }
+          } else {
+            newStreak = 1;
+          }
+
+          streakRecord.currentStreak = newStreak;
+          streakRecord.maxStreak = Math.max(streakRecord.maxStreak || 0, newStreak);
+          streakRecord.history.push(todayStr);
+          streakRecord.totalActiveDays = streakRecord.history.length;
+          streakRecord.lastCheckIn = today;
+        }
+
+        // Increment today's activity count
+        const rawCounts: any = streakRecord.activityCounts || {};
+        if (rawCounts instanceof Map) {
+          const c = rawCounts.get(todayStr) || 0;
+          rawCounts.set(todayStr, c + 1);
+        } else {
+          rawCounts[todayStr] = (rawCounts[todayStr] || 0) + 1;
+          streakRecord.activityCounts = rawCounts;
+        }
+        streakRecord.markModified('activityCounts');
+
+        await streakRecord.save();
+      }
+
+      const rawEnd: any = streakRecord.activityCounts;
+      const activityCounts: Record<string, number> = rawEnd instanceof Map ? Object.fromEntries(rawEnd) : (rawEnd && typeof rawEnd === 'object' ? { ...rawEnd } : {});
+
       res.json({
-        streak: streakRecord ? streakRecord.currentStreak : 0,
-        history: streakRecord ? streakRecord.history : []
+        currentStreak: streakRecord.currentStreak,
+        maxStreak: streakRecord.maxStreak,
+        totalActiveDays: streakRecord.totalActiveDays,
+        freezeTokens: streakRecord.freezeTokens,
+        hasCheckedInToday: true,
+        history: streakRecord.history,
+        activityCounts
       });
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch streak." });
+      res.status(500).json({ error: "Failed to record check-in." });
+    }
+  });
+
+  app.post("/api/streak/freeze", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      const streakRecord = await Streak.findOne({ userId });
+      if (!streakRecord || (streakRecord.freezeTokens || 0) <= 0) {
+        return res.status(400).json({ error: "No streak freeze tokens available." });
+      }
+
+      streakRecord.freezeTokens -= 1;
+      await streakRecord.save();
+
+      res.json({
+        freezeTokens: streakRecord.freezeTokens,
+        message: "Streak Freeze applied successfully!"
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to use freeze token." });
     }
   });
   app.post("/api/subscribe", async (req: Request, res: Response) => {
