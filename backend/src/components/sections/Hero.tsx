@@ -152,20 +152,20 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1.4 }}
-            className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-6 sm:mb-8 w-full sm:w-auto justify-center"
+            className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-6 sm:mb-8 w-full sm:w-auto pt-2"
           >
             {/* Primary Start Learning Button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => { const el = document.getElementById('library') || document.getElementById('guides') || document.getElementById('struggles'); if (el) { el.scrollIntoView({ behavior: 'smooth' }); } else { navigate('/#library'); } }}
-              className="btn-liquid-primary w-full sm:w-auto"
+              className="btn-liquid-primary w-full sm:w-auto min-h-[48px] h-[48px] px-8 text-sm flex items-center justify-center gap-2"
             >
               Start Learning <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
 
             {/* Secondary Explore AI Companion Button — wrapper handles overflow-visible for floating tags */}
-            <div className="relative group w-full sm:w-auto mt-3">
+            <div className="relative group w-full sm:w-auto flex items-center">
               {/* Tilted NEW Tag — outside button so it's not clipped */}
               <span className="absolute -top-3.5 -left-2 z-10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-black bg-gradient-to-r from-cyan-400 to-sky-300 rounded-md shadow-md -rotate-6 group-hover:rotate-0 transition-transform duration-300 pointer-events-none">
                 NEW
@@ -175,7 +175,7 @@ export function Hero() {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => navigate('/ai-companion')}
-                className="btn-liquid-secondary w-full"
+                className="btn-liquid-secondary w-full sm:w-auto min-h-[48px] h-[48px] px-7 text-sm flex items-center justify-center gap-2"
               >
                 <span className="sleek-mvp-text">Explore AI Companion</span>
               </motion.button>
