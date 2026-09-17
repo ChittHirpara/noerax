@@ -27,10 +27,14 @@ const parseSuggestions = (raw: string, fallbackToDefaults = true): { text: strin
   if (matchIndex !== -1) {
     const block = raw.slice(matchIndex).replace(/SUGGESTIONS\s*:/i, '').trim();
 
+    // Try parsing JSON array — greedy match to get the FULL outer brackets
     try {
-      const jsonMatch = block.match(/\[(.*?)\]/s);
+      const jsonMatch = block.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
-        const sanitized = jsonMatch[0].replace(/'([^']*)'/g, '"$1"');
+        const sanitized = jsonMatch[0]
+          .replace(/[\u2018\u2019]/g, "'")
+          .replace(/[\u201C\u201D]/g, '"')
+          .replace(/'([^']*)'/g, '"$1"');
         const parsed = JSON.parse(sanitized);
         if (Array.isArray(parsed)) {
           suggestions = parsed.map((s) => String(s).trim()).filter(Boolean);
@@ -38,20 +42,11 @@ const parseSuggestions = (raw: string, fallbackToDefaults = true): { text: strin
       }
     } catch {}
 
+    // Fallback: Extract individually quoted strings
     if (suggestions.length === 0) {
-      const quoted = block.match(/["']([^"']+)["']/g);
+      const quoted = block.match(/"([^"]+)"/g);
       if (quoted) {
-        suggestions = quoted.map((m) => m.slice(1, -1).trim()).filter(Boolean);
-      }
-    }
-
-    if (suggestions.length === 0) {
-      const lines = block
-        .split('\n')
-        .map((l) => l.replace(/^[\d\.\-\*•]+\s*/, '').replace(/^[\[\],"]+|[\[\],"]+$/g, '').trim())
-        .filter((l) => l.length > 2);
-      if (lines.length > 0) {
-        suggestions = lines.slice(0, 3);
+        suggestions = quoted.map((m) => m.slice(1, -1).trim()).filter((s) => s.length > 3);
       }
     }
   }
