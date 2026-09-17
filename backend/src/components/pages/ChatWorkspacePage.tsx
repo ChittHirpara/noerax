@@ -195,16 +195,13 @@ interface ChatSession {
   messages: Message[];
 }
 
-const DEFAULT_WELCOME: Message = {
+// Placeholder shown while AI is generating the welcome message
+const WELCOME_PLACEHOLDER: Message = {
   id: 'msg-welcome',
   role: 'ai',
-  content: "Namaste. I am your wisdom and learning guide.\n\nAsk me about timeless teachings from the Bhagavad Gita, Upanishads, and Yoga Sutras, or explore how to apply ancient philosophy to today's decisions and struggles.",
+  content: '',
   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-  suggestions: [
-    "What does the Gita say about overthinking & focus?",
-    "How do I practice Nishkama Karma (detached action)?",
-    "How to master emotional discipline & mental stillness?"
-  ]
+  suggestions: []
 };
 
 const SUGGESTED_PROMPTS = [
@@ -251,6 +248,63 @@ export function ChatWorkspacePage() {
     }
   };
 
+  // Stream a live AI-generated welcome message into a session
+  const generateWelcome = async (sessionId: string, botName: string) => {
+    try {
+      const welcomePrompt = `[SYSTEM: This is the very first message. Greet the user warmly in 1-2 natural sentences as ${botName}. Be warm, human, and inviting. Ask them what is on their mind today. Do NOT sound like a robot or template. Be spontaneous and genuine.]`;
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: welcomePrompt, history: [], botName })
+      });
+      if (!response.ok || !response.body) return;
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let streamed = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        for (const line of chunk.split('\n')) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6).trim();
+            if (data === '[DONE]') break;
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.text) {
+                streamed += parsed.text;
+                const content = streamed;
+                setSessions((prev) =>
+                  prev.map((s) =>
+                    s.id === sessionId
+                      ? { ...s, messages: s.messages.map((m) => m.id === 'msg-welcome' ? { ...m, content } : m) }
+                      : s
+                  )
+                );
+              }
+            } catch {}
+          }
+        }
+      }
+      // Parse suggestions from final welcome
+      setSessions((prev) => {
+        const updated = prev.map((s) => {
+          if (s.id !== sessionId) return s;
+          return {
+            ...s,
+            messages: s.messages.map((m) => {
+              if (m.id !== 'msg-welcome') return m;
+              const { text, suggestions } = parseSuggestions(m.content);
+              return { ...m, content: text, suggestions };
+            })
+          };
+        });
+        try { localStorage.setItem('noerax_chat_sessions', JSON.stringify(updated)); } catch {}
+        return updated;
+      });
+    } catch {}
+  };
+
   // Initialize or load sessions from localStorage on mount
   useEffect(() => {
     try {
@@ -284,12 +338,14 @@ export function ChatWorkspacePage() {
       title: 'New Conversation',
       botName: 'Noerax',
       createdAt: new Date().toISOString(),
-      messages: [DEFAULT_WELCOME]
+      messages: [{ ...WELCOME_PLACEHOLDER }]
     };
     setSessions([initialSession]);
     setActiveSessionId(initialSession.id);
     localStorage.setItem('noerax_chat_sessions', JSON.stringify([initialSession]));
-  }, []);
+    // Kick off live AI welcome
+    generateWelcome(initialSession.id, 'Noerax');
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Save sessions to localStorage whenever sessions state changes
   const saveSessionsToStorage = (updatedSessions: ChatSession[]) => {
@@ -312,17 +368,20 @@ export function ChatWorkspacePage() {
 
   // Create a New Chat Session
   const createNewChat = () => {
+    const newId = `session-${Date.now()}`;
     const newSession: ChatSession = {
-      id: `session-${Date.now()}`,
+      id: newId,
       title: 'New Conversation',
       botName: 'Noerax',
       createdAt: new Date().toISOString(),
-      messages: [{ ...DEFAULT_WELCOME, id: `msg-${Date.now()}` }]
+      messages: [{ ...WELCOME_PLACEHOLDER, id: 'msg-welcome' }]
     };
     const updated = [newSession, ...sessions];
     saveSessionsToStorage(updated);
-    setActiveSessionId(newSession.id);
+    setActiveSessionId(newId);
     setInput('');
+    // Generate a fresh AI welcome for this new session
+    generateWelcome(newId, 'Noerax');
   };
 
   // Delete a Chat Session
@@ -872,7 +931,15 @@ export function ChatWorkspacePage() {
                     {/* AI Message Body & Action Toolbar */}
                     <div className="flex-1 min-w-0 space-y-2">
                       <div className="text-[14px] sm:text-[15.5px] leading-[1.7] text-[#E2E8F0] font-normal tracking-normal break-words">
-                        <MessageContent content={msg.content} />
+                        {msg.content ? (
+                          <MessageContent content={msg.content} />
+                        ) : (
+                          <span className="flex items-center gap-1 text-white/40">
+                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400/60 animate-bounce" style={{ animationDelay: '0ms' }} />
+                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400/60 animate-bounce" style={{ animationDelay: '150ms' }} />
+                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400/60 animate-bounce" style={{ animationDelay: '300ms' }} />
+                          </span>
+                        )}
                       </div>
 
                       {/* Bottom Action Row (Copy, Read Aloud, Time) */}
