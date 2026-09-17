@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../lib/AuthContext';
 import { 
   Plus, MessageSquare, Trash2, ArrowLeft, Send, Sparkles, 
   Mic, MicOff, Volume2, VolumeX, Copy, Check, Maximize2, Minimize2, 
@@ -212,6 +213,7 @@ const SUGGESTED_PROMPTS = [
 
 export function ChatWorkspacePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Sessions state
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -467,6 +469,12 @@ export function ChatWorkspacePage() {
   const handleSendMessage = async (customText?: string) => {
     const promptText = customText || input.trim();
     if (!promptText || isLoading || !activeSession) return;
+
+    // Require login before sending any message
+    if (!user) {
+      navigate('/auth?redirect=/chat');
+      return;
+    }
 
     const userMessage: Message = {
       id: `msg-${Date.now()}`,
