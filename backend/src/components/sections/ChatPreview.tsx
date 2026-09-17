@@ -105,9 +105,29 @@ export function ChatPreview() {
     }
   }, [messages.length, isLoading]);
 
+  const handleInteraction = (promptText?: string) => {
+    const textToSend = promptText || input.trim();
+    if (!user) {
+      if (textToSend) {
+        sessionStorage.setItem('pending_chat_prompt', textToSend);
+      }
+      navigate('/auth?redirect=/chat');
+      return;
+    }
+    if (textToSend) {
+      sendMessage(textToSend);
+    }
+  };
+
   const sendMessage = async (text?: string) => {
     const messageText = text || input.trim();
     if (!messageText || isLoading) return;
+
+    if (!user) {
+      sessionStorage.setItem('pending_chat_prompt', messageText);
+      navigate('/auth?redirect=/chat');
+      return;
+    }
 
     const userMsg: Message = { role: 'user', content: messageText };
     const history = messages.filter(m => m.role === 'user' || m.role === 'ai');
@@ -432,7 +452,7 @@ export function ChatPreview() {
                           {msg.suggestions.map((sug, sIdx) => (
                             <button
                               key={sIdx}
-                              onClick={() => sendMessage(sug)}
+                              onClick={() => handleInteraction(sug)}
                               disabled={isLoading}
                               className="text-[11px] px-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 hover:border-dharma-flame/40 text-white/70 hover:text-white transition-all cursor-pointer text-left shadow-sm"
                             >
@@ -471,7 +491,7 @@ export function ChatPreview() {
                     {SUGGESTED.map((prompt, idx) => (
                       <button
                         key={idx}
-                        onClick={() => sendMessage(prompt)}
+                        onClick={() => handleInteraction(prompt)}
                         className="text-left px-3.5 py-2.5 rounded-xl border border-white/15 bg-black/50 hover:bg-black/80 hover:border-dharma-flame/60 text-white text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer flex items-center justify-between group shadow-sm"
                       >
                         <span>{prompt}</span>
@@ -489,7 +509,23 @@ export function ChatPreview() {
                     ref={inputRef}
                     type="text"
                     value={input}
-                    onChange={e => setInput(e.target.value)}
+                    onFocus={() => {
+                      if (!user) {
+                        navigate('/auth?redirect=/chat');
+                      }
+                    }}
+                    onClick={() => {
+                      if (!user) {
+                        navigate('/auth?redirect=/chat');
+                      }
+                    }}
+                    onChange={e => {
+                      if (!user) {
+                        navigate('/auth?redirect=/chat');
+                        return;
+                      }
+                      setInput(e.target.value);
+                    }}
                     onKeyDown={handleKeyDown}
                     placeholder="What decision or situation are you trying to figure out today?"
                     className="flex-1 bg-black/60 border border-white/20 rounded-full px-5 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-dharma-flame/60 transition-colors"
@@ -498,7 +534,7 @@ export function ChatPreview() {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => sendMessage()}
+                    onClick={() => handleInteraction()}
                     disabled={!input.trim() || isLoading}
                     className="w-11 h-11 rounded-full bg-dharma-flame text-white flex items-center justify-center hover:bg-dharma-saffron transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-dharma-flame/30"
                   >

@@ -315,7 +315,7 @@ export function ChatWorkspacePage() {
             ...s,
             messages: s.messages.map((m) => {
               if (m.id === 'msg-welcome' && (!m.suggestions || m.suggestions.length === 0)) {
-                return { ...m, suggestions: DEFAULT_WELCOME.suggestions };
+                return { ...m, suggestions: SUGGESTED_PROMPTS.slice(0, 3) };
               }
               if (m.role === 'ai' && m.content.includes('SUGGESTIONS:') && (!m.suggestions || m.suggestions.length === 0)) {
                 const { text, suggestions } = parseSuggestions(m.content);
@@ -365,8 +365,25 @@ export function ChatWorkspacePage() {
     }
   }, [activeSession?.messages?.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Auto-send pending prompt from before login
+  useEffect(() => {
+    if (user && activeSessionId && sessions.length > 0 && !isLoading) {
+      const pendingPrompt = sessionStorage.getItem('pending_chat_prompt');
+      if (pendingPrompt) {
+        sessionStorage.removeItem('pending_chat_prompt');
+        setTimeout(() => {
+          handleSendMessage(pendingPrompt);
+        }, 300);
+      }
+    }
+  }, [user, activeSessionId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Create a New Chat Session
   const createNewChat = () => {
+    if (!user) {
+      navigate('/auth?redirect=/chat');
+      return;
+    }
     const newId = `session-${Date.now()}`;
     const newSession: ChatSession = {
       id: newId,
@@ -391,11 +408,13 @@ export function ChatWorkspacePage() {
       const fresh: ChatSession = {
         id: `session-${Date.now()}`,
         title: 'New Conversation',
+        botName: 'Noerax',
         createdAt: new Date().toISOString(),
-        messages: [DEFAULT_WELCOME]
+        messages: [{ ...WELCOME_PLACEHOLDER }]
       };
       saveSessionsToStorage([fresh]);
       setActiveSessionId(fresh.id);
+      generateWelcome(fresh.id, 'Noerax');
     } else {
       saveSessionsToStorage(updated);
       if (activeSessionId === sessionId) {
@@ -406,6 +425,10 @@ export function ChatWorkspacePage() {
 
   // Toggle Speech Recognition
   const toggleListening = () => {
+    if (!user) {
+      navigate('/auth?redirect=/chat');
+      return;
+    }
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert('Speech recognition is not supported in this browser. Try Google Chrome.');
@@ -472,6 +495,9 @@ export function ChatWorkspacePage() {
 
     // Require login before sending any message
     if (!user) {
+      if (promptText) {
+        sessionStorage.setItem('pending_chat_prompt', promptText);
+      }
       navigate('/auth?redirect=/chat');
       return;
     }
@@ -1034,14 +1060,30 @@ export function ChatWorkspacePage() {
               {/* Text Input */}
               <textarea
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onFocus={() => {
+                  if (!user) {
+                    navigate('/auth?redirect=/chat');
+                  }
+                }}
+                onClick={() => {
+                  if (!user) {
+                    navigate('/auth?redirect=/chat');
+                  }
+                }}
+                onChange={(e) => {
+                  if (!user) {
+                    navigate('/auth?redirect=/chat');
+                    return;
+                  }
+                  setInput(e.target.value);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     handleSendMessage();
                   }
                 }}
-                placeholder="Message Noerax..."
+                placeholder={user ? "Message Noerax..." : "Sign in to message Noerax..."}
                 rows={1}
                 className="flex-1 bg-transparent border-none focus:outline-none text-white placeholder-white/40 text-sm sm:text-[15px] font-sans resize-none py-1 min-w-0"
               />
