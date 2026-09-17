@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../lib/AuthContext';
 import { 
   Plus, MessageSquare, Trash2, ArrowLeft, Send, Sparkles, 
   Mic, MicOff, Volume2, VolumeX, Copy, Check, Maximize2, Minimize2, 
@@ -215,6 +216,8 @@ const SUGGESTED_PROMPTS = [
 
 export function ChatWorkspacePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [guestBannerDismissed, setGuestBannerDismissed] = useState(false);
 
   // Sessions state
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -756,6 +759,22 @@ export function ChatWorkspacePage() {
 
       {/* ── MAIN CHAT WORKSPACE AREA (ChatGPT Style Clean Canvas) ── */}
       <div className="flex-1 flex flex-col min-w-0 bg-[#09090b] relative h-full overflow-hidden">
+
+        {/* Guest Banner — shown only when not logged in */}
+        <AnimatePresence>
+          {!user && !guestBannerDismissed && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="flex items-center justify-between gap-2 px-4 py-2 bg-cyan-500/10 border-b border-cyan-500/20 text-xs text-cyan-300 shrink-0"
+            >
+              <span>💬 You're chatting as a guest — your history won't be saved. <button onClick={() => navigate('/auth?redirect=/chat')} className="underline underline-offset-2 hover:text-white transition-colors font-medium cursor-pointer">Sign in to save your conversations</button></span>
+              <button onClick={() => setGuestBannerDismissed(true)} className="text-white/30 hover:text-white/70 transition-colors shrink-0 cursor-pointer">✕</button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Minimal Top Bar */}
         <div className="h-13 px-4 sm:px-6 border-b border-white/[0.06] bg-[#09090b]/80 backdrop-blur-xl flex items-center justify-between z-10 shrink-0 relative">

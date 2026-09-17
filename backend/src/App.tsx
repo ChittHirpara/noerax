@@ -151,7 +151,7 @@ function AppLayout() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/ai-companion" element={<AiCompanionPage />} />
-            <Route path="/chat" element={<ProtectedRoute><ChatWorkspacePage /></ProtectedRoute>} />
+            <Route path="/chat" element={<ChatWorkspacePage />} />
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
             <Route path="/auth" element={<AuthPage />} />
           </Routes>
