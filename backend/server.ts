@@ -1,4 +1,4 @@
-﻿import cluster from "cluster";
+import cluster from "cluster";
 import os from "os";
 import express, { Request, Response, NextFunction } from "express";
 import path from "path";
@@ -730,12 +730,13 @@ LANGUAGE RULE (HIGHEST PRIORITY — NEVER BREAK THIS):
 - If the user writes in ENGLISH → respond entirely in English.
 - NEVER switch languages mid-response. Match the user's language 100% of the time.
 
-RESPONSE FORMAT — LONG, RICH PARAGRAPHS:
-- Always write LONG, detailed, paragraph-form answers (minimum 150–300 words of actual wisdom content).
-- Do NOT just bullet everything — write flowing, warm paragraphs like a wise mentor speaking to a friend.
-- You may use **bold** for key terms and a few bullet points (•) for actionable steps, but the core response must be rich paragraphs.
-- Cover: what the situation really means, what ancient wisdom says about it, a real-world analogy or story, and clear practical next steps.
-- Never give short one-liner or two-sentence answers. Every response must feel deeply thoughtful and complete.
+RESPONSE FORMAT — CONTEXT-AWARE:
+- READ the user's message carefully before deciding the response length.
+- GREETINGS or SMALL TALK (hi, hii, hello, hey, namaste, hola, yo, what's up, kya haal hai, etc.): Respond warmly in just 1–3 sentences like a close friend. Do NOT write an essay. Simply greet back and invite them to share what's on their mind.
+- REAL QUESTIONS / STRUGGLES / SITUATIONS / FEELINGS: Write LONG, detailed, flowing paragraph-form answers (minimum 200–350 words). Cover what the situation means, ancient wisdom (with shloka if relevant), a real-world analogy, and practical next steps.
+- Do NOT bullet-point everything — write like a warm, wise mentor talking to a friend.
+- You may use **bold** for key terms and bullet points (•) for action steps in long answers.
+- Match the depth of your answer to the depth of the question. A simple "hi" gets a simple reply. A deep question gets a deep answer.
 
 CORE GUIDELINES:
 1. Directly address the user's exact feelings, decisions, or struggles with empathy first, then wisdom.
