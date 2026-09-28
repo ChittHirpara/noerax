@@ -1,7 +1,7 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { Settings, Flame, LogOut, Search, Menu, X } from "lucide-react";
+import { Settings, Flame, LogOut, Search, Menu, X, ArrowUpRight } from "lucide-react";
 import { useStreak } from "../../lib/StreakContext";
 import { SettingsModal } from "./SettingsModal";
 import { StreakModal } from "../ui/StreakModal";
@@ -193,16 +193,34 @@ export function Navbar({ onOpenProfile }: NavbarProps) {
               >
                 <LogOut className="w-4 h-4" />
               </button>
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => navigate('/chat')}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white text-black hover:bg-neutral-200 text-xs font-semibold transition-all shadow-sm cursor-pointer ml-1"
+              >
+                <span>Workspace</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </motion.button>
             </div>
           ) : (
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              onClick={() => navigate('/auth')}
-              className="btn-liquid-primary !px-5 !py-2 !text-sm"
-            >
-              Sign In
-            </motion.button>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                onClick={() => navigate('/auth')}
+                className="text-white/80 hover:text-white text-xs sm:text-sm font-medium px-2 py-1.5 transition-colors cursor-pointer"
+              >
+                Log in
+              </button>
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => navigate(user ? '/chat' : '/auth?redirect=/chat')}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white text-black hover:bg-neutral-200 text-xs font-semibold transition-all shadow-sm cursor-pointer"
+              >
+                <span>Try Noerax</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </motion.button>
+            </div>
           )}
 
           {/* Mobile Menu Toggle Button */}

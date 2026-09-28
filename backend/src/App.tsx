@@ -40,9 +40,6 @@ function Home() {
         <Struggle />
       </div>
       <div className="content-auto">
-        <ChatPreview />
-      </div>
-      <div className="content-auto">
         <Journal />
       </div>
       <div className="content-auto">
