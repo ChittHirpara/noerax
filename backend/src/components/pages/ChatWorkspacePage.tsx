@@ -250,7 +250,7 @@ export function ChatWorkspacePage() {
   // Stream a live AI-generated welcome message into a session
   const generateWelcome = async (sessionId: string, botName: string) => {
     try {
-      const welcomePrompt = `[SYSTEM: Greet the user casually in 1-2 natural sentences like a close GenZ friend checking in. Say something like 'hey what's up?' or 'scene kya hai aaj?'. Do NOT introduce yourself with your name unless asked. Keep it super brief, warm, and real.]`;
+      const welcomePrompt = `[SYSTEM: Open casually in 1 natural line like a real friend (e.g. 'yo what\\'s good', 'heyyy what\\'s the update', or 'scene kya hai aaj?'). Never open with robotic greetings like 'How are you?' or 'How can I help you?'. Never introduce yourself with your name unless asked. Hard limit: 1-2 lines max.]`;
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
