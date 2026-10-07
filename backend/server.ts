@@ -1,5 +1,7 @@
 import cluster from "cluster";
 import os from "os";
+import fs from "fs";
+import { DatabaseSync } from "node:sqlite";
 import express, { Request, Response, NextFunction } from "express";
 import path from "path";
 import http from "http";
@@ -697,7 +699,80 @@ Journal entry: "${cleanEntry}"`;
     }
   });
 
-  // STREAMING AI CHAT — powered by Groq (llama-3.3-70b) with key rotation & Google Gemini fallback
+  // -------------------------------------------------------------
+  // SCRIPTURE WISDOM LAYER (RAG from Krishna & Ram Knowledge Base)
+  // -------------------------------------------------------------
+  let scriptureDb: DatabaseSync | null = null;
+  try {
+    const dbPath = path.join(__dirname, "scripture_knowledge.db");
+    if (fs.existsSync(dbPath)) {
+      scriptureDb = new DatabaseSync(dbPath);
+      console.log("🟢 Scripture Knowledge DB connected (FTS5 Active)");
+    }
+  } catch (err) {
+    console.warn("⚠️ Scripture Knowledge DB failed to load:", err);
+  }
+
+  interface ScriptureMatch {
+    sourceBook: string;
+    content: string;
+  }
+
+  // Step 1 in Pipeline: Guidance Need Classifier
+  function detectGuidanceNeed(message: string): boolean {
+    const msg = message.toLowerCase();
+    const guidanceTriggers = [
+      'feel like', 'wasting life', 'wasting my life', 'lost', 'anxious', 'anxiety',
+      'stress', 'stressed', 'fail', 'failure', 'overthinking', 'overthink',
+      'depressed', 'sad', 'breakup', 'purpose', 'career', 'future', 'meaning',
+      'what should i', 'why do i', 'confused', 'burnout', 'procrastinat',
+      'can\'t sleep', 'no motivation', 'worthless', 'lonely', 'alone', 'guilt',
+      'scared', 'help me', 'advice', 'vent', 'hate myself', 'trouble', 'stuck',
+      'decision', 'cheat', 'crying', 'cry', 'hopeless'
+    ];
+    return guidanceTriggers.some(t => msg.includes(t)) || msg.length > 50;
+  }
+
+  // Step 2 in Pipeline: Wisdom Type Classifier
+  function classifyWisdomType(message: string): { type: string; searchTerms: string } {
+    const msg = message.toLowerCase();
+    if (msg.includes('wasting') || msg.includes('purpose') || msg.includes('career') || msg.includes('future') || msg.includes('lost') || msg.includes('direction') || msg.includes('stuck')) {
+      return { type: 'Purpose & Svadharma', searchTerms: 'purpose duty action work perfection life' };
+    }
+    if (msg.includes('overthink') || msg.includes('anxiety') || msg.includes('mind') || msg.includes('stress') || msg.includes('can\'t sleep')) {
+      return { type: 'Mind Mastery & Stillness', searchTerms: 'mind restless control stillness peace' };
+    }
+    if (msg.includes('fail') || msg.includes('result') || msg.includes('interview') || msg.includes('exam')) {
+      return { type: 'Detached Action (Nishkama Karma)', searchTerms: 'action work fruit result duty fight' };
+    }
+    if (msg.includes('breakup') || msg.includes('friend') || msg.includes('lonely') || msg.includes('sad') || msg.includes('heartbreak') || msg.includes('cheat')) {
+      return { type: 'Transience, Grief & Inner Peace', searchTerms: 'attachment sorrow grief peace affection' };
+    }
+    if (msg.includes('angry') || msg.includes('anger') || msg.includes('hate') || msg.includes('fight')) {
+      return { type: 'Righteous Boundaries & Composure', searchTerms: 'dharma virtue anger peace patience' };
+    }
+    return { type: 'General Equanimity & Dharma', searchTerms: 'dharma wisdom mind action' };
+  }
+
+  // Step 3 in Pipeline: Query Scripture DB (FTS5 search across Krishna & Ram)
+  function queryScriptureDB(searchTerms: string, limit = 2): ScriptureMatch[] {
+    if (!scriptureDb) return [];
+    try {
+      const cleanTerms = searchTerms.split(' ').filter(w => w.length > 2).join(' OR ');
+      const stmt = scriptureDb.prepare(`
+        SELECT source_book, content
+        FROM scriptures_fts
+        WHERE scriptures_fts MATCH ?
+        LIMIT ?;
+      `);
+      const rows = stmt.all(cleanTerms, limit) as any[];
+      return rows.map(r => ({ sourceBook: r.source_book, content: r.content }));
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // STREAMING AI CHAT — powered by Groq with key rotation & Google Gemini fallback
   let groqKeyIndex = 0;
   const getNextGroqKey = (): string => {
     dotenv.config();
@@ -717,6 +792,39 @@ Journal entry: "${cleanEntry}"`;
     const cleanMessage = message.trim().slice(0, 3000);
     const currentBotName = botName && botName.trim() ? botName.trim() : "Noerax";
     const isCustomName = currentBotName.toLowerCase() !== "noerax";
+
+    // -------------------------------------------------------------
+    // RUN WISDOM GUIDANCE LAYER (User Architecture Pipeline)
+    // -------------------------------------------------------------
+    const needGuidance = detectGuidanceNeed(cleanMessage);
+    let wisdomLayerPrompt = "";
+
+    if (needGuidance) {
+      const wisdom = classifyWisdomType(cleanMessage);
+      const passages = queryScriptureDB(wisdom.searchTerms, 2);
+
+      if (passages.length > 0) {
+        wisdomLayerPrompt = `\n\n[WISDOM GUIDANCE LAYER ACTIVE]
+- Guidance Needed: YES
+- Wisdom Type: ${wisdom.type}
+- Scripture DB Teachings Retrieved:
+${passages.map((p, idx) => `  [Passage ${idx + 1} (${p.sourceBook.toUpperCase()})]: ${p.content.slice(0, 320).replace(/\n/g, ' ')}`).join('\n')}
+
+STEP-BY-STEP REASONING DIRECTIVES:
+1. CONTEXT + INTERPRETATION:
+   Understand what this teaching meant in its original context (e.g., Krishna advising Arjuna on Kurukshetra regarding duty over anxiety, or Rama enduring adversity with noble stillness).
+2. MEANING CHECK:
+   Preserve the authentic philosophical truth. Do not fabricate or distort the wisdom.
+3. NOERAX GUIDANCE RULES:
+   How should this wisdom specifically guide this user's situation ("${cleanMessage}")?
+   - Address them personally with empathy and safety.
+4. GEN-Z TRANSLATION:
+   Translate the wisdom into modern, natural GenZ language.
+   - CRITICAL: Never mention scripture names, verses, chapters, religious figures, karma, or dharma.
+   - Speak like their smartest, most caring friend who figured it out on their own.
+   - Hard limit: 1-2 punchy lines max.`;
+      }
+    }
 
     const systemPrompt = `System Prompt — ${currentBotName}: A GenZ Friend, Not an Assistant
 Core Identity
@@ -816,7 +924,7 @@ SUGGESTIONS: ["First follow-up?", "Second follow-up?", "Third follow-up?"]
 - Write suggestions in the exact same language and vibe (casual, natural GenZ Indian/Hinglish/English).
 - Keep each suggestion under 8-10 words and directly relevant to what was just discussed.
 - Must be a valid JSON array of exactly 3 strings.
-- Do not output any text after the SUGGESTIONS line.`;
+- Do not output any text after the SUGGESTIONS line.` + wisdomLayerPrompt;
 
     // Set SSE headers immediately
     res.setHeader('Content-Type', 'text/event-stream');
@@ -836,7 +944,7 @@ SUGGESTIONS: ["First follow-up?", "Second follow-up?", "Third follow-up?"]
     // 1. TRY GROQ STREAMING (Rotates across all configured Groq keys & models)
     dotenv.config();
     const allGroqKeys = (process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || '').split(',').map((k) => k.trim()).filter(Boolean);
-    const groqModels = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'openai/gpt-oss-120b', 'qwen/qwen3.6-27b'];
+    const groqModels = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'llama-3.3-70b-versatile', 'llama-3.1-8b-instant'];
     const messages: Array<{ role: string; content: string }> = [
       { role: 'system', content: systemPrompt }
     ];
