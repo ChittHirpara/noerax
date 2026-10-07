@@ -704,10 +704,12 @@ Journal entry: "${cleanEntry}"`;
   // -------------------------------------------------------------
   let scriptureDb: DatabaseSync | null = null;
   try {
-    const dbPath = path.join(__dirname, "scripture_knowledge.db");
+    const dbPath = path.resolve(process.cwd(), "scripture_knowledge.db");
     if (fs.existsSync(dbPath)) {
       scriptureDb = new DatabaseSync(dbPath);
       console.log("🟢 Scripture Knowledge DB connected (FTS5 Active)");
+    } else {
+      console.warn("⚠️ Scripture Knowledge DB file not found at:", dbPath);
     }
   } catch (err) {
     console.warn("⚠️ Scripture Knowledge DB failed to load:", err);
