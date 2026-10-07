@@ -720,37 +720,60 @@ Journal entry: "${cleanEntry}"`;
     content: string;
   }
 
-  // Step 1 in Pipeline: Guidance Need Classifier
-  function detectGuidanceNeed(message: string): boolean {
-    const msg = message.toLowerCase();
+  // Step 1 in Pipeline: Guidance Need Classifier (Multi-turn & Hinglish Aware)
+  function detectGuidanceNeed(message: string, history?: any[]): boolean {
+    const msg = message.toLowerCase().trim();
     const guidanceTriggers = [
+      // English emotional & guidance keywords
       'feel like', 'wasting life', 'wasting my life', 'lost', 'anxious', 'anxiety',
       'stress', 'stressed', 'fail', 'failure', 'overthinking', 'overthink',
       'depressed', 'sad', 'breakup', 'purpose', 'career', 'future', 'meaning',
       'what should i', 'why do i', 'confused', 'burnout', 'procrastinat',
       'can\'t sleep', 'no motivation', 'worthless', 'lonely', 'alone', 'guilt',
       'scared', 'help me', 'advice', 'vent', 'hate myself', 'trouble', 'stuck',
-      'decision', 'cheat', 'crying', 'cry', 'hopeless'
+      'decision', 'cheat', 'crying', 'cry', 'hopeless', 'betray',
+      // Hinglish & Hindi emotional & guidance keywords
+      'akela', 'akeli', 'rona', 'ro raha', 'toot gaya', 'toota', 'khatam', 'dard',
+      'bechain', 'tension', 'kya karu', 'himmat', 'phat rahi', 'barbad', 'dhokha',
+      'samajh nahi', 'chhod diya', 'dimag kharab', 'pareshaan', 'shant nahi',
+      'sukoon', 'bhatak'
     ];
-    return guidanceTriggers.some(t => msg.includes(t)) || msg.length > 50;
+
+    if (guidanceTriggers.some(t => msg.includes(t)) || msg.length > 45) {
+      return true;
+    }
+
+    // Multi-turn continuity: preserve guidance context if this is a short follow-up
+    if (Array.isArray(history) && history.length > 0 && msg.length < 35) {
+      const lastUserMsg = [...history].reverse().find(m => m.role === 'user' || m.role === 'human');
+      if (lastUserMsg && typeof lastUserMsg.content === 'string') {
+        const prevMsg = lastUserMsg.content.toLowerCase();
+        const isFollowUp = ['what now', 'fir kya', 'kya karu', 'how do i', 'why', 'and then', 'what next', 'then?'].some(f => msg.includes(f));
+        if (isFollowUp && guidanceTriggers.some(t => prevMsg.includes(t))) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
-  // Step 2 in Pipeline: Wisdom Type Classifier
+  // Step 2 in Pipeline: Wisdom Type Classifier (English & Hinglish)
   function classifyWisdomType(message: string): { type: string; searchTerms: string } {
     const msg = message.toLowerCase();
-    if (msg.includes('wasting') || msg.includes('purpose') || msg.includes('career') || msg.includes('future') || msg.includes('lost') || msg.includes('direction') || msg.includes('stuck')) {
+    if (msg.includes('wasting') || msg.includes('purpose') || msg.includes('career') || msg.includes('future') || msg.includes('lost') || msg.includes('direction') || msg.includes('stuck') || msg.includes('barbad') || msg.includes('kuch nahi ho raha') || msg.includes('kya karu') || msg.includes('bhatak')) {
       return { type: 'Purpose & Svadharma', searchTerms: 'purpose duty action work perfection life' };
     }
-    if (msg.includes('overthink') || msg.includes('anxiety') || msg.includes('mind') || msg.includes('stress') || msg.includes('can\'t sleep')) {
+    if (msg.includes('overthink') || msg.includes('anxiety') || msg.includes('mind') || msg.includes('stress') || msg.includes('tension') || msg.includes('bechain') || msg.includes('dimag kharab') || msg.includes('shant') || msg.includes('can\'t sleep')) {
       return { type: 'Mind Mastery & Stillness', searchTerms: 'mind restless control stillness peace' };
     }
-    if (msg.includes('fail') || msg.includes('result') || msg.includes('interview') || msg.includes('exam')) {
+    if (msg.includes('fail') || msg.includes('result') || msg.includes('interview') || msg.includes('exam') || msg.includes('reject') || msg.includes('mehnat') || msg.includes('koshish')) {
       return { type: 'Detached Action (Nishkama Karma)', searchTerms: 'action work fruit result duty fight' };
     }
-    if (msg.includes('breakup') || msg.includes('friend') || msg.includes('lonely') || msg.includes('sad') || msg.includes('heartbreak') || msg.includes('cheat')) {
+    if (msg.includes('breakup') || msg.includes('friend') || msg.includes('lonely') || msg.includes('sad') || msg.includes('heartbreak') || msg.includes('cheat') || msg.includes('dil toot') || msg.includes('dhokha') || msg.includes('chhod diya') || msg.includes('akela') || msg.includes('akeli') || msg.includes('rona')) {
       return { type: 'Transience, Grief & Inner Peace', searchTerms: 'attachment sorrow grief peace affection' };
     }
-    if (msg.includes('angry') || msg.includes('anger') || msg.includes('hate') || msg.includes('fight')) {
+    if (msg.includes('angry') || msg.includes('anger') || msg.includes('hate') || msg.includes('fight') || msg.includes('gussa') || msg.includes('ladai') || msg.includes('betray')) {
       return { type: 'Righteous Boundaries & Composure', searchTerms: 'dharma virtue anger peace patience' };
     }
     return { type: 'General Equanimity & Dharma', searchTerms: 'dharma wisdom mind action' };
@@ -760,7 +783,8 @@ Journal entry: "${cleanEntry}"`;
   function queryScriptureDB(searchTerms: string, limit = 2): ScriptureMatch[] {
     if (!scriptureDb) return [];
     try {
-      const cleanTerms = searchTerms.split(' ').filter(w => w.length > 2).join(' OR ');
+      const sanitized = searchTerms.replace(/[^a-zA-Z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 2).join(' OR ');
+      const cleanTerms = sanitized || 'dharma OR wisdom';
       const stmt = scriptureDb.prepare(`
         SELECT source_book, content
         FROM scriptures_fts
@@ -798,7 +822,7 @@ Journal entry: "${cleanEntry}"`;
     // -------------------------------------------------------------
     // RUN WISDOM GUIDANCE LAYER (User Architecture Pipeline)
     // -------------------------------------------------------------
-    const needGuidance = detectGuidanceNeed(cleanMessage);
+    const needGuidance = detectGuidanceNeed(cleanMessage, history);
     let wisdomLayerPrompt = "";
 
     if (needGuidance) {
