@@ -18,6 +18,7 @@ export interface ToonhubCharacter {
   bg: string;
   panel: string;
   name: string;
+  roleTitle: string;
   personality: string;
   description: string;
   vibeGenre: string;
@@ -29,66 +30,70 @@ const IMAGES: ToonhubCharacter[] = [
     bg: '#F4845F',
     panel: '#F79B7F',
     name: 'Ember',
-    personality: 'The Hype & Fire Motivator',
-    description: 'High energy, unyielding optimism, and the friend who pumps you up before any challenge.',
-    vibeGenre: 'High-BPM Hype Dance',
+    roleTitle: 'The Best Friend 🫂',
+    personality: 'Funny, casual, supportive, and full of energy',
+    description: 'Talks about daily life, listens to rants, jokes around, and makes you feel instantly comfortable.',
+    vibeGenre: 'High-Energy Hype',
   },
   {
     src: 'https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/2.b977faab.png',
     bg: '#6BBF7A',
     panel: '#85CC92',
     name: 'Sage',
-    personality: 'The Calm & Grounded Realist',
-    description: 'Brings stillness to mental storms, grounded clarity, and steady, thoughtful presence.',
-    vibeGenre: 'Lo-Fi Chill Bounce',
+    roleTitle: 'The Caring Companion 💗',
+    personality: 'Gentle, empathetic, warm, and reassuring',
+    description: 'Listens without judgment, remembers important details, and helps you process difficult days.',
+    vibeGenre: 'Safe & Gentle Space',
   },
   {
     src: 'https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/3.4df853b4.png',
     bg: '#E882B4',
     panel: '#ED9DC4',
     name: 'Luna',
-    personality: 'The Gentle & Empathetic Soul',
-    description: 'Understands emotions deeply, holds space without judgement, and listens with warmth.',
-    vibeGenre: 'Dreamy Soft Groove',
+    roleTitle: 'The Romantic Companion 🌹',
+    personality: 'Affectionate, flirty, expressive, and sweet',
+    description: 'Offers romantic roleplay, cute conversations, virtual dates, and affectionate messages with clear boundaries.',
+    vibeGenre: 'Sweet & Romantic',
   },
   {
     src: 'https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/4.4457fbce.png',
     bg: '#6EB5FF',
     panel: '#8DC4FF',
     name: 'Nova',
-    personality: 'The Witty & Sharp Strategist',
-    description: 'Playful humor, quick internet brain, sharp perspectives, and practical solutions.',
-    vibeGenre: 'Electro Funky Beat',
+    roleTitle: 'The Savage Bestie 😈',
+    personality: 'Sarcastic, witty, playful, and brutally honest',
+    description: 'Roasts you affectionately, delivers funny comebacks, and keeps conversations entertaining.',
+    vibeGenre: 'Playful Roasts & Sarcasm',
   },
 ];
 
 const GREETINGS: Record<string, string> = {
-  Ember: "Yo! Ready to lock in? Tell me what's on your mind — we're tackling it head on today! 💥",
-  Sage: "Hey there. Take a slow breath... no rush here. What's weighing on your mind today? 🌿",
-  Luna: "Hey bestie! You don't have to carry anything alone. Tell me how you're really feeling right now 🌸",
-  Nova: "Yo what's good! What is the latest plot twist in your life? Spill the tea 👀",
+  Ember: "Brooo 😂 tell me everything! Who annoyed you today?",
+  Sage: "That sounds like a lot to carry. Want to talk about what happened?",
+  Luna: "There you are. I was hoping we'd get a little time to talk today 🌹",
+  Nova: "You had 24 hours and chose procrastination. Legendary performance 💀",
 };
 
 const QUICK_PROMPTS: Record<string, string[]> = {
   Ember: [
-    "Need motivation to start my goals",
-    "I'm procrastinating so bad rn",
-    "Hype me up for my big day",
+    "Bro who annoyed me today... 💀",
+    "I need to rant real quick",
+    "Hype me up for my goals today",
   ],
   Sage: [
+    "Had a really heavy day today",
+    "Need someone who actually listens",
     "My mind won't stop overthinking",
-    "How do I find calm in chaos?",
-    "Need perspective on a hard choice",
   ],
   Luna: [
-    "Feeling really lonely lately",
-    "Just had a rough breakup",
-    "Need someone who actually listens",
+    "Missed talking to you today",
+    "Tell me something sweet",
+    "Virtual coffee date? ☕",
   ],
   Nova: [
-    "Give me an honest reality check",
-    "Why are people so weird lately?",
-    "How to deal with drama peacefully",
+    "Roast my latest life choices 💀",
+    "I texted my ex again...",
+    "Give me an unfiltered reality check",
   ],
 };
 
@@ -793,7 +798,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-sm tracking-wide text-white">{activeChar.name}</span>
                       <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-white/15 text-white/90 border border-white/10 tracking-widest">
-                        {activeChar.vibeGenre}
+                        {activeChar.roleTitle}
                       </span>
                     </div>
                     <p className="text-[11px] text-white/70 tracking-wide line-clamp-1">{activeChar.personality}</p>
@@ -1206,15 +1211,19 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
 
             {/* 5. Bottom-left text + nav buttons */}
             <div className="absolute bottom-6 left-4 sm:bottom-16 sm:left-20 z-[60] max-w-[340px] pointer-events-auto">
+              <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
+                <span className="text-[11px] font-black uppercase tracking-[0.2em] px-2.5 py-0.5 rounded-full bg-white/25 text-white border border-white/30 backdrop-blur-md">
+                  {activeChar.roleTitle}
+                </span>
+              </div>
               <p
-                className="font-bold uppercase tracking-widest mb-1.5 sm:mb-2 text-base sm:text-[22px] text-white opacity-95"
-                style={{ letterSpacing: '0.02em' }}
+                className="font-black uppercase tracking-tight mb-1 text-xl sm:text-[28px] text-white opacity-95"
+                style={{ letterSpacing: '0.01em' }}
               >
-                TOONHUB FIGURINES
+                {activeChar.name}
               </p>
-              <p className="hidden sm:block text-xs sm:text-sm text-white/85 leading-relaxed mb-4">
-                The artwork is stunning, shipped fully prepared. The finish is a vision, the 3D craft is
-                flawless. Many thanks! Wishing you the win. Order now.
+              <p className="hidden sm:block text-xs sm:text-sm text-white/90 leading-relaxed mb-4">
+                {activeChar.description}
               </p>
               <div className="flex items-center gap-3">
                 <button
