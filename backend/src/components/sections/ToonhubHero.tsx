@@ -54,7 +54,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
     typeof window !== 'undefined' ? window.innerWidth < 640 : false
   );
 
-  // Preload all 4 images on mount via new Image()
+  // Preload all 4 images on mount
   useEffect(() => {
     IMAGES.forEach((item) => {
       const img = new Image();
@@ -69,7 +69,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // 650ms animation lock navigation
+  // Navigation with 650ms animation lock
   const navigate = (direction: 'next' | 'prev') => {
     if (isAnimating) return;
     setIsAnimating(true);
@@ -93,7 +93,6 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
     if (onSelectCharacter) {
       onSelectCharacter(activeChar);
     } else {
-      // Connect companion personality directly to chat
       navigateRouter('/chat?bot=' + encodeURIComponent(activeChar.name));
     }
   };
@@ -104,25 +103,34 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
     <div
       style={{
         backgroundColor: IMAGES[activeIndex].bg,
-        transition: 'background-color 650ms cubic-bezier(0.4,0,0.2,1)',
+        transition: 'background-color 650ms cubic-bezier(0.4, 0, 0.2, 1)',
         fontFamily: "'Inter', sans-serif",
       }}
       className="relative w-full overflow-hidden select-none"
     >
       <div className="relative w-full overflow-hidden" style={{ height: '100vh' }}>
-        {/* Top-Right Quick Navigation Bar */}
-        <div className="absolute top-6 right-4 sm:right-8 z-[70] flex items-center gap-3">
-          <Link
-            to="/"
-            className="px-3.5 py-1.5 rounded-full bg-black/25 hover:bg-black/40 border border-white/20 text-white text-xs font-medium tracking-wider backdrop-blur-md transition-all flex items-center gap-1.5 shadow-lg"
-          >
-            <ChevronLeft size={14} /> Sanctuary
-          </Link>
+        
+        {/* Top Header Bar: Clean single unified row without overlaps */}
+        <div className="absolute top-6 inset-x-0 px-4 sm:px-8 z-[60] flex items-center justify-between pointer-events-auto">
+          {/* Top-Left: Back link & TOONHUB brand label */}
+          <div className="flex items-center gap-3">
+            <Link
+              to="/"
+              className="px-3 py-1.5 rounded-full bg-black/25 hover:bg-black/45 border border-white/20 text-white text-xs font-medium tracking-wider backdrop-blur-md transition-all flex items-center gap-1 shadow-lg"
+            >
+              <ChevronLeft size={14} /> Back
+            </Link>
+            <span className="text-xs font-bold uppercase text-white tracking-[0.2em] opacity-95">
+              TOONHUB
+            </span>
+          </div>
+
+          {/* Top-Right: Companion Chat Pill */}
           <button
             onClick={handleDiscover}
-            className="px-3.5 py-1.5 rounded-full bg-white text-black text-xs font-semibold tracking-wider hover:bg-white/90 transition-all flex items-center gap-1.5 shadow-lg cursor-pointer"
+            className="px-4 py-1.5 rounded-full bg-white text-black text-xs font-semibold tracking-wider hover:bg-white/90 hover:scale-105 transition-all flex items-center gap-1.5 shadow-xl cursor-pointer"
           >
-            <Sparkles size={13} className="text-amber-500" /> Chat with {activeChar.name}
+            <Sparkles size={13} className="text-amber-500 fill-amber-500" /> Chat with {activeChar.name}
           </button>
         </div>
 
@@ -137,14 +145,13 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
           }}
         />
 
-        {/* 2. Giant ghost text "3D SHAPE" */}
+        {/* 2. Giant ghost text "3D SHAPE" (Layered BEHIND carousel: z-10) */}
         <div
-          className="absolute inset-x-0 flex items-center justify-center pointer-events-none select-none"
+          className="absolute inset-x-0 flex items-center justify-center pointer-events-none select-none z-10"
           style={{
-            zIndex: 2,
-            top: '18%',
+            top: '16%',
             fontFamily: "'Anton', sans-serif",
-            fontSize: 'clamp(90px, 28vw, 380px)',
+            fontSize: 'clamp(90px, 27vw, 370px)',
             fontWeight: 900,
             color: '#FFFFFF',
             opacity: 1,
@@ -157,72 +164,69 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
           3D SHAPE
         </div>
 
-        {/* 3. Top-left brand label "TOONHUB" */}
-        <div
-          className="absolute top-6 left-4 sm:left-8 text-xs font-semibold uppercase text-white tracking-[0.18em]"
-          style={{ zIndex: 60, opacity: 0.9 }}
-        >
-          TOONHUB
-        </div>
-
-        {/* 4. Carousel */}
-        <div className="absolute inset-0" style={{ zIndex: 3 }}>
+        {/* 4. Carousel (Layered IN FRONT of "3D SHAPE": z-20) */}
+        <div className="absolute inset-0 z-20 pointer-events-none">
           {IMAGES.map((img, index) => {
             const role = getRole(index);
             let roleStyle: React.CSSProperties = {};
 
             if (role === 'center') {
               roleStyle = {
-                transform: "translateX(-50%) scale(" + (isMobile ? 1.25 : 1.68) + ")",
+                transform: 'translateX(-50%) scale(' + (isMobile ? 1.08 : 1.1) + ')',
+                transformOrigin: 'bottom center',
                 filter: 'none',
                 opacity: 1,
-                zIndex: 20,
+                zIndex: 35,
                 left: '50%',
-                height: isMobile ? '60%' : '92%',
-                bottom: isMobile ? '22%' : 0,
+                height: isMobile ? '64%' : '84%',
+                bottom: isMobile ? '16%' : '1%',
               };
             } else if (role === 'left') {
               roleStyle = {
                 transform: 'translateX(-50%) scale(1)',
+                transformOrigin: 'bottom center',
                 filter: 'blur(2px)',
                 opacity: 0.85,
-                zIndex: 10,
-                left: isMobile ? '20%' : '30%',
-                height: isMobile ? '16%' : '28%',
-                bottom: isMobile ? '32%' : '12%',
+                zIndex: 15,
+                left: isMobile ? '18%' : '26%',
+                height: isMobile ? '18%' : '32%',
+                bottom: isMobile ? '24%' : '12%',
               };
             } else if (role === 'right') {
               roleStyle = {
                 transform: 'translateX(-50%) scale(1)',
+                transformOrigin: 'bottom center',
                 filter: 'blur(2px)',
                 opacity: 0.85,
-                zIndex: 10,
-                left: isMobile ? '80%' : '70%',
-                height: isMobile ? '16%' : '28%',
-                bottom: isMobile ? '32%' : '12%',
+                zIndex: 15,
+                left: isMobile ? '82%' : '74%',
+                height: isMobile ? '18%' : '32%',
+                bottom: isMobile ? '24%' : '12%',
               };
             } else {
               // back
               roleStyle = {
                 transform: 'translateX(-50%) scale(1)',
+                transformOrigin: 'bottom center',
                 filter: 'blur(4px)',
-                opacity: 1,
+                opacity: 0.9,
                 zIndex: 5,
                 left: '50%',
-                height: isMobile ? '13%' : '22%',
-                bottom: isMobile ? '32%' : '12%',
+                height: isMobile ? '14%' : '24%',
+                bottom: isMobile ? '26%' : '15%',
               };
             }
 
             return (
               <div
                 key={img.src}
+                className="pointer-events-auto"
                 style={{
                   position: 'absolute',
-                  aspectRatio: '0.6 / 1',
+                  aspectRatio: '0.75 / 1',
                   transition:
-                    'transform 650ms cubic-bezier(0.4,0,0.2,1), filter 650ms cubic-bezier(0.4,0,0.2,1), opacity 650ms cubic-bezier(0.4,0,0.2,1), left 650ms cubic-bezier(0.4,0,0.2,1)',
-                  willChange: 'transform, filter, opacity',
+                    'transform 650ms cubic-bezier(0.4, 0, 0.2, 1), filter 650ms cubic-bezier(0.4, 0, 0.2, 1), opacity 650ms cubic-bezier(0.4, 0, 0.2, 1), left 650ms cubic-bezier(0.4, 0, 0.2, 1), height 650ms cubic-bezier(0.4, 0, 0.2, 1)',
+                  willChange: 'transform, filter, opacity, left',
                   ...roleStyle,
                 }}
               >
@@ -236,6 +240,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
                     objectPosition: 'bottom center',
                   }}
                   draggable={false}
+                  className="drop-shadow-[0_20px_35px_rgba(0,0,0,0.35)]"
                 />
               </div>
             );
@@ -244,16 +249,15 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
 
         {/* 5. Bottom-left text + nav buttons */}
         <div
-          className="absolute bottom-6 left-4 sm:bottom-20 sm:left-24"
-          style={{ zIndex: 60, maxWidth: '320px' }}
+          className="absolute bottom-6 left-4 sm:bottom-16 sm:left-20 z-[60] max-w-[340px] pointer-events-auto"
         >
           <p
-            className="font-bold uppercase tracking-widest mb-2 sm:mb-3 text-base sm:text-[22px] text-white opacity-95"
+            className="font-bold uppercase tracking-widest mb-1.5 sm:mb-2 text-base sm:text-[22px] text-white opacity-95"
             style={{ letterSpacing: '0.02em' }}
           >
             TOONHUB FIGURINES
           </p>
-          <p className="hidden sm:block text-xs sm:text-sm text-white opacity-85 leading-[1.6] mb-4 sm:mb-5">
+          <p className="hidden sm:block text-xs sm:text-sm text-white/85 leading-relaxed mb-4">
             The artwork is stunning, shipped fully prepared. The finish is a vision, the 3D craft is
             flawless. Many thanks! Wishing you the win. Order now.
           </p>
@@ -262,7 +266,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
               type="button"
               onClick={() => navigate('prev')}
               aria-label="Previous figurine"
-              className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center rounded-full bg-transparent border-2 border-white text-white cursor-pointer hover:scale-[1.08] hover:bg-white/[0.12] transition-all duration-150 active:scale-95"
+              className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center rounded-full bg-transparent border-2 border-white text-white cursor-pointer hover:scale-[1.08] hover:bg-white/[0.12] transition-all duration-150 active:scale-95 shadow-md"
             >
               <ArrowLeft size={26} strokeWidth={2.25} />
             </button>
@@ -270,7 +274,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
               type="button"
               onClick={() => navigate('next')}
               aria-label="Next figurine"
-              className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center rounded-full bg-transparent border-2 border-white text-white cursor-pointer hover:scale-[1.08] hover:bg-white/[0.12] transition-all duration-150 active:scale-95"
+              className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center rounded-full bg-transparent border-2 border-white text-white cursor-pointer hover:scale-[1.08] hover:bg-white/[0.12] transition-all duration-150 active:scale-95 shadow-md"
             >
               <ArrowRight size={26} strokeWidth={2.25} />
             </button>
@@ -280,9 +284,8 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
         {/* 6. Bottom-right link "DISCOVER IT" */}
         <a
           onClick={handleDiscover}
-          className="absolute bottom-6 right-4 sm:bottom-20 sm:right-10 flex items-center gap-2 text-white uppercase no-underline cursor-pointer group transition-opacity duration-200 hover:opacity-100"
+          className="absolute bottom-6 right-4 sm:bottom-16 sm:right-10 z-[60] flex items-center gap-2 text-white uppercase no-underline cursor-pointer group transition-opacity duration-200 hover:opacity-100 pointer-events-auto"
           style={{
-            zIndex: 60,
             fontFamily: "'Anton', sans-serif",
             fontSize: 'clamp(20px, 4vw, 56px)',
             fontWeight: 400,

@@ -195,16 +195,7 @@ export function AiCompanionPage() {
 
   return (
     <div className="bg-[#0C0C0C] text-[#D7E2EA] font-kanit min-h-screen overflow-x-clip selection:bg-[#B600A8] selection:text-white relative">
-      
-      {/* Floating Back to Noerax Button */}
-      <div className="fixed top-5 left-5 z-50">
-        <Link
-          to="/"
-          className="px-4 py-2 rounded-full bg-[#18181b]/80 border border-white/20 text-xs font-semibold uppercase tracking-wider text-white hover:bg-white hover:text-[#0C0C0C] transition-all shadow-2xl flex items-center gap-1.5 backdrop-blur-md"
-        >
-          <ChevronLeft className="w-4 h-4" /> Back to Noerax
-        </Link>
-      </div>
+
 
       {/* ====================================================================
           1. TOONHUB HERO SECTION (Character Figurine Carousel with Personality)
