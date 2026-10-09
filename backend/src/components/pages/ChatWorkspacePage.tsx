@@ -324,6 +324,34 @@ export function ChatWorkspacePage() {
               return m;
             })
           }));
+          const searchParams = new URLSearchParams(window.location.search);
+          const botParam = searchParams.get('bot');
+          const targetBotName = botParam ? decodeURIComponent(botParam).trim() : null;
+
+          if (targetBotName) {
+            const existingWithBot = sanitized.find((s) => s.botName?.toLowerCase() === targetBotName.toLowerCase());
+            if (existingWithBot) {
+              setSessions(sanitized);
+              setActiveSessionId(existingWithBot.id);
+              return;
+            }
+            const newCompanionSession: ChatSession = {
+              id: `session-${Date.now()}`,
+              title: `Chat with ${targetBotName}`,
+              botName: targetBotName,
+              createdAt: new Date().toISOString(),
+              messages: [{ ...WELCOME_PLACEHOLDER }]
+            };
+            const updated = [newCompanionSession, ...sanitized];
+            setSessions(updated);
+            setActiveSessionId(newCompanionSession.id);
+            try {
+              localStorage.setItem('noerax_chat_sessions', JSON.stringify(updated));
+            } catch (e) {}
+            generateWelcome(newCompanionSession.id, targetBotName);
+            return;
+          }
+
           setSessions(sanitized);
           setActiveSessionId(sanitized[0].id);
           return;
@@ -331,11 +359,15 @@ export function ChatWorkspacePage() {
       }
     } catch (e) {}
 
+    const searchParams = new URLSearchParams(window.location.search);
+    const botParam = searchParams.get('bot');
+    const defaultBot = botParam ? decodeURIComponent(botParam).trim() : 'Noerax';
+
     // Initial default session if none exists
     const initialSession: ChatSession = {
       id: `session-${Date.now()}`,
-      title: 'New Conversation',
-      botName: 'Noerax',
+      title: defaultBot !== 'Noerax' ? `Chat with ${defaultBot}` : 'New Conversation',
+      botName: defaultBot,
       createdAt: new Date().toISOString(),
       messages: [{ ...WELCOME_PLACEHOLDER }]
     };
@@ -343,7 +375,7 @@ export function ChatWorkspacePage() {
     setActiveSessionId(initialSession.id);
     localStorage.setItem('noerax_chat_sessions', JSON.stringify([initialSession]));
     // Kick off live AI welcome
-    generateWelcome(initialSession.id, 'Noerax');
+    generateWelcome(initialSession.id, defaultBot);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Save sessions to localStorage whenever sessions state changes

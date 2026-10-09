@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform } from 'motion/react';
 import { ArrowUpRight, ChevronLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ToonhubHero } from '../sections/ToonhubHero';
 
 // ============================================================================
 // REUSABLE COMPONENTS
@@ -206,69 +207,9 @@ export function AiCompanionPage() {
       </div>
 
       {/* ====================================================================
-          1. HERO SECTION (z-30 to ensure 3D portrait layers above ribbon)
+          1. TOONHUB HERO SECTION (Character Figurine Carousel with Personality)
          ==================================================================== */}
-      <section className="h-screen flex flex-col justify-between overflow-x-clip relative px-4 sm:px-6 md:px-10 pb-6 md:pb-10 pt-4 z-30">
-        
-        {/* Navbar */}
-        <FadeIn delay={0} y={-20} className="w-full">
-          <nav className="w-full flex items-center justify-between pt-6 md:pt-8 px-2 sm:px-6 md:px-10 text-[#D7E2EA] font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem]">
-            <a onClick={() => scrollToSection('about')} className="cursor-pointer hover:opacity-70 transition-opacity duration-200">About</a>
-            <a onClick={() => scrollToSection('services')} className="cursor-pointer hover:opacity-70 transition-opacity duration-200">Services</a>
-            <a href="https://chat.whatsapp.com/CVCvK4znqHA5ZYvwABdv43" target="_blank" rel="noopener noreferrer" className="cursor-pointer hover:text-emerald-400 transition-colors duration-200 flex items-center gap-1">Community ↗</a>
-          </nav>
-        </FadeIn>
-
-        {/* Massive Hero Heading */}
-        <div className="w-full z-0 mt-6 sm:mt-4 md:-mt-5 text-center overflow-visible px-2 sm:px-4">
-          <FadeIn delay={0.15} y={40} className="w-full flex justify-center">
-            <h1 className="hero-heading font-black uppercase tracking-tight leading-none whitespace-nowrap text-[9.2vw] sm:text-[9.8vw] md:text-[10.2vw] lg:text-[10.6vw] xl:text-[11vw] w-full text-center select-none">
-              hi, i'm noerax
-            </h1>
-          </FadeIn>
-        </div>
-
-        {/* Centered Absolute Hero Portrait with Magnet Mouse Tracker (z-40 front layer) */}
-        <div className="absolute left-1/2 -translate-x-1/2 z-40 w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px] top-1/2 -translate-y-1/2 sm:top-auto sm:translate-y-0 sm:bottom-0 pointer-events-auto">
-          <FadeIn delay={0.6} y={30} className="w-full flex justify-center">
-            <Magnet padding={150} strength={3} className="w-full">
-              <img
-                src="https://shrug-person-78902957.figma.site/_components/v2/d24c01ad3a56fc65e942a1f501eb73db42d7cf9a/Rectangle_40443.81459862.png"
-                alt="Jack 3D Creator Portrait"
-                className="w-full h-auto object-contain drop-shadow-[0_25px_50px_rgba(0,0,0,0.9)]"
-              />
-            </Magnet>
-          </FadeIn>
-        </div>
-
-        {/* Bottom Bar */}
-        <div className="w-full flex justify-between items-end pb-7 sm:pb-8 md:pb-10 z-20 relative px-2 sm:px-4">
-          {/* Left Community Link for Early Access */}
-          <FadeIn delay={0.35} y={20}>
-            <a
-              href="https://chat.whatsapp.com/CVCvK4znqHA5ZYvwABdv43"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group block text-[#D7E2EA] font-light uppercase tracking-wide leading-snug text-[clamp(0.75rem,1.4vw,1.5rem)] max-w-[180px] sm:max-w-[240px] md:max-w-[280px] hover:text-white transition-colors cursor-pointer"
-            >
-              <span className="block text-emerald-400 font-semibold text-[10px] sm:text-xs tracking-widest mb-1 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse inline-block" />
-                WhatsApp Community
-              </span>
-              <span>Join community for early access</span>
-              <span className="inline-block ml-1 text-white/80 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform">↗</span>
-            </a>
-          </FadeIn>
-
-          {/* Right Community Button */}
-          <FadeIn delay={0.5} y={20}>
-            <ContactButton
-              label="Join Community"
-              onClick={() => window.open('https://chat.whatsapp.com/CVCvK4znqHA5ZYvwABdv43', '_blank', 'noopener,noreferrer')}
-            />
-          </FadeIn>
-        </div>
-      </section>
+      <ToonhubHero />
 
       {/* ====================================================================
           2. SLIM ANIMATED WHITE RIBBON (z-10 layer behind character face)
