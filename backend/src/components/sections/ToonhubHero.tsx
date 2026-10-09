@@ -986,61 +986,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
                   </div>
                 </div>
 
-                {/* DANCE STYLE SELECTOR PILLS */}
-                <div className="flex items-center gap-1.5 p-1 rounded-full bg-black/40 backdrop-blur-xl border border-white/20 shadow-lg">
-                  <button
-                    onClick={() => setDanceStyle('groove')}
-                    className={
-                      'px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all flex items-center gap-1 cursor-pointer ' +
-                      (danceStyle === 'groove'
-                        ? 'bg-white text-black shadow-md scale-105'
-                        : 'text-white/80 hover:text-white hover:bg-white/10')
-                    }
-                  >
-                    <span>🕺 Groove</span>
-                  </button>
-                  <button
-                    onClick={() => setDanceStyle('hype')}
-                    className={
-                      'px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all flex items-center gap-1 cursor-pointer ' +
-                      (danceStyle === 'hype'
-                        ? 'bg-amber-400 text-black shadow-md scale-105'
-                        : 'text-white/80 hover:text-white hover:bg-white/10')
-                    }
-                  >
-                    <span>⚡ Hype</span>
-                  </button>
-                  <button
-                    onClick={() => setDanceStyle('chill')}
-                    className={
-                      'px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all flex items-center gap-1 cursor-pointer ' +
-                      (danceStyle === 'chill'
-                        ? 'bg-emerald-400 text-black shadow-md scale-105'
-                        : 'text-white/80 hover:text-white hover:bg-white/10')
-                    }
-                  >
-                    <span>🌊 Chill</span>
-                  </button>
-                  <button
-                    onClick={() => setDanceStyle('wiggle')}
-                    className={
-                      'px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all flex items-center gap-1 cursor-pointer ' +
-                      (danceStyle === 'wiggle'
-                        ? 'bg-pink-400 text-white shadow-md scale-105'
-                        : 'text-white/80 hover:text-white hover:bg-white/10')
-                    }
-                  >
-                    <span>💖 Wiggle</span>
-                  </button>
-                  <button
-                    onClick={(e) => triggerCheerCelebration(e)}
-                    className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/20 hover:bg-white/35 text-white transition-all flex items-center gap-1 cursor-pointer active:scale-95"
-                    title="Cheer Jump!"
-                  >
-                    <PartyPopper size={12} className="text-amber-300" />
-                    <span>Spin!</span>
-                  </button>
-                </div>
+                
               </div>
 
               {/* Ambient Glowing Dance Floor Backdrop */}
