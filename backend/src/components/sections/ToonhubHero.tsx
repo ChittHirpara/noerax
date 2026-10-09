@@ -143,6 +143,34 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
   
   // Dedicated ref to scroll ONLY the chat messages container internally
   const chatMessagesContainerRef = useRef<HTMLDivElement>(null);
+  // Session tracking: unique ID per companion conversation & active time
+  const currentSessionIdRef = useRef<string>('');
+  const sessionStartTimeRef = useRef<number>(Date.now());
+
+  // Initialize fresh session when character changes
+  useEffect(() => {
+    currentSessionIdRef.current = `comp_${activeChar.name.toLowerCase()}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    sessionStartTimeRef.current = Date.now();
+  }, [activeIndex]);
+
+  // Periodic heartbeat every 15s while chat is open to track total talk time in database
+  useEffect(() => {
+    if (!isChatOpen) return;
+    const interval = setInterval(() => {
+      const activeSeconds = Math.max(1, Math.round((Date.now() - sessionStartTimeRef.current) / 1000));
+      fetch('/api/companion/session/heartbeat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: currentSessionIdRef.current,
+          activeDurationSeconds: activeSeconds,
+        }),
+      }).catch(() => {});
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, [isChatOpen]);
+
   // Interactive Thought Bubble & Mouse Parallax
   const [thoughtIndex, setThoughtIndex] = useState(0);
   const [mouseTilt, setMouseTilt] = useState({ x: 0, y: 0 });
@@ -247,6 +275,17 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
 
   const handleCloseChat = () => {
     setIsChatOpen(false);
+    if (currentSessionIdRef.current) {
+      const activeSeconds = Math.max(1, Math.round((Date.now() - sessionStartTimeRef.current) / 1000));
+      fetch('/api/companion/session/heartbeat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: currentSessionIdRef.current,
+          activeDurationSeconds: activeSeconds,
+        }),
+      }).catch(() => {});
+    }
   };
 
   // Burst confetti & cheer celebration
@@ -342,13 +381,25 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
           content: m.content,
         }));
 
+      const token = typeof window !== 'undefined' ? localStorage.getItem('noerax_token') : null;
+      let guestId = typeof window !== 'undefined' ? localStorage.getItem('noerax_guest_id') : null;
+      if (!guestId && typeof window !== 'undefined') {
+        guestId = 'guest_' + Math.random().toString(36).substring(2, 10);
+        localStorage.setItem('noerax_guest_id', guestId);
+      }
+
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           message: promptText,
           history: historyPayload,
           botName: activeChar.name,
+          sessionId: currentSessionIdRef.current,
+          guestId: guestId || undefined,
         }),
       });
 

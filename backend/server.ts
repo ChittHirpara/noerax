@@ -22,6 +22,7 @@ import { OAuth2Client } from "google-auth-library";
 dotenv.config();
 
 import { User } from "./src/models/User";
+import { CompanionChat } from "./src/models/CompanionChat";
 import { Journal } from "./src/models/Journal";
 import { Streak } from "./src/models/Streak";
 import { Subscriber } from "./src/models/Subscriber";
@@ -811,13 +812,91 @@ Journal entry: "${cleanEntry}"`;
   };
 
   app.post("/api/chat", async (req: Request, res: Response) => {
-    const { message, history, botName } = req.body;
+    const { message, history, botName, sessionId, guestId } = req.body;
     if (!message || typeof message !== "string" || !message.trim()) {
       return res.status(400).json({ error: "Message is required." });
     }
     const cleanMessage = message.trim().slice(0, 3000);
     const currentBotName = botName && botName.trim() ? botName.trim() : "Noerax";
     const isCustomName = currentBotName.toLowerCase() !== "noerax";
+
+    // -------------------------------------------------------------
+    // EXTRACT USER & INITIALIZE COMPANION DATABASE SESSION
+    // -------------------------------------------------------------
+    let authUserId: string | undefined;
+    let authUserEmail: string | undefined;
+    let authUserName: string | undefined;
+
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      try {
+        const token = authHeader.split(" ")[1];
+        const decoded = jwt.verify(token, JWT_SECRET!) as { userId: string; email: string };
+        authUserId = decoded.userId;
+        authUserEmail = decoded.email;
+        const userDoc = await User.findById(decoded.userId).select("name email").lean();
+        if (userDoc) {
+          authUserName = (userDoc as any).name;
+        }
+      } catch {}
+    }
+
+    const roleMapping: Record<string, string> = {
+      Ember: 'The Best Friend 🫂',
+      Sage: 'The Caring Companion 💗',
+      Luna: 'The Romantic Companion 🌹',
+      Nova: 'The Savage Bestie 😈',
+    };
+    const companionRole = roleMapping[currentBotName] || 'Companion';
+
+    const activeSessionId = sessionId && String(sessionId).trim() 
+      ? String(sessionId).trim() 
+      : `comp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    const effectiveGuestId = guestId && String(guestId).trim() ? String(guestId).trim() : undefined;
+
+    // Record User message in MongoDB Atlas
+    const chatStartTime = new Date();
+    try {
+      let sessionDoc = await CompanionChat.findOne({ sessionId: activeSessionId });
+      if (!sessionDoc) {
+        sessionDoc = new CompanionChat({
+          sessionId: activeSessionId,
+          userId: authUserId,
+          userEmail: authUserEmail,
+          userName: authUserName || (effectiveGuestId ? `Guest (${effectiveGuestId.slice(0, 6)})` : 'Guest'),
+          guestId: effectiveGuestId,
+          companionName: currentBotName,
+          companionRole,
+          sessionStartTime: chatStartTime,
+          lastActiveTime: chatStartTime,
+          durationSeconds: 0,
+          messagesCount: 1,
+          userMessagesCount: 1,
+          messages: [{
+            role: 'user',
+            content: cleanMessage,
+            timestamp: chatStartTime,
+          }],
+        });
+      } else {
+        sessionDoc.lastActiveTime = chatStartTime;
+        if (authUserId && !sessionDoc.userId) {
+          sessionDoc.userId = authUserId;
+          sessionDoc.userEmail = authUserEmail;
+          sessionDoc.userName = authUserName || sessionDoc.userName;
+        }
+        sessionDoc.messagesCount += 1;
+        sessionDoc.userMessagesCount += 1;
+        sessionDoc.messages.push({
+          role: 'user',
+          content: cleanMessage,
+          timestamp: chatStartTime,
+        });
+      }
+      await sessionDoc.save();
+    } catch (dbErr) {
+      console.error('Failed to log companion user chat to DB:', dbErr);
+    }
 
     // -------------------------------------------------------------
     // RUN WISDOM GUIDANCE LAYER (User Architecture Pipeline)
@@ -936,13 +1015,39 @@ SUGGESTIONS: ["First follow-up?", "Second follow-up?", "Third follow-up?"]
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
 
-    // Helper to stream text to client
+    // Helper to stream text to client & accumulate full response
+    let accumulatedAssistantText = '';
     const streamText = (text: string) => {
-      res.write(`data: ${JSON.stringify({ text })}\n\n`);
+      accumulatedAssistantText += text;
+      res.write(`data: ${JSON.stringify({ text, sessionId: activeSessionId })}\n\n`);
     };
-    const finishStream = () => {
+
+    const finishStream = async () => {
       res.write('data: [DONE]\n\n');
       res.end();
+
+      // Finalize and save assistant message and total conversation duration to MongoDB
+      try {
+        const finishTime = new Date();
+        const sessionRecord = await CompanionChat.findOne({ sessionId: activeSessionId });
+        if (sessionRecord) {
+          const totalSeconds = Math.max(
+            1,
+            Math.round((finishTime.getTime() - new Date(sessionRecord.sessionStartTime).getTime()) / 1000)
+          );
+          sessionRecord.lastActiveTime = finishTime;
+          sessionRecord.durationSeconds = totalSeconds;
+          sessionRecord.messagesCount += 1;
+          sessionRecord.messages.push({
+            role: 'assistant',
+            content: accumulatedAssistantText.trim(),
+            timestamp: finishTime,
+          });
+          await sessionRecord.save();
+        }
+      } catch (saveErr) {
+        console.error('Failed to update companion chat duration in DB:', saveErr);
+      }
     };
 
     // 1. TRY GROQ STREAMING (Rotates across all configured Groq keys & models)
@@ -1315,6 +1420,119 @@ SUGGESTIONS: ["First follow-up?", "Second follow-up?", "Third follow-up?"]
   // -------------------------------------------------------------
   // SERVE FRONTEND (Vite / Production Static)
   // -------------------------------------------------------------
+  
+  // =========================================================================
+  // COMPANION DATABASE ANALYTICS & TIME TRACKING ENDPOINTS
+  // =========================================================================
+
+  // Update session duration heartbeat (called periodically or when closing chat)
+  app.post("/api/companion/session/heartbeat", async (req: Request, res: Response) => {
+    try {
+      const { sessionId, activeDurationSeconds } = req.body;
+      if (!sessionId) {
+        return res.status(400).json({ error: "sessionId is required" });
+      }
+      const session = await CompanionChat.findOne({ sessionId });
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+
+      const now = new Date();
+      session.lastActiveTime = now;
+      if (typeof activeDurationSeconds === 'number' && activeDurationSeconds > 0) {
+        session.durationSeconds = Math.max(session.durationSeconds, Math.round(activeDurationSeconds));
+      } else {
+        session.durationSeconds = Math.max(
+          session.durationSeconds,
+          Math.round((now.getTime() - new Date(session.sessionStartTime).getTime()) / 1000)
+        );
+      }
+      await session.save();
+
+      res.json({
+        success: true,
+        sessionId: session.sessionId,
+        durationSeconds: session.durationSeconds,
+        durationFormatted: Math.round(session.durationSeconds / 60) + ' min',
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || "Failed to update heartbeat" });
+    }
+  });
+
+  // Get full companion analytics (total conversations, talk time, breakdown by character)
+  app.get("/api/companion/analytics", async (req: Request, res: Response) => {
+    try {
+      const totalSessions = await CompanionChat.countDocuments();
+      const allSessions = await CompanionChat.find().sort({ lastActiveTime: -1 }).limit(100).lean();
+
+      // Aggregate total talk time in seconds
+      let totalDurationSeconds = 0;
+      let totalMessages = 0;
+      const companionStats: Record<string, { count: number; totalSeconds: number; messages: number }> = {
+        Ember: { count: 0, totalSeconds: 0, messages: 0 },
+        Sage: { count: 0, totalSeconds: 0, messages: 0 },
+        Luna: { count: 0, totalSeconds: 0, messages: 0 },
+        Nova: { count: 0, totalSeconds: 0, messages: 0 },
+      };
+
+      for (const s of allSessions) {
+        totalDurationSeconds += s.durationSeconds || 0;
+        totalMessages += s.messagesCount || 0;
+        const name = s.companionName || 'Other';
+        if (!companionStats[name]) {
+          companionStats[name] = { count: 0, totalSeconds: 0, messages: 0 };
+        }
+        companionStats[name].count += 1;
+        companionStats[name].totalSeconds += s.durationSeconds || 0;
+        companionStats[name].messages += s.messagesCount || 0;
+      }
+
+      res.json({
+        success: true,
+        totalSessions,
+        totalTalkTimeSeconds: totalDurationSeconds,
+        totalTalkTimeMinutes: Math.round((totalDurationSeconds / 60) * 10) / 10,
+        totalMessages,
+        companions: Object.entries(companionStats).map(([name, data]) => ({
+          companionName: name,
+          conversationsCount: data.count,
+          totalDurationSeconds: data.totalSeconds,
+          totalDurationMinutes: Math.round((data.totalSeconds / 60) * 10) / 10,
+          messagesCount: data.messages,
+        })),
+        recentConversations: allSessions.slice(0, 15).map((s) => ({
+          sessionId: s.sessionId,
+          userName: s.userName || 'Guest',
+          userEmail: s.userEmail || undefined,
+          userId: s.userId || undefined,
+          companionName: s.companionName,
+          companionRole: s.companionRole,
+          durationSeconds: s.durationSeconds,
+          durationFormatted: Math.round(s.durationSeconds / 60) + ' min',
+          messagesCount: s.messagesCount,
+          startedAt: s.sessionStartTime,
+          lastActiveAt: s.lastActiveTime,
+        })),
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || "Failed to fetch analytics" });
+    }
+  });
+
+  // Get specific session chat history transcript
+  app.get("/api/companion/history/:sessionId", async (req: Request, res: Response) => {
+    try {
+      const session = await CompanionChat.findOne({ sessionId: req.params.sessionId }).lean();
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      res.json({ success: true, session });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || "Failed to fetch session history" });
+    }
+  });
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
