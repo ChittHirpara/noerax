@@ -9,6 +9,14 @@ import {
   Music,
   RotateCcw,
   MessageCircle,
+  Volume2,
+  VolumeX,
+  Heart,
+  Flame,
+  Zap,
+  Waves,
+  Smile,
+  PartyPopper,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -19,6 +27,7 @@ export interface ToonhubCharacter {
   name: string;
   personality: string;
   description: string;
+  vibeGenre: string;
 }
 
 export const IMAGES: ToonhubCharacter[] = [
@@ -29,6 +38,7 @@ export const IMAGES: ToonhubCharacter[] = [
     name: 'Ember',
     personality: 'The Hype & Fire Motivator',
     description: 'High energy, unyielding optimism, and the friend who pumps you up before any challenge.',
+    vibeGenre: 'High-BPM Hype Dance',
   },
   {
     src: 'https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/2.b977faab.png',
@@ -37,6 +47,7 @@ export const IMAGES: ToonhubCharacter[] = [
     name: 'Sage',
     personality: 'The Calm & Grounded Realist',
     description: 'Brings stillness to mental storms, grounded clarity, and steady, thoughtful presence.',
+    vibeGenre: 'Lo-Fi Chill Bounce',
   },
   {
     src: 'https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/3.4df853b4.png',
@@ -45,6 +56,7 @@ export const IMAGES: ToonhubCharacter[] = [
     name: 'Luna',
     personality: 'The Gentle & Empathetic Soul',
     description: 'Understands emotions deeply, holds space without judgement, and listens with warmth.',
+    vibeGenre: 'Dreamy Soft Groove',
   },
   {
     src: 'https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/4.4457fbce.png',
@@ -53,6 +65,7 @@ export const IMAGES: ToonhubCharacter[] = [
     name: 'Nova',
     personality: 'The Witty & Sharp Strategist',
     description: 'Playful humor, quick internet brain, sharp perspectives, and practical solutions.',
+    vibeGenre: 'Electro Funky Beat',
   },
 ];
 
@@ -86,11 +99,22 @@ const QUICK_PROMPTS: Record<string, string[]> = {
   ],
 };
 
+type DanceStyle = 'groove' | 'hype' | 'chill' | 'wiggle';
+
 interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   suggestions?: string[];
+}
+
+interface FloatingBurstParticle {
+  id: number;
+  emoji: string;
+  x: number;
+  y: number;
+  angle: number;
+  distance: number;
 }
 
 export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: ToonhubCharacter) => void }) {
@@ -105,6 +129,12 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  
+  // Dance & Animation controls
+  const [danceStyle, setDanceStyle] = useState<DanceStyle>('groove');
+  const [cheerTrigger, setCheerTrigger] = useState(0);
+  const [burstParticles, setBurstParticles] = useState<FloatingBurstParticle[]>([]);
+  const [spotlightAngle, setSpotlightAngle] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Preload all 4 images on mount
@@ -123,6 +153,14 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
   }, []);
 
   const activeChar = IMAGES[activeIndex];
+
+  // Set default dance style tailored to character
+  useEffect(() => {
+    if (activeChar.name === 'Ember') setDanceStyle('hype');
+    else if (activeChar.name === 'Sage') setDanceStyle('chill');
+    else if (activeChar.name === 'Luna') setDanceStyle('wiggle');
+    else setDanceStyle('groove');
+  }, [activeIndex]);
 
   // Initialize or reset companion messages when active character changes or chat opens
   useEffect(() => {
@@ -165,6 +203,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
 
   const handleOpenChat = () => {
     setIsChatOpen(true);
+    triggerCheerCelebration();
     if (onSelectCharacter) {
       onSelectCharacter(activeChar);
     }
@@ -172,6 +211,33 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
 
   const handleCloseChat = () => {
     setIsChatOpen(false);
+  };
+
+  // Burst confetti & cheer celebration
+  const triggerCheerCelebration = (e?: React.MouseEvent) => {
+    setCheerTrigger((prev) => prev + 1);
+
+    const emojis = ['✨', '⭐', '🎉', '🔥', '💖', '🎵', '💫', '⚡', '🌟', '💃', '🕺', '🎶'];
+    const newParticles: FloatingBurstParticle[] = [];
+    const count = 14;
+
+    for (let i = 0; i < count; i++) {
+      const angle = (i / count) * 360 + (Math.random() * 20 - 10);
+      const distance = 90 + Math.random() * 110;
+      newParticles.push({
+        id: Date.now() + i,
+        emoji: emojis[Math.floor(Math.random() * emojis.length)],
+        x: 0,
+        y: 0,
+        angle,
+        distance,
+      });
+    }
+
+    setBurstParticles(newParticles);
+    setTimeout(() => {
+      setBurstParticles([]);
+    }, 1200);
   };
 
   // Helper to parse suggestions from AI stream
@@ -217,6 +283,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
     const updated = [...messages, userMsg, aiMsgPlaceholder];
     setMessages(updated);
     setIsStreaming(true);
+    triggerCheerCelebration();
 
     try {
       const historyPayload = messages
@@ -305,6 +372,23 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
   const noiseSvg =
     "data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E";
 
+  // Determine active dance class
+  const getDanceClass = () => {
+    if (cheerTrigger > 0) return 'dance-cheer-flip';
+    if (isStreaming) return 'dance-turbo-beat';
+    switch (danceStyle) {
+      case 'hype':
+        return 'dance-hype-bop';
+      case 'chill':
+        return 'dance-lofi-wave';
+      case 'wiggle':
+        return 'dance-happy-wiggle';
+      case 'groove':
+      default:
+        return 'dance-multi-groove';
+    }
+  };
+
   return (
     <div
       style={{
@@ -314,82 +398,302 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
       }}
       className="relative w-full overflow-hidden select-none"
     >
-      {/* Dynamic Keyframe Animations for Figurine Dance & Music Effects */}
+      {/* ============================================================= */}
+      {/* ULTRA-FLUID 3D KEYFRAME ANIMATIONS & PARTICLES */}
+      {/* ============================================================= */}
       <style>{`
-        @keyframes toonhubDance {
+        /* 0. Idle Breathing Float for Carousel Mode */
+        @keyframes toonhubIdleBreathe {
+          0%, 100% {
+            transform: translateX(-50%) translateY(0px) scale(1) rotateZ(0deg);
+          }
+          35% {
+            transform: translateX(-50%) translateY(-14px) scale(1.02) rotateZ(1deg);
+          }
+          70% {
+            transform: translateX(-50%) translateY(-6px) scale(1.01) rotateZ(-0.8deg);
+          }
+        }
+
+        /* 1. Dance Style: Multi-Groove (Squash, Stretch, Hip Sway, Foot Tap) */
+        @keyframes toonhubMultiGroove {
           0% {
-            transform: translateY(0px) rotate(0deg) scale(1.04);
+            transform: translateY(0px) rotateZ(0deg) rotateY(0deg) scale(1, 1);
+          }
+          14% {
+            /* Foot step squash left */
+            transform: translateY(4px) rotateZ(-3.5deg) rotateY(-8deg) scale(1.06, 0.94);
+          }
+          28% {
+            /* Leap stretch */
+            transform: translateY(-30px) rotateZ(-6deg) rotateY(-12deg) scale(0.94, 1.08);
+          }
+          42% {
+            /* Crest float */
+            transform: translateY(-18px) rotateZ(-1.5deg) rotateY(-4deg) scale(1, 1.02);
+          }
+          56% {
+            /* Landing squash center */
+            transform: translateY(3px) rotateZ(3deg) rotateY(6deg) scale(1.06, 0.94);
+          }
+          70% {
+            /* Leaping stretch right */
+            transform: translateY(-36px) rotateZ(6.5deg) rotateY(12deg) scale(0.93, 1.09);
+          }
+          84% {
+            /* Drop float */
+            transform: translateY(-12px) rotateZ(1.5deg) rotateY(4deg) scale(1.01, 1);
+          }
+          92% {
+            /* Micro rebound */
+            transform: translateY(-3px) rotateZ(-0.5deg) rotateY(-1deg) scale(1.03, 0.97);
+          }
+          100% {
+            transform: translateY(0px) rotateZ(0deg) rotateY(0deg) scale(1, 1);
+          }
+        }
+
+        /* 2. Dance Style: Hype Bop (Energetic, Fast Pop, Sharp Bounce) */
+        @keyframes toonhubHypeBop {
+          0%, 100% {
+            transform: translateY(0px) rotateZ(0deg) scale(1, 1);
           }
           15% {
-            transform: translateY(-22px) rotate(-4deg) scale(1.08);
+            transform: translateY(-24px) rotateZ(-5deg) rotateY(-10deg) scale(0.95, 1.08);
           }
           30% {
-            transform: translateY(2px) rotate(2.5deg) scale(1.02);
+            transform: translateY(4px) rotateZ(0deg) rotateY(0deg) scale(1.07, 0.93);
           }
           45% {
-            transform: translateY(-32px) rotate(4.5deg) scale(1.1);
+            transform: translateY(-32px) rotateZ(6deg) rotateY(12deg) scale(0.94, 1.1);
           }
           60% {
-            transform: translateY(-6px) rotate(-3deg) scale(1.04);
+            transform: translateY(2px) rotateZ(2deg) rotateY(4deg) scale(1.05, 0.95);
           }
           75% {
-            transform: translateY(-20px) rotate(-3.5deg) scale(1.08);
+            transform: translateY(-26px) rotateZ(-4deg) rotateY(-8deg) scale(0.96, 1.06);
           }
           88% {
-            transform: translateY(-2px) rotate(2deg) scale(1.03);
-          }
-          100% {
-            transform: translateY(0px) rotate(0deg) scale(1.04);
+            transform: translateY(3px) rotateZ(1deg) rotateY(2deg) scale(1.04, 0.96);
           }
         }
 
-        @keyframes toonhubShadow {
-          0%, 100% {
-            transform: scale(1);
-            opacity: 0.35;
+        /* 3. Dance Style: Lo-Fi Chill Wave (Hypnotic, Silky, Sine Floating) */
+        @keyframes toonhubLofiWave {
+          0% {
+            transform: translateY(0px) rotateZ(0deg) rotateY(0deg) scale(1, 1);
           }
-          45% {
-            transform: scale(0.65);
-            opacity: 0.15;
+          25% {
+            transform: translateY(-18px) rotateZ(-4deg) rotateY(-6deg) scale(1.02, 1.02);
+          }
+          50% {
+            transform: translateY(-4px) rotateZ(0deg) rotateY(0deg) scale(1.04, 0.97);
           }
           75% {
-            transform: scale(0.85);
-            opacity: 0.25;
-          }
-        }
-
-        @keyframes floatMusicNote {
-          0% {
-            transform: translateY(0) scale(0.5) rotate(0deg);
-            opacity: 0;
-          }
-          40% {
-            opacity: 1;
+            transform: translateY(-22px) rotateZ(4deg) rotateY(6deg) scale(1.02, 1.02);
           }
           100% {
-            transform: translateY(-90px) scale(1.1) rotate(20deg);
+            transform: translateY(0px) rotateZ(0deg) rotateY(0deg) scale(1, 1);
+          }
+        }
+
+        /* 4. Dance Style: Happy Wiggle (Cute Side-to-Side Shoulder & Ear Bop) */
+        @keyframes toonhubHappyWiggle {
+          0%, 100% {
+            transform: translateY(0px) rotateZ(-6deg) rotateY(-6deg) scale(1.03, 0.97);
+          }
+          25% {
+            transform: translateY(-16px) rotateZ(0deg) rotateY(0deg) scale(0.97, 1.05);
+          }
+          50% {
+            transform: translateY(2px) rotateZ(6deg) rotateY(6deg) scale(1.04, 0.96);
+          }
+          75% {
+            transform: translateY(-14px) rotateZ(0deg) rotateY(0deg) scale(0.98, 1.04);
+          }
+        }
+
+        /* 5. Special AI Turbo Beat (When AI is streaming live response) */
+        @keyframes toonhubTurboBeat {
+          0%, 100% {
+            transform: translateY(0px) rotateZ(0deg) scale(1, 1);
+          }
+          20% {
+            transform: translateY(-32px) rotateZ(-7deg) rotateY(-10deg) scale(0.92, 1.11);
+          }
+          40% {
+            transform: translateY(5px) rotateZ(0deg) rotateY(0deg) scale(1.08, 0.92);
+          }
+          60% {
+            transform: translateY(-38px) rotateZ(7deg) rotateY(10deg) scale(0.92, 1.12);
+          }
+          80% {
+            transform: translateY(2px) rotateZ(-2deg) rotateY(-3deg) scale(1.05, 0.95);
+          }
+        }
+
+        /* 6. Click Celebration 360 Spin Flip Jump */
+        @keyframes toonhubCheerFlip {
+          0% {
+            transform: translateY(0) scale(1) rotateY(0deg) rotateZ(0deg);
+          }
+          25% {
+            transform: translateY(-56px) scale(1.18) rotateY(180deg) rotateZ(4deg);
+          }
+          55% {
+            transform: translateY(-28px) scale(1.1) rotateY(360deg) rotateZ(-2deg);
+          }
+          80% {
+            transform: translateY(5px) scale(1.08, 0.92) rotateY(360deg) rotateZ(0deg);
+          }
+          100% {
+            transform: translateY(0) scale(1) rotateY(360deg) rotateZ(0deg);
+          }
+        }
+
+        /* 7. Stage Ground Shadow Dynamic Pulsing */
+        @keyframes stageShadowSync {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.45;
+          }
+          28%, 70% {
+            transform: scale(0.6);
+            opacity: 0.15;
+          }
+          45%, 85% {
+            transform: scale(0.88);
+            opacity: 0.32;
+          }
+        }
+
+        /* 8. Stage Neon Circular Ripple Expansions */
+        @keyframes stageRippleWave {
+          0% {
+            transform: scale(0.55) rotateX(62deg);
+            opacity: 0.9;
+          }
+          100% {
+            transform: scale(2.4) rotateX(62deg);
             opacity: 0;
           }
         }
 
-        .animate-toonhub-dance {
-          animation: toonhubDance 2.2s ease-in-out infinite;
+        /* 9. Floating Ambient Music & Star Particles */
+        @keyframes floatParticleDrift {
+          0% {
+            transform: translateY(0) translateX(0) scale(0.4) rotate(0deg);
+            opacity: 0;
+          }
+          20% {
+            opacity: 0.95;
+          }
+          60% {
+            opacity: 0.85;
+            transform: translateY(-70px) translateX(-18px) scale(1.1) rotate(18deg);
+          }
+          100% {
+            transform: translateY(-135px) translateX(24px) scale(1.3) rotate(35deg);
+            opacity: 0;
+          }
+        }
+
+        /* 10. Click Radial Burst Particles */
+        @keyframes burstExplosion {
+          0% {
+            transform: translate(0, 0) scale(0.3);
+            opacity: 1;
+          }
+          80% {
+            opacity: 0.9;
+          }
+          100% {
+            transform: translate(var(--tx), var(--ty)) scale(1.2) rotate(45deg);
+            opacity: 0;
+          }
+        }
+
+        /* 11. Theatrical Spotlight Beams */
+        @keyframes spotlightSweepLeft {
+          0%, 100% { transform: rotate(-24deg) skewX(-12deg); opacity: 0.28; }
+          50% { transform: rotate(-14deg) skewX(-6deg); opacity: 0.42; }
+        }
+        @keyframes spotlightSweepRight {
+          0%, 100% { transform: rotate(24deg) skewX(12deg); opacity: 0.28; }
+          50% { transform: rotate(14deg) skewX(6deg); opacity: 0.42; }
+        }
+
+        /* 12. Audio Equalizer Waveform Bars */
+        @keyframes eqBounceHeight {
+          0%, 100% { height: 6px; }
+          50% { height: 32px; }
+        }
+
+        /* CSS Animation Utility Classes */
+        .dance-multi-groove {
+          animation: toonhubMultiGroove 1.85s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
           transform-origin: bottom center;
         }
 
-        .animate-toonhub-shadow {
-          animation: toonhubShadow 2.2s ease-in-out infinite;
+        .dance-hype-bop {
+          animation: toonhubHypeBop 1.1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+          transform-origin: bottom center;
         }
 
-        .note-float-1 {
-          animation: floatMusicNote 2.4s ease-out infinite;
+        .dance-lofi-wave {
+          animation: toonhubLofiWave 2.7s ease-in-out infinite;
+          transform-origin: bottom center;
         }
-        .note-float-2 {
-          animation: floatMusicNote 2.8s ease-out infinite 0.6s;
+
+        .dance-happy-wiggle {
+          animation: toonhubHappyWiggle 0.85s ease-in-out infinite;
+          transform-origin: bottom center;
         }
-        .note-float-3 {
-          animation: floatMusicNote 2.1s ease-out infinite 1.2s;
+
+        .dance-turbo-beat {
+          animation: toonhubTurboBeat 0.95s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+          transform-origin: bottom center;
         }
+
+        .dance-cheer-flip {
+          animation: toonhubCheerFlip 0.82s cubic-bezier(0.34, 1.56, 0.64, 1);
+          transform-origin: bottom center;
+        }
+
+        .shadow-dance-sync {
+          animation: stageShadowSync 1.85s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+        }
+
+        .stage-ripple-anim-1 {
+          animation: stageRippleWave 2.8s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+        }
+        .stage-ripple-anim-2 {
+          animation: stageRippleWave 2.8s cubic-bezier(0.2, 0.8, 0.2, 1) infinite 1.4s;
+        }
+
+        .beam-left {
+          animation: spotlightSweepLeft 6s ease-in-out infinite;
+          transform-origin: top left;
+        }
+        .beam-right {
+          animation: spotlightSweepRight 6s ease-in-out infinite 0.75s;
+          transform-origin: top right;
+        }
+
+        .particle-ambient-1 { animation: floatParticleDrift 2.5s ease-out infinite; }
+        .particle-ambient-2 { animation: floatParticleDrift 3.1s ease-out infinite 0.6s; }
+        .particle-ambient-3 { animation: floatParticleDrift 2.2s ease-out infinite 1.2s; }
+        .particle-ambient-4 { animation: floatParticleDrift 2.9s ease-out infinite 1.8s; }
+        .particle-ambient-5 { animation: floatParticleDrift 3.4s ease-out infinite 0.9s; }
+
+        .eq-bounce-1 { animation: eqBounceHeight 0.6s ease-in-out infinite 0.05s; }
+        .eq-bounce-2 { animation: eqBounceHeight 0.5s ease-in-out infinite 0.2s; }
+        .eq-bounce-3 { animation: eqBounceHeight 0.75s ease-in-out infinite 0.1s; }
+        .eq-bounce-4 { animation: eqBounceHeight 0.55s ease-in-out infinite 0.35s; }
+        .eq-bounce-5 { animation: eqBounceHeight 0.8s ease-in-out infinite 0.15s; }
+        .eq-bounce-6 { animation: eqBounceHeight 0.62s ease-in-out infinite 0.28s; }
+        .eq-bounce-7 { animation: eqBounceHeight 0.48s ease-in-out infinite 0.12s; }
+        .eq-bounce-8 { animation: eqBounceHeight 0.7s ease-in-out infinite 0.4s; }
       `}</style>
 
       <div className="relative w-full overflow-hidden" style={{ height: '100vh' }}>
@@ -399,11 +703,11 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
           <div className="flex items-center gap-3">
             <Link
               to="/"
-              className="px-3 py-1.5 rounded-full bg-black/25 hover:bg-black/45 border border-white/20 text-white text-xs font-medium tracking-wider backdrop-blur-md transition-all flex items-center gap-1 shadow-lg"
+              className="px-3.5 py-1.5 rounded-full bg-black/35 hover:bg-black/55 border border-white/20 text-white text-xs font-medium tracking-wider backdrop-blur-md transition-all flex items-center gap-1 shadow-lg hover:scale-105 active:scale-95"
             >
               <ChevronLeft size={14} /> Back
             </Link>
-            <span className="text-xs font-bold uppercase text-white tracking-[0.2em] opacity-95">
+            <span className="text-xs font-black uppercase text-white tracking-[0.25em] opacity-95">
               TOONHUB
             </span>
           </div>
@@ -413,14 +717,15 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
             {!isChatOpen ? (
               <button
                 onClick={handleOpenChat}
-                className="px-4 py-1.5 rounded-full bg-white text-black text-xs font-semibold tracking-wider hover:bg-white/90 hover:scale-105 transition-all flex items-center gap-1.5 shadow-xl cursor-pointer"
+                className="px-4 py-1.5 rounded-full bg-white text-black text-xs font-semibold tracking-wider hover:bg-white/95 hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 shadow-xl cursor-pointer"
               >
-                <Sparkles size={13} className="text-amber-500 fill-amber-500" /> Chat with {activeChar.name}
+                <Sparkles size={13} className="text-amber-500 fill-amber-500 animate-spin [animation-duration:4s]" />
+                <span>Chat & Dance with {activeChar.name}</span>
               </button>
             ) : (
               <button
                 onClick={handleCloseChat}
-                className="px-3.5 py-1.5 rounded-full bg-black/40 hover:bg-black/60 border border-white/20 text-white text-xs font-medium tracking-wider backdrop-blur-md transition-all flex items-center gap-1.5 shadow-lg cursor-pointer"
+                className="px-3.5 py-1.5 rounded-full bg-black/45 hover:bg-black/65 border border-white/25 text-white text-xs font-medium tracking-wider backdrop-blur-md transition-all flex items-center gap-1.5 shadow-lg cursor-pointer hover:scale-105 active:scale-95"
               >
                 <X size={14} /> Close Chat
               </button>
@@ -433,7 +738,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
           className="absolute inset-0 pointer-events-none"
           style={{
             zIndex: 50,
-            opacity: 0.4,
+            opacity: 0.38,
             backgroundImage: "url('" + noiseSvg + "')",
             backgroundSize: '200px 200px',
           }}
@@ -441,14 +746,15 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
 
         {/* 2. Giant ghost text "COMPANION" */}
         <div
-          className="absolute inset-x-0 flex items-center justify-center pointer-events-none select-none z-10 transition-opacity duration-500"
+          className="absolute inset-x-0 flex items-center justify-center pointer-events-none select-none z-10 transition-all duration-700"
           style={{
             top: '16%',
             fontFamily: "'Anton', sans-serif",
             fontSize: 'clamp(70px, 21vw, 310px)',
             fontWeight: 900,
             color: '#FFFFFF',
-            opacity: isChatOpen ? 0.16 : 1,
+            opacity: isChatOpen ? 0.14 : 1,
+            transform: isChatOpen ? 'scale(0.96)' : 'scale(1)',
             lineHeight: 1,
             textTransform: 'uppercase',
             letterSpacing: '-0.02em',
@@ -459,28 +765,31 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
         </div>
 
         {/* ============================================================= */}
-        {/* VIEW A: CHAT MODE ACTIVE (Split: Left Chat Panel + Right Dancing Figurine) */}
+        {/* VIEW A: CHAT MODE ACTIVE (Left Chat Panel + Right Deluxe Dancing Soundstage) */}
         {/* ============================================================= */}
         {isChatOpen && (
           <div className="absolute inset-0 z-40 flex flex-col md:flex-row items-stretch justify-between pt-20 pb-4 px-4 sm:px-8 pointer-events-auto">
             {/* LEFT SIDE: EMBEDDED REAL-TIME CHAT PANEL */}
-            <div className="w-full md:w-[48%] lg:w-[44%] h-full flex flex-col rounded-3xl bg-black/50 backdrop-blur-2xl border border-white/20 shadow-2xl overflow-hidden relative z-50">
+            <div className="w-full md:w-[48%] lg:w-[44%] h-full flex flex-col rounded-3xl bg-black/55 backdrop-blur-3xl border border-white/20 shadow-[0_20px_60px_rgba(0,0,0,0.6)] overflow-hidden relative z-50 transition-all duration-500">
               {/* Panel Top Bar */}
-              <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between bg-white/[0.04]">
+              <div className="px-5 py-3.5 border-b border-white/10 flex items-center justify-between bg-white/[0.04]">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-white/40 shadow-inner bg-black/40 shrink-0">
+                  <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-white/50 shadow-inner bg-black/40 shrink-0">
                     <img src={activeChar.src} alt={activeChar.name} className="w-full h-full object-cover object-top" />
+                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border border-black ring-1 ring-emerald-300 animate-pulse" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-sm tracking-wide text-white">{activeChar.name}</span>
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-white/15 text-white/90 border border-white/10 tracking-widest">
+                        {activeChar.vibeGenre}
+                      </span>
                     </div>
                     <p className="text-[11px] text-white/70 tracking-wide line-clamp-1">{activeChar.personality}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => {
                       const defaultGreeting = GREETINGS[activeChar.name] || GREETINGS.Ember;
@@ -494,13 +803,13 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
                       ]);
                     }}
                     title="Reset chat"
-                    className="p-1.5 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                    className="p-2 rounded-full text-white/70 hover:text-white hover:bg-white/15 transition-colors cursor-pointer active:scale-95"
                   >
                     <RotateCcw size={14} />
                   </button>
                   <button
                     onClick={handleCloseChat}
-                    className="p-1.5 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                    className="p-2 rounded-full text-white/70 hover:text-white hover:bg-white/15 transition-colors cursor-pointer active:scale-95"
                   >
                     <X size={16} />
                   </button>
@@ -514,7 +823,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
                     <div className={'flex flex-col ' + (m.role === 'user' ? 'items-end' : 'items-start')}>
                       <div
                         className={
-                          'max-w-[85%] rounded-2xl px-4 py-2.5 text-xs sm:text-sm leading-relaxed shadow-md ' +
+                          'max-w-[85%] rounded-2xl px-4 py-2.5 text-xs sm:text-sm leading-relaxed shadow-md transition-all ' +
                           (m.role === 'user'
                             ? 'bg-white text-black font-medium rounded-br-xs'
                             : 'bg-white/15 text-white backdrop-blur-md border border-white/15 rounded-bl-xs')
@@ -542,11 +851,12 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
                 ))}
 
                 {isStreaming && (
-                  <div className="flex items-center gap-1.5 text-white/70 text-xs px-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-bounce" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-bounce [animation-delay:0.15s]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-bounce [animation-delay:0.3s]" />
-                    <span className="ml-1 text-[11px] font-medium tracking-wide">{activeChar.name} is typing...</span>
+                  <div className="flex items-center gap-2 text-white/80 text-xs px-2 py-1">
+                    <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                    <span className="ml-1 text-[11px] font-medium tracking-wide flex items-center gap-1.5">
+                      <span>{activeChar.name} is dancing & replying</span>
+                      <Music size={12} className="text-amber-400 animate-spin" />
+                    </span>
                   </div>
                 )}
                 <div ref={messagesEndRef} />
@@ -559,7 +869,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
                     e.preventDefault();
                     handleSendMessage();
                   }}
-                  className="flex items-center gap-2 rounded-full bg-black/40 border border-white/20 px-3.5 py-1.5 focus-within:border-white/50 transition-all shadow-inner"
+                  className="flex items-center gap-2 rounded-full bg-black/50 border border-white/20 px-3.5 py-1.5 focus-within:border-white/60 focus-within:ring-2 focus-within:ring-white/20 transition-all shadow-inner"
                 >
                   <input
                     type="text"
@@ -572,7 +882,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
                   <button
                     type="submit"
                     disabled={!input.trim() || isStreaming}
-                    className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center shrink-0 disabled:opacity-40 hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-md"
+                    className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center shrink-0 disabled:opacity-40 hover:scale-110 active:scale-95 transition-all cursor-pointer shadow-md"
                   >
                     <Send size={14} className="ml-0.5" />
                   </button>
@@ -580,38 +890,180 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
               </div>
             </div>
 
-            {/* RIGHT SIDE: ANIMATED DANCING FIGURINE STAGE */}
-            <div className="hidden md:flex flex-1 h-full items-end justify-center relative overflow-visible pointer-events-none">
-              {/* Floating Music Emojis & Sparkles around the dancing character */}
-              <div className="absolute top-[20%] right-[32%] text-2xl note-float-1 pointer-events-none">🎵</div>
-              <div className="absolute top-[28%] left-[28%] text-2xl note-float-2 pointer-events-none">🎶</div>
-              <div className="absolute top-[18%] right-[15%] text-xl note-float-3 pointer-events-none">✨</div>
-              <div className="absolute top-[40%] right-[20%] text-lg note-float-1 pointer-events-none">🎧</div>
+            {/* RIGHT SIDE: DELUXE ANIMATED DANCING SOUNDSTAGE */}
+            <div className="hidden md:flex flex-1 h-full items-end justify-center relative overflow-visible pointer-events-auto">
+              
+              {/* THEATRICAL SPOTLIGHT BEAMS (Dual crossing beams) */}
+              <div
+                className="absolute top-0 right-[42%] w-[180px] h-[100%] bg-gradient-to-b from-white/30 via-white/10 to-transparent pointer-events-none beam-left filter blur-lg"
+              />
+              <div
+                className="absolute top-0 right-[18%] w-[180px] h-[100%] bg-gradient-to-b from-white/30 via-white/10 to-transparent pointer-events-none beam-right filter blur-lg"
+              />
 
-              {/* Dancing Status Badge */}
-              <div className="absolute top-[14%] right-[22%] z-30 px-3.5 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-semibold tracking-wider flex items-center gap-1.5 shadow-xl">
-                <Music size={13} className="text-white animate-spin [animation-duration:3s]" />
-                <span>{activeChar.name} is dancing!</span>
+              {/* Floating Multi-Particle Ambient Music Stream */}
+              <div className="absolute top-[22%] right-[34%] text-2xl particle-ambient-1 pointer-events-none">🎵</div>
+              <div className="absolute top-[32%] left-[28%] text-2xl particle-ambient-2 pointer-events-none">🎶</div>
+              <div className="absolute top-[16%] right-[16%] text-xl particle-ambient-3 pointer-events-none">✨</div>
+              <div className="absolute top-[40%] right-[16%] text-lg particle-ambient-4 pointer-events-none">💫</div>
+              <div className="absolute top-[26%] right-[44%] text-lg particle-ambient-5 pointer-events-none">🎧</div>
+              <div className="absolute top-[34%] left-[34%] text-sm particle-ambient-3 pointer-events-none">⭐</div>
+              <div className="absolute top-[18%] left-[22%] text-lg particle-ambient-1 pointer-events-none">🔥</div>
+
+              {/* BURST PARTICLES (On Click or Chat Celebration) */}
+              {burstParticles.map((p) => {
+                const rad = (p.angle * Math.PI) / 180;
+                const tx = Math.cos(rad) * p.distance;
+                const ty = Math.sin(rad) * p.distance;
+                return (
+                  <div
+                    key={p.id}
+                    className="absolute z-50 text-2xl pointer-events-none select-none"
+                    style={{
+                      bottom: '42%',
+                      left: '50%',
+                      ['--tx' as any]: tx + 'px',
+                      ['--ty' as any]: ty + 'px',
+                      animation: 'burstExplosion 0.95s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                    }}
+                  >
+                    {p.emoji}
+                  </div>
+                );
+              })}
+
+              {/* TOP INTERACTIVE DANCE CONTROLLER & EQUALIZER BAR */}
+              <div className="absolute top-[6%] right-[12%] z-40 flex flex-col items-end gap-2.5">
+                {/* Mood & Equalizer Pill */}
+                <div
+                  onClick={(e) => triggerCheerCelebration(e)}
+                  className="px-4 py-2 rounded-full bg-black/50 backdrop-blur-xl border border-white/30 text-white text-xs font-semibold tracking-wider flex items-center gap-3 shadow-[0_10px_30px_rgba(0,0,0,0.5)] cursor-pointer hover:scale-105 active:scale-95 transition-all"
+                  title="Click to cheer & celebrate!"
+                >
+                  {/* Animated 8-Bar Dynamic Equalizer */}
+                  <div className="flex items-end gap-1 h-6 px-1">
+                    <div className="w-1 bg-white rounded-full eq-bounce-1" />
+                    <div className="w-1 bg-amber-400 rounded-full eq-bounce-2" />
+                    <div className="w-1 bg-white rounded-full eq-bounce-3" />
+                    <div className="w-1 bg-emerald-400 rounded-full eq-bounce-4" />
+                    <div className="w-1 bg-white rounded-full eq-bounce-5" />
+                    <div className="w-1 bg-pink-400 rounded-full eq-bounce-6" />
+                    <div className="w-1 bg-white rounded-full eq-bounce-7" />
+                    <div className="w-1 bg-cyan-400 rounded-full eq-bounce-8" />
+                  </div>
+                  
+                  <div className="flex flex-col text-left">
+                    <span className="text-[11px] font-bold tracking-wide">
+                      {isStreaming ? activeChar.name + ' is spitting heat!' : activeChar.name + ' is grooving'}
+                    </span>
+                    <span className="text-[9px] text-white/70 uppercase tracking-widest flex items-center gap-1">
+                      <span>Click character to cheer</span>
+                      <Sparkles size={9} className="text-amber-300" />
+                    </span>
+                  </div>
+                </div>
+
+                {/* DANCE STYLE SELECTOR PILLS */}
+                <div className="flex items-center gap-1.5 p-1 rounded-full bg-black/40 backdrop-blur-xl border border-white/20 shadow-lg">
+                  <button
+                    onClick={() => setDanceStyle('groove')}
+                    className={
+                      'px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all flex items-center gap-1 cursor-pointer ' +
+                      (danceStyle === 'groove'
+                        ? 'bg-white text-black shadow-md scale-105'
+                        : 'text-white/80 hover:text-white hover:bg-white/10')
+                    }
+                  >
+                    <span>🕺 Groove</span>
+                  </button>
+                  <button
+                    onClick={() => setDanceStyle('hype')}
+                    className={
+                      'px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all flex items-center gap-1 cursor-pointer ' +
+                      (danceStyle === 'hype'
+                        ? 'bg-amber-400 text-black shadow-md scale-105'
+                        : 'text-white/80 hover:text-white hover:bg-white/10')
+                    }
+                  >
+                    <span>⚡ Hype</span>
+                  </button>
+                  <button
+                    onClick={() => setDanceStyle('chill')}
+                    className={
+                      'px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all flex items-center gap-1 cursor-pointer ' +
+                      (danceStyle === 'chill'
+                        ? 'bg-emerald-400 text-black shadow-md scale-105'
+                        : 'text-white/80 hover:text-white hover:bg-white/10')
+                    }
+                  >
+                    <span>🌊 Chill</span>
+                  </button>
+                  <button
+                    onClick={() => setDanceStyle('wiggle')}
+                    className={
+                      'px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all flex items-center gap-1 cursor-pointer ' +
+                      (danceStyle === 'wiggle'
+                        ? 'bg-pink-400 text-white shadow-md scale-105'
+                        : 'text-white/80 hover:text-white hover:bg-white/10')
+                    }
+                  >
+                    <span>💖 Wiggle</span>
+                  </button>
+                  <button
+                    onClick={(e) => triggerCheerCelebration(e)}
+                    className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/20 hover:bg-white/35 text-white transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+                    title="Cheer Jump!"
+                  >
+                    <PartyPopper size={12} className="text-amber-300" />
+                    <span>Spin!</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Ambient Spotlight Glow behind the dancing character */}
+              {/* Ambient Glowing Dance Floor Backdrop */}
               <div
-                className="absolute w-[440px] h-[440px] rounded-full blur-[80px] pointer-events-none"
+                className="absolute w-[520px] h-[520px] rounded-full blur-[90px] pointer-events-none transition-all duration-700"
                 style={{
                   backgroundColor: activeChar.panel,
-                  opacity: 0.6,
-                  bottom: '8%',
+                  opacity: isStreaming ? 0.9 : 0.65,
+                  bottom: '6%',
+                  transform: isStreaming ? 'scale(1.2)' : 'scale(1)',
                 }}
               />
 
-              {/* The Dancing 3D Figurine Image */}
+              {/* Concentric Neon Stage Ripple Waves */}
               <div
-                className="relative z-30 animate-toonhub-dance"
+                className="absolute w-[360px] h-[360px] rounded-full border-2 border-white/40 stage-ripple-anim-1 pointer-events-none"
+                style={{ bottom: '-4%' }}
+              />
+              <div
+                className="absolute w-[360px] h-[360px] rounded-full border-2 border-white/25 stage-ripple-anim-2 pointer-events-none"
+                style={{ bottom: '-4%' }}
+              />
+
+              {/* Neon Circular 3D Dance Floor Plate */}
+              <div
+                className="absolute w-[340px] h-[72px] rounded-full bg-white/15 backdrop-blur-md border-2 border-white/45 shadow-[0_0_50px_rgba(255,255,255,0.35)] pointer-events-none flex items-center justify-center"
+                style={{
+                  bottom: '2%',
+                  transform: 'rotateX(62deg)',
+                }}
+              >
+                {/* Inner Stage Ring */}
+                <div className="w-[85%] h-[85%] rounded-full border border-white/40 shadow-inner" />
+              </div>
+
+              {/* THE 3D FIGURINE: DELUXE ANIMATED DANCE CONTAINER */}
+              <div
+                onClick={(e) => triggerCheerCelebration(e)}
+                className={'relative z-30 cursor-pointer select-none transition-transform duration-300 hover:scale-[1.04] ' + getDanceClass()}
+                key={cheerTrigger}
                 style={{
                   height: '84%',
                   aspectRatio: '0.75 / 1',
-                  marginBottom: '2%',
+                  marginBottom: '2.5%',
                 }}
+                title={'Click ' + activeChar.name + ' to cheer & dance!'}
               >
                 <img
                   src={activeChar.src}
@@ -623,14 +1075,14 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
                     objectPosition: 'bottom center',
                   }}
                   draggable={false}
-                  className="drop-shadow-[0_25px_45px_rgba(0,0,0,0.45)]"
+                  className="drop-shadow-[0_25px_50px_rgba(0,0,0,0.55)] transition-all filter hover:brightness-105 active:scale-95"
                 />
               </div>
 
-              {/* Rhythmic Pulsing Ground Shadow */}
+              {/* Rhythmic Pulsing Ground Contact Shadow */}
               <div
-                className="absolute w-[260px] h-[34px] rounded-full bg-black/40 blur-[10px] animate-toonhub-shadow"
-                style={{ bottom: '2%' }}
+                className="absolute w-[280px] h-[38px] rounded-full bg-black/50 blur-[12px] shadow-dance-sync pointer-events-none"
+                style={{ bottom: '1.5%' }}
               />
             </div>
           </div>
@@ -657,6 +1109,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
                     left: '50%',
                     height: isMobile ? '64%' : '84%',
                     bottom: isMobile ? '16%' : '1%',
+                    animation: 'toonhubIdleBreathe 4.2s ease-in-out infinite',
                   };
                 } else if (role === 'left') {
                   roleStyle = {
@@ -717,7 +1170,16 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
                         objectPosition: 'bottom center',
                       }}
                       draggable={false}
-                      className="drop-shadow-[0_20px_35px_rgba(0,0,0,0.35)]"
+                      className="drop-shadow-[0_20px_35px_rgba(0,0,0,0.35)] cursor-pointer hover:scale-[1.02] transition-transform"
+                      onClick={() => {
+                        if (role === 'center') {
+                          handleOpenChat();
+                        } else if (role === 'left') {
+                          navigate('prev');
+                        } else if (role === 'right') {
+                          navigate('next');
+                        }
+                      }}
                     />
                   </div>
                 );
