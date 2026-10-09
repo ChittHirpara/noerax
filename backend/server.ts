@@ -822,7 +822,9 @@ Journal entry: "${cleanEntry}"`;
     // -------------------------------------------------------------
     // RUN WISDOM GUIDANCE LAYER (User Architecture Pipeline)
     // -------------------------------------------------------------
-    const needGuidance = detectGuidanceNeed(cleanMessage, history);
+    // Feature toggle: Paused per user request. Set ENABLE_WISDOM_PIPELINE=true in .env to reactivate anytime.
+    const ENABLE_WISDOM_PIPELINE = process.env.ENABLE_WISDOM_PIPELINE === "true";
+    const needGuidance = ENABLE_WISDOM_PIPELINE && detectGuidanceNeed(cleanMessage, history);
     let wisdomLayerPrompt = "";
 
     if (needGuidance) {
