@@ -1244,7 +1244,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
               </div>
             </div>
 
-            {/* 6. Bottom-right link "DISCOVER IT" */}
+            {/* 6. Bottom-right link "CHAT NOW" */}
             <a
               onClick={handleOpenChat}
               className="absolute bottom-6 right-4 sm:bottom-16 sm:right-10 z-[60] flex items-center gap-2 text-white uppercase no-underline cursor-pointer group transition-opacity duration-200 hover:opacity-100 pointer-events-auto"
@@ -1258,7 +1258,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
                 lineHeight: 1,
               }}
             >
-              <span>DISCOVER IT</span>
+              <span>CHAT NOW</span>
               <ArrowRight
                 className="w-5 h-5 sm:w-8 sm:h-8 transition-transform group-hover:translate-x-1.5"
                 strokeWidth={2.25}
