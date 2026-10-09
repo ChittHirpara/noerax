@@ -9,13 +9,6 @@ import {
   Music,
   RotateCcw,
   MessageCircle,
-  Volume2,
-  VolumeX,
-  Heart,
-  Flame,
-  Zap,
-  Waves,
-  Smile,
   PartyPopper,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -134,8 +127,9 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
   const [danceStyle, setDanceStyle] = useState<DanceStyle>('groove');
   const [cheerTrigger, setCheerTrigger] = useState(0);
   const [burstParticles, setBurstParticles] = useState<FloatingBurstParticle[]>([]);
-  const [spotlightAngle, setSpotlightAngle] = useState(0);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Dedicated ref to scroll ONLY the chat messages container internally
+  const chatMessagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Preload all 4 images on mount
   useEffect(() => {
@@ -162,7 +156,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
     else setDanceStyle('groove');
   }, [activeIndex]);
 
-  // Initialize or reset companion messages when active character changes or chat opens
+  // Initialize or reset companion messages when active character changes
   useEffect(() => {
     const defaultGreeting = GREETINGS[activeChar.name] || GREETINGS.Ember;
     const defaultSuggestions = QUICK_PROMPTS[activeChar.name] || QUICK_PROMPTS.Ember;
@@ -176,10 +170,12 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
     ]);
   }, [activeIndex]);
 
-  // Auto-scroll chat to bottom
+  // AUTO-SCROLL FIX: Scroll ONLY the inner chat div, NEVER the window or page body!
   useEffect(() => {
-    if (isChatOpen) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (isChatOpen && chatMessagesContainerRef.current) {
+      const container = chatMessagesContainerRef.current;
+      // Scroll strictly within container's local bounds
+      container.scrollTop = container.scrollHeight;
     }
   }, [messages, isStreaming, isChatOpen]);
 
@@ -203,6 +199,8 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
 
   const handleOpenChat = () => {
     setIsChatOpen(true);
+    // Pin page to top of hero without jumps
+    window.scrollTo({ top: 0, behavior: 'instant' });
     triggerCheerCelebration();
     if (onSelectCharacter) {
       onSelectCharacter(activeChar);
@@ -240,28 +238,41 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
     }, 1200);
   };
 
-  // Helper to parse suggestions from AI stream
+  // Helper to parse suggestions from AI stream with robust pattern matching
   const parseSuggestions = (raw: string): { cleanText: string; suggestions: string[] } => {
-    const matchIndex = raw.search(/SUGGESTIONS\s*:/i);
-    if (matchIndex === -1) return { cleanText: raw.trim(), suggestions: [] };
+    if (!raw) return { cleanText: '', suggestions: [] };
+    
+    // Check if suggestions section started
+    const matchIndex = raw.search(/SUGGESTIONS?\s*:?/i);
+    if (matchIndex === -1) {
+      return { cleanText: raw.trim(), suggestions: [] };
+    }
+
     const cleanText = raw.slice(0, matchIndex).trim();
-    const block = raw.slice(matchIndex).replace(/SUGGESTIONS\s*:/i, '').trim();
+    const block = raw.slice(matchIndex).replace(/SUGGESTIONS?\s*:?/i, '').trim();
     let suggestions: string[] = [];
+
     try {
-      const parsed = JSON.parse(block);
-      if (Array.isArray(parsed)) {
-        suggestions = parsed.map((s) => String(s).trim()).filter(Boolean);
+      const jsonMatch = block.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (Array.isArray(parsed)) {
+          suggestions = parsed.map((s) => String(s).trim()).filter(Boolean);
+        }
       }
-    } catch {
+    } catch {}
+
+    if (suggestions.length === 0) {
       const quoted = block.match(/"([^"]+)"|'([^']+)'/g);
       if (quoted) {
         suggestions = quoted.map((m) => m.slice(1, -1).trim()).filter((s) => s.length > 3);
       }
     }
-    return { cleanText, suggestions: suggestions.slice(0, 3) };
+
+    return { cleanText: cleanText || raw.trim(), suggestions: suggestions.slice(0, 3) };
   };
 
-  // Send message to live backend API
+  // Send message to live backend API with robust stream buffering
   const handleSendMessage = async (textToSend?: string) => {
     const promptText = (textToSend !== undefined ? textToSend : input).trim();
     if (!promptText || isStreaming) return;
@@ -304,23 +315,29 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
       });
 
       if (!res.ok || !res.body) {
-        throw new Error('Chat request failed');
+        throw new Error('Chat response error (' + res.status + ')');
       }
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let streamed = '';
+      let buffer = '';
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
+        
+        // Append raw chunk to stream buffer
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        // Keep incomplete trailing partial line in buffer
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
-          if (line.startsWith('data: ') && !line.includes('[DONE]')) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('data: ') && !trimmed.includes('[DONE]')) {
             try {
-              const parsed = JSON.parse(line.slice(6));
+              const parsed = JSON.parse(trimmed.slice(6));
               if (parsed.text) {
                 streamed += parsed.text;
                 setMessages((prev) => {
@@ -340,6 +357,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
 
       // Final pass to extract clean text and suggestions
       const { cleanText, suggestions } = parseSuggestions(streamed);
+      const fallbackSuggs = QUICK_PROMPTS[activeChar.name] || QUICK_PROMPTS.Ember;
       setMessages((prev) => {
         const copy = [...prev];
         const last = copy[copy.length - 1];
@@ -347,7 +365,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
           copy[copy.length - 1] = {
             ...last,
             content: cleanText || streamed,
-            suggestions: suggestions.length > 0 ? suggestions : QUICK_PROMPTS[activeChar.name] || [],
+            suggestions: suggestions.length > 0 ? suggestions : fallbackSuggs,
           };
         }
         return copy;
@@ -360,6 +378,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
           copy[copy.length - 1] = {
             ...last,
             content: "my brain lagged for a second 💀 hit me with that again?",
+            suggestions: QUICK_PROMPTS[activeChar.name] || [],
           };
         }
         return copy;
@@ -396,7 +415,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
         transition: 'background-color 650ms cubic-bezier(0.4, 0, 0.2, 1)',
         fontFamily: "'Inter', sans-serif",
       }}
-      className="relative w-full overflow-hidden select-none"
+      className="relative w-full overflow-hidden select-none overscroll-contain"
     >
       {/* ============================================================= */}
       {/* ULTRA-FLUID 3D KEYFRAME ANIMATIONS & PARTICLES */}
@@ -421,31 +440,24 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
             transform: translateY(0px) rotateZ(0deg) rotateY(0deg) scale(1, 1);
           }
           14% {
-            /* Foot step squash left */
             transform: translateY(4px) rotateZ(-3.5deg) rotateY(-8deg) scale(1.06, 0.94);
           }
           28% {
-            /* Leap stretch */
             transform: translateY(-30px) rotateZ(-6deg) rotateY(-12deg) scale(0.94, 1.08);
           }
           42% {
-            /* Crest float */
             transform: translateY(-18px) rotateZ(-1.5deg) rotateY(-4deg) scale(1, 1.02);
           }
           56% {
-            /* Landing squash center */
             transform: translateY(3px) rotateZ(3deg) rotateY(6deg) scale(1.06, 0.94);
           }
           70% {
-            /* Leaping stretch right */
             transform: translateY(-36px) rotateZ(6.5deg) rotateY(12deg) scale(0.93, 1.09);
           }
           84% {
-            /* Drop float */
             transform: translateY(-12px) rotateZ(1.5deg) rotateY(4deg) scale(1.01, 1);
           }
           92% {
-            /* Micro rebound */
             transform: translateY(-3px) rotateZ(-0.5deg) rotateY(-1deg) scale(1.03, 0.97);
           }
           100% {
@@ -629,7 +641,6 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
           50% { height: 32px; }
         }
 
-        /* CSS Animation Utility Classes */
         .dance-multi-groove {
           animation: toonhubMultiGroove 1.85s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
           transform-origin: bottom center;
@@ -816,8 +827,11 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
                 </div>
               </div>
 
-              {/* Chat Message Scroll Area */}
-              <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3.5 scrollbar-thin scrollbar-thumb-white/20">
+              {/* Chat Message Scroll Area (Local container scroll ONLY, never scrolls the window!) */}
+              <div
+                ref={chatMessagesContainerRef}
+                className="flex-1 overflow-y-auto px-4 py-4 space-y-3.5 scrollbar-thin scrollbar-thumb-white/20 overscroll-contain"
+              >
                 {messages.map((m) => (
                   <div key={m.id} className="space-y-2">
                     <div className={'flex flex-col ' + (m.role === 'user' ? 'items-end' : 'items-start')}>
@@ -839,7 +853,12 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
                         {m.suggestions.map((sug, sIdx) => (
                           <button
                             key={sIdx}
-                            onClick={() => handleSendMessage(sug)}
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleSendMessage(sug);
+                            }}
                             className="text-[11px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/25 border border-white/15 text-white/90 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95 text-left"
                           >
                             {sug}
@@ -859,7 +878,6 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
                     </span>
                   </div>
                 )}
-                <div ref={messagesEndRef} />
               </div>
 
               {/* Chat Input Bar */}
