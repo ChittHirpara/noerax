@@ -151,7 +151,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
           style={{
             top: '16%',
             fontFamily: "'Anton', sans-serif",
-            fontSize: 'clamp(90px, 27vw, 370px)',
+            fontSize: 'clamp(70px, 21vw, 310px)',
             fontWeight: 900,
             color: '#FFFFFF',
             opacity: 1,
@@ -161,7 +161,7 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
             whiteSpace: 'nowrap',
           }}
         >
-          3D SHAPE
+          COMPANION
         </div>
 
         {/* 4. Carousel (Layered IN FRONT of "3D SHAPE": z-20) */}
