@@ -74,6 +74,14 @@ const GREETINGS: Record<string, string> = {
   Nova: "You had 24 hours and chose procrastination. Legendary performance 💀",
 };
 
+
+const THOUGHTS: Record<string, string[]> = {
+  Ember: ["let's conquer today! 🔥", "spill the tea, I'm ready 🍿", "locked in with you! 💥", "vibing hard rn 🎶"],
+  Sage: ["take a slow breath 🌿", "peace in every step 🍃", "I'm right here with you 💗", "no rush at all 🌸"],
+  Luna: ["so happy you're here 🌸", "tell me anything, I'm listening ✨", "having the best time with you 🌹", "vibing to the melody 🎶"],
+  Nova: ["waiting for the plot twist 👀", "unfiltered vibes only ⚡", "don't hold back ☕", "roast mode on standby 💀"],
+};
+
 const QUICK_PROMPTS: Record<string, string[]> = {
   Ember: [
     "Bro who annoyed me today... 💀",
@@ -135,6 +143,31 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
   
   // Dedicated ref to scroll ONLY the chat messages container internally
   const chatMessagesContainerRef = useRef<HTMLDivElement>(null);
+  // Interactive Thought Bubble & Mouse Parallax
+  const [thoughtIndex, setThoughtIndex] = useState(0);
+  const [mouseTilt, setMouseTilt] = useState({ x: 0, y: 0 });
+  const soundstageRef = useRef<HTMLDivElement>(null);
+
+  // Cycle gentle companion thoughts every 4.5 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setThoughtIndex((prev) => prev + 1);
+    }, 4500);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleStageMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!soundstageRef.current) return;
+    const rect = soundstageRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setMouseTilt({ x: x * 14, y: y * 8 });
+  };
+
+  const handleStageMouseLeave = () => {
+    setMouseTilt({ x: 0, y: 0 });
+  };
+
 
   // Preload all 4 images on mount
   useEffect(() => {
@@ -396,21 +429,17 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
   const noiseSvg =
     "data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E";
 
-  // Determine active dance class
+  // Determine active gentle dance class tailored to character personality
   const getDanceClass = () => {
-    if (cheerTrigger > 0) return 'dance-cheer-flip';
-    if (isStreaming) return 'dance-turbo-beat';
-    switch (danceStyle) {
-      case 'hype':
-        return 'dance-hype-bop';
-      case 'chill':
-        return 'dance-lofi-wave';
-      case 'wiggle':
-        return 'dance-happy-wiggle';
-      case 'groove':
-      default:
-        return 'dance-multi-groove';
+    if (cheerTrigger > 0) return 'dance-cheer-spin';
+    if (isStreaming) return 'dance-streaming-beat';
+    if (activeChar.name === 'Luna' || activeChar.name === 'Sage') {
+      return 'dance-gentle-dreamy';
     }
+    if (activeChar.name === 'Ember') {
+      return 'dance-gentle-hype';
+    }
+    return 'dance-gentle-routine';
   };
 
   return (
@@ -439,133 +468,177 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
           }
         }
 
-        /* 1. Dance Style: Multi-Groove (Squash, Stretch, Hip Sway, Foot Tap) */
-        @keyframes toonhubMultiGroove {
+        /* 1. GENTLE MULTI-POSE CHOREOGRAPHY (Fluid, Graceful & Relaxed 8.5s Loop) */
+        @keyframes gentleMultiPoseRoutine {
           0% {
-            transform: translateY(0px) rotateZ(0deg) rotateY(0deg) scale(1, 1);
+            /* Pose 1: Center Graceful Groove */
+            transform: translateX(0px) translateY(0px) rotateZ(0deg) rotateY(0deg) scale(1);
           }
-          14% {
-            transform: translateY(4px) rotateZ(-3.5deg) rotateY(-8deg) scale(1.06, 0.94);
-          }
-          28% {
-            transform: translateY(-30px) rotateZ(-6deg) rotateY(-12deg) scale(0.94, 1.08);
-          }
-          42% {
-            transform: translateY(-18px) rotateZ(-1.5deg) rotateY(-4deg) scale(1, 1.02);
-          }
-          56% {
-            transform: translateY(3px) rotateZ(3deg) rotateY(6deg) scale(1.06, 0.94);
-          }
-          70% {
-            transform: translateY(-36px) rotateZ(6.5deg) rotateY(12deg) scale(0.93, 1.09);
-          }
-          84% {
-            transform: translateY(-12px) rotateZ(1.5deg) rotateY(4deg) scale(1.01, 1);
-          }
-          92% {
-            transform: translateY(-3px) rotateZ(-0.5deg) rotateY(-1deg) scale(1.03, 0.97);
-          }
-          100% {
-            transform: translateY(0px) rotateZ(0deg) rotateY(0deg) scale(1, 1);
-          }
-        }
-
-        /* 2. Dance Style: Hype Bop (Energetic, Fast Pop, Sharp Bounce) */
-        @keyframes toonhubHypeBop {
-          0%, 100% {
-            transform: translateY(0px) rotateZ(0deg) scale(1, 1);
-          }
-          15% {
-            transform: translateY(-24px) rotateZ(-5deg) rotateY(-10deg) scale(0.95, 1.08);
-          }
-          30% {
-            transform: translateY(4px) rotateZ(0deg) rotateY(0deg) scale(1.07, 0.93);
-          }
-          45% {
-            transform: translateY(-32px) rotateZ(6deg) rotateY(12deg) scale(0.94, 1.1);
-          }
-          60% {
-            transform: translateY(2px) rotateZ(2deg) rotateY(4deg) scale(1.05, 0.95);
-          }
-          75% {
-            transform: translateY(-26px) rotateZ(-4deg) rotateY(-8deg) scale(0.96, 1.06);
-          }
-          88% {
-            transform: translateY(3px) rotateZ(1deg) rotateY(2deg) scale(1.04, 0.96);
-          }
-        }
-
-        /* 3. Dance Style: Lo-Fi Chill Wave (Hypnotic, Silky, Sine Floating) */
-        @keyframes toonhubLofiWave {
-          0% {
-            transform: translateY(0px) rotateZ(0deg) rotateY(0deg) scale(1, 1);
-          }
-          25% {
-            transform: translateY(-18px) rotateZ(-4deg) rotateY(-6deg) scale(1.02, 1.02);
-          }
-          50% {
-            transform: translateY(-4px) rotateZ(0deg) rotateY(0deg) scale(1.04, 0.97);
-          }
-          75% {
-            transform: translateY(-22px) rotateZ(4deg) rotateY(6deg) scale(1.02, 1.02);
-          }
-          100% {
-            transform: translateY(0px) rotateZ(0deg) rotateY(0deg) scale(1, 1);
-          }
-        }
-
-        /* 4. Dance Style: Happy Wiggle (Cute Side-to-Side Shoulder & Ear Bop) */
-        @keyframes toonhubHappyWiggle {
-          0%, 100% {
-            transform: translateY(0px) rotateZ(-6deg) rotateY(-6deg) scale(1.03, 0.97);
-          }
-          25% {
-            transform: translateY(-16px) rotateZ(0deg) rotateY(0deg) scale(0.97, 1.05);
-          }
-          50% {
-            transform: translateY(2px) rotateZ(6deg) rotateY(6deg) scale(1.04, 0.96);
-          }
-          75% {
-            transform: translateY(-14px) rotateZ(0deg) rotateY(0deg) scale(0.98, 1.04);
-          }
-        }
-
-        /* 5. Special AI Turbo Beat (When AI is streaming live response) */
-        @keyframes toonhubTurboBeat {
-          0%, 100% {
-            transform: translateY(0px) rotateZ(0deg) scale(1, 1);
+          10% {
+            /* Pose 1 soft breath */
+            transform: translateX(0px) translateY(-10px) rotateZ(-1.5deg) rotateY(-3deg) scale(1.01);
           }
           20% {
-            transform: translateY(-32px) rotateZ(-7deg) rotateY(-10deg) scale(0.92, 1.11);
+            /* Soft return */
+            transform: translateX(0px) translateY(-3px) rotateZ(1deg) rotateY(2deg) scale(1);
           }
-          40% {
-            transform: translateY(5px) rotateZ(0deg) rotateY(0deg) scale(1.08, 0.92);
+          28% {
+            /* Glide into Pose 2: Left Side Step & Confident Lean */
+            transform: translateX(-18px) translateY(-8px) rotateZ(-3deg) rotateY(-10deg) scale(1.02);
           }
-          60% {
-            transform: translateY(-38px) rotateZ(7deg) rotateY(10deg) scale(0.92, 1.12);
+          38% {
+            /* Hold Pose 2: Stylish side pause with gentle sway */
+            transform: translateX(-22px) translateY(-14px) rotateZ(-4deg) rotateY(-12deg) scale(1.03);
           }
-          80% {
-            transform: translateY(2px) rotateZ(-2deg) rotateY(-3deg) scale(1.05, 0.95);
+          46% {
+            /* Soft dip transitioning */
+            transform: translateX(-8px) translateY(-4px) rotateZ(-1deg) rotateY(-4deg) scale(1.01);
+          }
+          56% {
+            /* Pose 3: Front Connection Lean (Glides close to camera & user) */
+            transform: translateX(0px) translateY(-18px) rotateZ(1.5deg) rotateY(0deg) rotateX(4deg) scale(1.06);
+          }
+          66% {
+            /* Hold Pose 3: Intimate eye-contact pause */
+            transform: translateX(0px) translateY(-14px) rotateZ(0.5deg) rotateY(2deg) rotateX(3deg) scale(1.05);
+          }
+          74% {
+            /* Glide into Pose 4: Right Side Swagger & Shoulder Dip */
+            transform: translateX(18px) translateY(-8px) rotateZ(3deg) rotateY(10deg) scale(1.02);
+          }
+          84% {
+            /* Hold Pose 4: Playful right tilt & sway */
+            transform: translateX(22px) translateY(-14px) rotateZ(4deg) rotateY(12deg) scale(1.03);
+          }
+          92% {
+            /* Pose 5: Smooth Floating Turn Arc */
+            transform: translateX(6px) translateY(-22px) rotateZ(-1deg) rotateY(8deg) scale(1.02);
+          }
+          100% {
+            /* Seamless return to Center */
+            transform: translateX(0px) translateY(0px) rotateZ(0deg) rotateY(0deg) scale(1);
           }
         }
 
-        /* 6. Click Celebration 360 Spin Flip Jump */
-        @keyframes toonhubCheerFlip {
-          0% {
-            transform: translateY(0) scale(1) rotateY(0deg) rotateZ(0deg);
+        /* 2. GENTLE DREAMY FLOW (For Luna & Sage — Silky & Hypnotic) */
+        @keyframes gentleDreamyFlow {
+          0%, 100% {
+            transform: translateX(0px) translateY(0px) rotateZ(0deg) rotateY(0deg) scale(1);
+          }
+          15% {
+            transform: translateX(-12px) translateY(-12px) rotateZ(-2.5deg) rotateY(-6deg) scale(1.02);
+          }
+          35% {
+            transform: translateX(-16px) translateY(-18px) rotateZ(-3.5deg) rotateY(-8deg) scale(1.03);
+          }
+          50% {
+            transform: translateX(0px) translateY(-8px) rotateZ(0deg) rotateY(0deg) scale(1.04);
+          }
+          65% {
+            transform: translateX(14px) translateY(-16px) rotateZ(2.5deg) rotateY(7deg) scale(1.03);
+          }
+          85% {
+            transform: translateX(10px) translateY(-10px) rotateZ(1.5deg) rotateY(4deg) scale(1.01);
+          }
+        }
+
+        /* 3. GENTLE HYPE BOP (For Ember & Nova — Rhythmic & Upbeat yet Smooth) */
+        @keyframes gentleHypeGroove {
+          0%, 100% {
+            transform: translateX(0px) translateY(0px) rotateZ(0deg) scale(1);
+          }
+          14% {
+            transform: translateX(-10px) translateY(-14px) rotateZ(-3deg) rotateY(-6deg) scale(1.02);
+          }
+          28% {
+            transform: translateX(0px) translateY(2px) rotateZ(0deg) scale(1.02, 0.98);
+          }
+          42% {
+            transform: translateX(12px) translateY(-18px) rotateZ(3.5deg) rotateY(8deg) scale(1.03);
+          }
+          58% {
+            transform: translateX(0px) translateY(-12px) rotateZ(0deg) scale(1.04);
+          }
+          72% {
+            transform: translateX(-8px) translateY(-16px) rotateZ(-2deg) rotateY(-5deg) scale(1.02);
+          }
+          86% {
+            transform: translateX(4px) translateY(-4px) rotateZ(1deg) scale(1.01);
+          }
+        }
+
+        /* 4. STREAMING RESPONSE ACCELERATION (Gentle Upbeat Nodding) */
+        @keyframes gentleStreamingGroove {
+          0%, 100% {
+            transform: translateY(0px) rotateZ(0deg) scale(1);
           }
           25% {
-            transform: translateY(-56px) scale(1.18) rotateY(180deg) rotateZ(4deg);
+            transform: translateY(-16px) rotateZ(-2.5deg) rotateY(-5deg) scale(1.03);
           }
-          55% {
-            transform: translateY(-28px) scale(1.1) rotateY(360deg) rotateZ(-2deg);
+          50% {
+            transform: translateY(-2px) rotateZ(0deg) scale(1.01);
           }
-          80% {
-            transform: translateY(5px) scale(1.08, 0.92) rotateY(360deg) rotateZ(0deg);
+          75% {
+            transform: translateY(-18px) rotateZ(2.5deg) rotateY(5deg) scale(1.03);
+          }
+        }
+
+        /* 5. CELEBRATION 360 SPIN JUMP */
+        @keyframes gentleCheerSpin {
+          0% {
+            transform: translateY(0) scale(1) rotateY(0deg);
+          }
+          30% {
+            transform: translateY(-42px) scale(1.12) rotateY(180deg);
+          }
+          65% {
+            transform: translateY(-20px) scale(1.06) rotateY(360deg);
+          }
+          85% {
+            transform: translateY(2px) scale(1.03, 0.97) rotateY(360deg);
           }
           100% {
-            transform: translateY(0) scale(1) rotateY(360deg) rotateZ(0deg);
+            transform: translateY(0) scale(1) rotateY(360deg);
           }
+        }
+
+        /* 6. FLOATING THOUGHT BUBBLE ANIMATION */
+        @keyframes thoughtBubbleFloat {
+          0%, 100% {
+            transform: translateY(0px) scale(1);
+          }
+          50% {
+            transform: translateY(-6px) scale(1.02);
+          }
+        }
+
+        .dance-gentle-routine {
+          animation: gentleMultiPoseRoutine 8.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+          transform-origin: bottom center;
+        }
+
+        .dance-gentle-dreamy {
+          animation: gentleDreamyFlow 7.8s ease-in-out infinite;
+          transform-origin: bottom center;
+        }
+
+        .dance-gentle-hype {
+          animation: gentleHypeGroove 6.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+          transform-origin: bottom center;
+        }
+
+        .dance-streaming-beat {
+          animation: gentleStreamingGroove 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+          transform-origin: bottom center;
+        }
+
+        .dance-cheer-spin {
+          animation: gentleCheerSpin 0.85s cubic-bezier(0.34, 1.56, 0.64, 1);
+          transform-origin: bottom center;
+        }
+
+        .thought-bubble-anim {
+          animation: thoughtBubbleFloat 3.2s ease-in-out infinite;
         }
 
         /* 7. Stage Ground Shadow Dynamic Pulsing */
@@ -914,7 +987,12 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
             </div>
 
             {/* RIGHT SIDE: DELUXE ANIMATED DANCING SOUNDSTAGE */}
-            <div className="hidden md:flex flex-1 h-full items-end justify-center relative overflow-visible pointer-events-auto">
+            <div
+              ref={soundstageRef}
+              onMouseMove={handleStageMouseMove}
+              onMouseLeave={handleStageMouseLeave}
+              className="hidden md:flex flex-1 h-full items-end justify-center relative overflow-visible pointer-events-auto"
+            >
               
               {/* THEATRICAL SPOTLIGHT BEAMS (Dual crossing beams) */}
               <div
@@ -1022,30 +1100,58 @@ export function ToonhubHero({ onSelectCharacter }: { onSelectCharacter?: (char: 
                 <div className="w-[85%] h-[85%] rounded-full border border-white/40 shadow-inner" />
               </div>
 
-              {/* THE 3D FIGURINE: DELUXE ANIMATED DANCE CONTAINER */}
+              {/* ENGAGING FLOATING THOUGHT / REACTION BUBBLE */}
               <div
                 onClick={(e) => triggerCheerCelebration(e)}
-                className={'relative z-30 cursor-pointer select-none transition-transform duration-300 hover:scale-[1.04] ' + getDanceClass()}
-                key={cheerTrigger}
+                className="absolute top-[16%] z-40 px-4 py-2 rounded-full bg-white/95 text-black text-xs font-bold shadow-[0_12px_30px_rgba(0,0,0,0.35)] border border-white/60 flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-all thought-bubble-anim select-none"
+                title="Click to interact!"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span>{(THOUGHTS[activeChar.name] || THOUGHTS.Luna)[thoughtIndex % (THOUGHTS[activeChar.name] || THOUGHTS.Luna).length]}</span>
+                <Sparkles size={12} className="text-amber-500 fill-amber-500" />
+              </div>
+
+              {/* THE 3D FIGURINE: GENTLE MULTI-POSE DANCE CONTAINER WITH MOUSE PARALLAX */}
+              <div
+                onClick={(e) => triggerCheerCelebration(e)}
+                className="relative z-30 cursor-pointer select-none"
                 style={{
                   height: '84%',
                   aspectRatio: '0.75 / 1',
                   marginBottom: '2.5%',
+                  perspective: '1000px',
                 }}
-                title={'Click ' + activeChar.name + ' to cheer & dance!'}
+                title={'Click ' + activeChar.name + ' to pose & celebrate!'}
               >
-                <img
-                  src={activeChar.src}
-                  alt={activeChar.name}
+                {/* 3D Mouse Parallax Tilt Wrapper */}
+                <div
                   style={{
                     width: '100%',
                     height: '100%',
-                    objectFit: 'contain',
-                    objectPosition: 'bottom center',
+                    transform: 'rotateY(' + mouseTilt.x + 'deg) rotateX(' + (-mouseTilt.y) + 'deg)',
+                    transition: 'transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1)',
                   }}
-                  draggable={false}
-                  className="drop-shadow-[0_25px_50px_rgba(0,0,0,0.55)] transition-all filter hover:brightness-105 active:scale-95"
-                />
+                  className="w-full h-full"
+                >
+                  {/* Gentle Multi-Pose Dance Wrapper */}
+                  <div
+                    className={'w-full h-full ' + getDanceClass()}
+                    key={cheerTrigger}
+                  >
+                    <img
+                      src={activeChar.src}
+                      alt={activeChar.name}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                        objectPosition: 'bottom center',
+                      }}
+                      draggable={false}
+                      className="drop-shadow-[0_25px_50px_rgba(0,0,0,0.55)] transition-all filter hover:brightness-105 active:scale-95"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Rhythmic Pulsing Ground Contact Shadow */}
